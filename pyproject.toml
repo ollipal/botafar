@@ -1,0 +1,70 @@
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "telebotties"
+authors = [{name = "Olli Paloviita"}]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: BSD",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+readme = "README.md"
+requires-python = ">=3.6"
+dynamic = ["version", "description"]
+keywords = ["telebotties"]
+
+[project.urls]
+Home = "https://github.com/ollipal/telebotties"
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+isolated_build = True
+envlist = py36, py37, py38, py39, py310
+
+[testenv]
+deps =
+    pytest
+commands =
+    pytest tests
+"""
+
+[tool.isort]
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+line_length = 79
+
+[tool.black]
+line-length = 79
+exclude = '''
+/(
+    \.git
+  | \.tox
+  | \.venv
+  | \.env
+  | _build
+  | build
+  | docs
+  | dist
+  | .github
+  | __pycache__
+)/
+'''
+
+[tool.flake8]
+ignore = "E203,E231,W503,I202"
+max-line-length = 79
+max-complexity = 18
+select = "B,C,E,F,W,T4,B9,N"
+exclude = ".git,.tox,.venv,.env,docs,dist,.github,__pycache__"
