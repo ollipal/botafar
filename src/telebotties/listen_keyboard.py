@@ -26,29 +26,38 @@ def _format_key(key):
 
 
 def _listen_keyboard_wrapper(process_input):
-    def _listen_keyboard():
-        def _on_press(key):
+    def listen_keyboard_non_blocking():
+        def on_press(key):
             process_input(_format_key(key), "host", "keyboard")
 
-        def _on_release(key):
+        def on_release(key):
             if key == keyboard.Key.esc:
                 return False
 
             process_input(_format_key(key), "host", "keyboard")
 
-        with keyboard.Listener(
-            on_press=_on_press, on_release=_on_release
-        ) as listener:
-            listener.join()
+        listener = keyboard.Listener(on_press=on_press, on_release=on_release)
+        listener.start()
 
-    return _listen_keyboard
+        return listener
+
+    return listen_keyboard_non_blocking
 
 
 if __name__ == "__main__":
+    import time
 
-    def _dummy_process_input(key, sender, origin):
+    def dummy_process_input(key, sender, origin):
         if key is not None:
             print(key)
 
-    listen_keyboard = _listen_keyboard_wrapper(_dummy_process_input)
-    listen_keyboard()
+    listen_keyboard_non_blocking = _listen_keyboard_wrapper(
+        dummy_process_input
+    )
+    listener = listen_keyboard_non_blocking()
+
+    try:
+        while listener.running:
+            time.sleep(0.1)
+    finally:
+        listener.stop()
