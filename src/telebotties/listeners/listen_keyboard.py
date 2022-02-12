@@ -1,5 +1,6 @@
-from constants import KEYS
 from pynput import keyboard
+
+from ..constants import KEYS
 
 PYNPUT_KEY_TO_KEY = {
     keyboard.Key.space: "SPACE",
@@ -28,13 +29,13 @@ def _format_key(key):
 def _listen_keyboard_wrapper(process_input):
     def listen_keyboard_non_blocking():
         def on_press(key):
-            process_input(_format_key(key), "host", "keyboard")
+            process_input(_format_key(key), "host", "keyboard", "press")
 
         def on_release(key):
             if key == keyboard.Key.esc:
                 return False
 
-            process_input(_format_key(key), "host", "keyboard")
+            process_input(_format_key(key), "host", "keyboard", "release")
 
         listener = keyboard.Listener(on_press=on_press, on_release=on_release)
         listener.start()
