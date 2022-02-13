@@ -1,3 +1,5 @@
+from .misc import _dim, _bold, _key
+
 KEYS = {
     "A",
     "B",
@@ -32,21 +34,22 @@ KEYS = {
     "RIGHT",
 }
 
-LISTEN_MESSAGE = """
+LISTEN_MESSAGE = f"""
 Listening to web connections at:
-- \033[1m127.0.0.1:1996\033[0m\t\033[2m(this device)\033[0m
-- \033[1m192.168.1.123:1996\033[0m\t\033[2m(this network)\033[0m
+- 127.0.0.1:1996\t{_dim("(this device)")}
+- 192.168.1.123:1996\t{_dim("(this network)")}
 
-Go to \033[1mhttp://localhost:3000/new\033[0m to connect
+Go to {_bold("http://localhost:3000/new")} to connect
   or
-Press \033[1;30;107m ENTER \033[0m to start listening to local keyboard events: """
+Press {_key("ENTER")} to start listening to local keyboard events: """
 
-LISTEN_KEYBOARD_MESSAGE = """
-\033[1mListening to local keyboard events\033[0m \033[2m(web connection listening stopped)\033[0m
-- stop listening and exit: \033[1;30;107m ESC \033[0m
-- send keyboard events as player: \033[1;30;107m 1 \033[0m \033[2m(default)\033[0m
-- send keyboard events as host: \033[1;30;107m 0 \033[0m
-- simulate player getting disconnected: \033[1;30;107m ENTER \033[0m
+LISTEN_KEYBOARD_MESSAGE = f"""
+
+{_bold("Listening to local keyboard events")} {_dim("(web connection listening stopped)")}
+- stop listening and exit: {_key("ESC")}
+- send keyboard events as player: {_key("1")} {_dim("(default)")}
+- send keyboard events as host: {_key("0")}
+- simulate player getting disconnected: {_key("ENTER")}
 """
 
 LISTEN_WEB_MESSAGE = (
