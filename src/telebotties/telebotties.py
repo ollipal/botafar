@@ -57,12 +57,20 @@ def _process_input(key, sender, origin, name):
 
     # Set callbacks to execute soon (non-blocking)
     # TODO check sshkeyboard for more up to date handling?
-    for callback, param in callbacks:
+    for callback, takes_event in callbacks:
         # TODO use param
         if asyncio.iscoroutinefunction(callback):
-            future = asyncio.run_coroutine_threadsafe(callback(), _loop)
+            if takes_event:
+                future = asyncio.run_coroutine_threadsafe(
+                    callback(event), _loop
+                )
+            else:
+                future = asyncio.run_coroutine_threadsafe(callback(), _loop)
         else:
-            future = _executor.submit(callback)  # , param)
+            if takes_event:
+                future = _executor.submit(callback, event)
+            else:
+                future = _executor.submit(callback)
         _futures.add(future)
         _executor.submit(_check_future_result, future)
 

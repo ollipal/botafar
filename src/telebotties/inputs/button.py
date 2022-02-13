@@ -33,7 +33,11 @@ class Button(InputBase):
         return function
 
     def on_any(self, function):
-        # TODO make sure takes event or error
+        if not self._takes_event(function):
+            raise RuntimeError(
+                "on_any callback function must take 'event' as the first parameter."
+            )
+
         self._add_state_callback("press", function)
         self._add_state_callback("release", function)
         return function

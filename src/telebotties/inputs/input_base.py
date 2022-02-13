@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from inspect import Parameter, signature
 
 # (host_only, player_only)
 SENDER_MAP = {
@@ -113,12 +114,44 @@ class InputBase(ABC):
         self._latest_event = event
         return self._state_callbacks[event.name]
 
+    def _takes_event(self, function):
+        parameters = signature(function).parameters.values()
+        takes_event = False
+        for i, param in enumerate(parameters):
+            if i == 0:
+                if param.name == "event":
+                    takes_event = True
+                elif param.kind == Parameter.POSITIONAL_ONLY:
+                    raise RuntimeError(
+                        f"The first input callback argument must be called 'event', or it needs to be optional. Currently it is '{param.name}' and it is required."
+                    )
+            else:
+                if (
+                    (
+                        param.kind == Parameter.POSITIONAL_OR_KEYWORD
+                        and param.default == Parameter.empty
+                    )
+                    or param.kind  # Reguired positional or keyword argument
+                    == Parameter.POSITIONAL_ONLY
+                    or (  # Reguired positional argument
+                        param.kind == Parameter.KEYWORD_ONLY
+                        and param.default == Parameter.empty
+                    )  # Required keyword only argument
+                ):
+                    raise RuntimeError(
+                        f"Input callback arguments need to be optional, except the first one that can be required if it called 'event'. Argument '{param.name}' should be made optional or removed."
+                    )
+        return takes_event
+
     def _add_state_callback(self, name, function):
-        # TODO check if needs event or not
+        takes_event = self._takes_event(
+            function
+        )  # Also validates other parameters
+
         if name in self._state_callbacks:
-            self._state_callbacks[name].append((function, None))
+            self._state_callbacks[name].append((function, takes_event))
         else:
-            self._state_callbacks[name] = [(function, None)]
+            self._state_callbacks[name] = [(function, takes_event)]
 
         self._callbacks_added = True
 

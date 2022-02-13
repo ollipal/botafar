@@ -1,4 +1,4 @@
-from .misc import _dim, _bold, _key
+from .misc import _bold, _dim, _key
 
 KEYS = {
     "A",
