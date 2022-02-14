@@ -12,11 +12,9 @@ b = tb.Button("A")
 def press_callback():  # Access input event: `def press_callback('event')`
     print("Button pressed")
 
-
 @b.on_release
 def release_callback():  # Access input event: `def release_callback('event')`
     print("Button released")
-
 
 tb.listen()
 

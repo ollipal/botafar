@@ -17,7 +17,8 @@ from .listeners import (
 )
 
 _executor = concurrent.futures.ThreadPoolExecutor()
-_loop = asyncio.get_event_loop()
+_loop = None # Will be set in _main
+_should_run = True
 _futures = set()
 
 
@@ -28,18 +29,13 @@ if sys.version_info.major == 3 and sys.version_info.minor == 6:
     asyncio.run = run36
 
 
-def _check_future_result(future):
-    try:
-        result = (
-            future.result()
-        )  # TODO do something with event handler results?
-    except asyncio.CancelledError:
-        pass
-    except Exception as e:
-        traceback.print_exc()
-        print("EXCEPTION")  # TODO stop execution somehow?
-    finally:
-        _futures.remove(future)
+def _done(future):
+    if not future.cancelled() and future.exception() is not None:
+        ex = future.exception()
+        traceback.print_exception(type(ex), ex, ex.__traceback__)
+        global _should_run
+        _should_run = False
+    _futures.remove(future)
 
 
 def _process_input(key, sender, origin, name):
@@ -61,31 +57,31 @@ def _process_input(key, sender, origin, name):
         # TODO use param
         if asyncio.iscoroutinefunction(callback):
             if takes_event:
-                future = asyncio.run_coroutine_threadsafe(
-                    callback(event), _loop
-                )
+                future = _loop.create_task(callback(event))
             else:
-                future = asyncio.run_coroutine_threadsafe(callback(), _loop)
+                future = _loop.create_task(callback())
         else:
             if takes_event:
                 future = _executor.submit(callback, event)
             else:
                 future = _executor.submit(callback)
         _futures.add(future)
-        _executor.submit(_check_future_result, future)
-
+        future.add_done_callback(_done)
 
 async def _main():
+    global _loop
+    _loop = asyncio.get_running_loop()
+
     listen_keyboard_non_blocking = _listen_keyboard_wrapper(_process_input)
     listener = listen_keyboard_non_blocking()
 
     try:
-        while listener.running:
+        while _should_run and listener.running:
             await asyncio.sleep(0.1)
     finally:
         listener.stop()
         print()
-
+    # TODO cancel futures?
 
 def listen():
     print(LISTEN_MESSAGE, end="")

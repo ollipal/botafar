@@ -43,7 +43,7 @@ Press {_key("ENTER")} to start listening to local keyboard events: """
 LISTEN_KEYBOARD_MESSAGE = f"""
 
 {_bold("Listening to local keyboard events")}, web connection listening stopped.
-- stop listening and exit: {_key('Ctrl')} + {_key('C')}
+- stop listening and exit: {_key('Esc')}
 - send keyboard events as player: {_key("1")} {_dim("(default)")}
 - send keyboard events as host: {_key("0")}
 - simulate player getting disconnected: {_key("Enter")}
