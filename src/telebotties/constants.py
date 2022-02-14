@@ -34,24 +34,23 @@ KEYS = {
     "RIGHT",
 }
 
-LISTEN_MESSAGE = f"""
-Listening to web connections at:
-- 127.0.0.1:1996\t{_dim("(this device)")}
-- 192.168.1.123:1996\t{_dim("(this network)")}
+LISTEN_MESSAGE = f"""Listening to web connections at 192.168.1.123:1996
 
-Go to {_bold("http://localhost:3000/new")} to connect
+Go to {_bold("http://localhost:3000/new?address=192-168-1-123-1996")} to connect
   or
 Press {_key("ENTER")} to start listening to local keyboard events: """
 
 LISTEN_KEYBOARD_MESSAGE = f"""
 
-{_bold("Listening to local keyboard events")} {_dim("(web connection listening stopped)")}
-- stop listening and exit: {_key("ESC")}
+{_bold("Listening to local keyboard events")}, web connection listening stopped.
+- stop listening and exit: {_key('Ctrl')} + {_key('C')}
 - send keyboard events as player: {_key("1")} {_dim("(default)")}
 - send keyboard events as host: {_key("0")}
-- simulate player getting disconnected: {_key("ENTER")}
+- simulate player getting disconnected: {_key("Enter")}
 """
 
 LISTEN_WEB_MESSAGE = (
-    "Connected to web, will not listen to local keyboard events.\n"
+    f"Connected to web, will not listen to local keyboard events.\n\nPress {_key('Ctrl')} + {_key('C')} to exit.\n"
 )
+
+# TODO a separate message on when pynput cannot be initialized, and should be connected from remotely
