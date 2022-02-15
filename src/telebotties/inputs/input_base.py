@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from inspect import Parameter, signature
+from ..constants import KEYS
 
 # (host_only, player_only)
 SENDER_MAP = {
@@ -76,6 +77,8 @@ class InputBase(ABC):
             self._alternative_map[alternative] = key
 
     def _register_key(self, key):
+        assert key in KEYS, f"Unknown key '{key}'" #TODO add url to allowed keys
+
         new_event_callback_keys = self._get_event_callback_keys(
             key, self._sender, self._origin
         )
