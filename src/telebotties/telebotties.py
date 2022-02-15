@@ -79,6 +79,7 @@ async def _main():
         while _should_run and listener.running:
             await asyncio.sleep(0.1)
     finally:
+        listener.wait()
         listener.stop()
         print()
     # TODO cancel futures?

@@ -39,6 +39,7 @@ def _listen_keyboard_wrapper(process_input):
 
         listener = keyboard.Listener(on_press=on_press, on_release=on_release)
         listener.start()
+        listener.wait()
 
         return listener
 
