@@ -49,8 +49,6 @@ LISTEN_KEYBOARD_MESSAGE = f"""
 - simulate player getting disconnected: {_key("Enter")}
 """
 
-LISTEN_WEB_MESSAGE = (
-    f"Connected to web, will not listen to local keyboard events.\n\nPress {_key('Ctrl')} + {_key('C')} to exit.\n"
-)
+LISTEN_WEB_MESSAGE = f"Connected to web, will not listen to local keyboard events.\n\nPress {_key('Ctrl')} + {_key('C')} to exit.\n"
 
 # TODO a separate message on when pynput cannot be initialized, and should be connected from remotely

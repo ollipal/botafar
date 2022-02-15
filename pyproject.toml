@@ -20,6 +20,22 @@ readme = "README.md"
 requires-python = ">=3.6"
 dynamic = ["version", "description"]
 keywords = ["telebotties"]
+dependencies = [
+    "pynput==1.7.3",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest==6.2.5",
+]
+dev = [
+    "black==22.1.0",
+    "codespell==2.1.0",
+    "isort==5.9.3",
+    "pep8-naming==0.12.1",
+    "pyproject-flake8==0.0.1a2",
+    "tox==3.24.4",
+]
 
 [project.urls]
 Home = "https://github.com/ollipal/telebotties"
@@ -32,7 +48,8 @@ envlist = py36, py37, py38, py39, py310
 
 [testenv]
 deps =
-    pytest
+    .
+    .[test]
 commands =
     pytest tests
 """
@@ -68,3 +85,7 @@ max-line-length = 79
 max-complexity = 18
 select = "B,C,E,F,W,T4,B9,N"
 exclude = ".git,.tox,.venv,.env,docs,dist,.github,__pycache__"
+per-file-ignores = '''
+    ./src/telebotties/constants.py: E501
+    */__init__.py:F401
+'''

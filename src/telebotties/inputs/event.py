@@ -27,4 +27,7 @@ class Event:
         return self._time
 
     def __repr__(self):
-        return f"Event(name='{self.name}', is_active={self.is_active}, sender='{self.sender}', origin='{self.origin}', time={self.time})"
+        return (
+            f"Event(name='{self.name}', is_active={self.is_active}, sender='"
+            f"{self.sender}', origin='{self.origin}', time={self.time})"
+        )

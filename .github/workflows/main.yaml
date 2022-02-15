@@ -1,0 +1,92 @@
+name: Tests and linting
+ 
+on: [push, pull_request]
+
+jobs:
+  tox:
+    runs-on: ubuntu-latest
+    env:
+      TOX_PARALLEL_NO_SPINNER: 1 # Removes logging spam
+    steps:
+      - name: Checkout and setup Pythons
+        uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.6'
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.10'
+
+      - name: Install tox and run tests
+        run: |
+          pip install tox
+          tox --parallel
+
+  isort:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install and run isort
+        run: |
+          pip install isort==5.9.3
+          isort --settings-file pyproject.toml --check-only ./src ./tests
+
+  black:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install and run black
+        run: |
+          pip install black==22.1.0
+          black --check --diff --config=pyproject.toml ./src ./tests
+
+  pflake8:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install and run pflake8, pep8-naming
+        run: |
+          pip install pyproject-flake8==0.0.1a2 pep8-naming==0.12.1
+          pflake8 --config=pyproject.toml
+
+  codespell:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install and run codespell
+        run: |
+          pip install codespell==2.1.0
+          codespell ./src ./tests
+
+  markdownlint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Ruby 2.7.2
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 2.7.2
+
+      - name: Install and run markdown lint
+        run: |
+          gem install mdl -v 0.11.0
+          mdl --style './docs/.mdl-style.rb' .

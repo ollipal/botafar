@@ -17,7 +17,7 @@ from .listeners import (
 )
 
 _executor = concurrent.futures.ThreadPoolExecutor()
-_loop = None # Will be set in _main
+_loop = None  # Will be set in _main
 _should_run = True
 _futures = set()
 
@@ -68,6 +68,7 @@ def _process_input(key, sender, origin, name):
         _futures.add(future)
         future.add_done_callback(_done)
 
+
 async def _main():
     global _loop
     _loop = asyncio.get_running_loop()
@@ -83,6 +84,7 @@ async def _main():
         listener.stop()
         print()
     # TODO cancel futures?
+
 
 def listen():
     print(LISTEN_MESSAGE, end="")

@@ -65,7 +65,7 @@ class InputBase(ABC):
     def _register_alternative_keys(self, alternatives):
         if self._callbacks_added:
             raise RuntimeError(
-                f"alternative() should be used before registering callbacks"
+                "alternative() should be used before registering callbacks"
             )
 
         # TODO make sure can be called only if not listening started and
@@ -82,7 +82,10 @@ class InputBase(ABC):
         for callback_key in new_event_callback_keys:
             if callback_key in self._event_callbacks:
                 raise RuntimeError(
-                    f"Cannot create {self}. {self._event_callbacks[callback_key]} already handles some of the same input events. Only one input can handle each Event."
+                    f"Cannot create {self}. "
+                    f"{self._event_callbacks[callback_key]} already handles "
+                    "some of the same input events. Only one input can "
+                    "handle each Event."
                 )
             self._event_callbacks[callback_key] = self
 
@@ -123,7 +126,9 @@ class InputBase(ABC):
                     takes_event = True
                 elif param.kind == Parameter.POSITIONAL_ONLY:
                     raise RuntimeError(
-                        f"The first input callback argument must be called 'event', or it needs to be optional. Currently it is '{param.name}' and it is required."
+                        f"The first input callback argument must be called "
+                        "'event', or it needs to be optional. Currently it "
+                        f"is '{param.name}' and it is required."
                     )
             else:
                 if (
@@ -139,7 +144,10 @@ class InputBase(ABC):
                     )  # Required keyword only argument
                 ):
                     raise RuntimeError(
-                        f"Input callback arguments need to be optional, except the first one that can be required if it called 'event'. Argument '{param.name}' should be made optional or removed."
+                        "Input callback arguments need to be optional, "
+                        "except the first one that can be required if it "
+                        f"called 'event'. Argument '{param.name}' should be "
+                        "made optional or removed."
                     )
         return takes_event
 

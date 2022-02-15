@@ -11,6 +11,7 @@ if _is_windows:
 else:
     import fcntl
 
+
 # Nonblocking input check, inspiration from:
 # http://ballingt.com/_nonblocking-stdin-in-python-3/
 @contextmanager

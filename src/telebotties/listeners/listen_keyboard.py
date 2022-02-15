@@ -1,14 +1,18 @@
-from pynput import keyboard
-
 from ..constants import KEYS
 
-PYNPUT_KEY_TO_KEY = {
-    keyboard.Key.space: "SPACE",
-    keyboard.Key.up: "UP",
-    keyboard.Key.left: "LEFT",
-    keyboard.Key.down: "DOWN",
-    keyboard.Key.right: "RIGHT",
-}
+try:
+    from pynput import keyboard
+
+    PYNPUT_KEY_TO_KEY = {
+        keyboard.Key.space: "SPACE",
+        keyboard.Key.up: "UP",
+        keyboard.Key.left: "LEFT",
+        keyboard.Key.down: "DOWN",
+        keyboard.Key.right: "RIGHT",
+    }
+    pynput_supported = True
+except ImportError:
+    pynput_supported = False
 
 
 def _format_key(key):
