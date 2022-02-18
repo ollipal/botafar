@@ -1,13 +1,12 @@
 import asyncio
 import concurrent.futures
-import sys
-import time
 import traceback
 
 from .constants import (
     LISTEN_KEYBOARD_MESSAGE,
     LISTEN_MESSAGE,
     LISTEN_WEB_MESSAGE,
+    SIGINT_MESSAGE,
 )
 from .inputs import Event, InputBase
 from .listeners import (
@@ -15,27 +14,40 @@ from .listeners import (
     _start_listening_enter,
     _stop_listening_enter,
 )
+from .log_formatter import get_logger, setup_logging
+from .websocket import Server
+
+setup_logging("DEBUG")
+logger = get_logger()
 
 _executor = concurrent.futures.ThreadPoolExecutor()
 _loop = None  # Will be set in _main
-_should_run = True
+_listener = None
 _futures = set()
+_server = None
+_connected = False
 
 
-# Fix Python3.6 asyncio.run()
-if sys.version_info.major == 3 and sys.version_info.minor == 6:
-    from misc import run36
-
-    asyncio.run = run36
+async def _stop_listener():
+    global _listener
+    if _listener is not None:
+        _listener.wait()
+        _listener.stop()
+    else:
+        logger.debug("listener was None")
 
 
 def _done(future):
-    if not future.cancelled() and future.exception() is not None:
-        ex = future.exception()
-        traceback.print_exception(type(ex), ex, ex.__traceback__)
-        global _should_run
-        _should_run = False
     _futures.remove(future)
+    if not future.cancelled() and future.exception() is not None:
+        global _listener
+        if _listener.running:
+            ex = future.exception()
+            exception_string = "".join(
+                traceback.format_exception(type(ex), ex, ex.__traceback__)
+            )
+            logger.error(exception_string)
+            asyncio.run_coroutine_threadsafe(_stop_listener(), _loop)
 
 
 def _process_input(key, sender, origin, name):
@@ -57,9 +69,11 @@ def _process_input(key, sender, origin, name):
         # TODO use param
         if asyncio.iscoroutinefunction(callback):
             if takes_event:
-                future = _loop.create_task(callback(event))
+                future = asyncio.run_coroutine_threadsafe(
+                    callback(event), _loop
+                )
             else:
-                future = _loop.create_task(callback())
+                future = asyncio.run_coroutine_threadsafe(callback(), _loop)
         else:
             if takes_event:
                 future = _executor.submit(callback, event)
@@ -71,32 +85,69 @@ def _process_input(key, sender, origin, name):
 
 async def _main():
     global _loop
+    global _server
     _loop = asyncio.get_running_loop()
 
-    listen_keyboard_non_blocking = _listen_keyboard_wrapper(_process_input)
-    listener = listen_keyboard_non_blocking()
+    print(LISTEN_MESSAGE, end="")
 
-    try:
-        while _should_run and listener.running:
+    def event_handler(event):
+        if "connect" in event:
+            global _connected
+            _stop_listening_enter()
+            print(LISTEN_WEB_MESSAGE)
+            _connected = True
+        print(f"event={event}")
+
+    _server = Server(event_handler)
+
+    enter_event = _start_listening_enter()
+
+    async def wait_enter():
+        global _connected
+        while not _connected:
+            if enter_event.is_set():
+                _server.stop()
+                break
             await asyncio.sleep(0.1)
-    finally:
-        listener.wait()
-        listener.stop()
-        print()
-    # TODO cancel futures?
+
+    await asyncio.gather(
+        _server.serve(8080),
+        wait_enter(),
+    )
+
+    if not _connected:
+        print(LISTEN_KEYBOARD_MESSAGE)
+
+        global _listener
+        listen_keyboard_non_blocking = _listen_keyboard_wrapper(_process_input)
+        _listener = listen_keyboard_non_blocking()
+
+        try:
+            # asyncio.Event() would be cleaner if can get to work
+            while _listener.running:
+                await asyncio.sleep(0.1)
+        finally:
+            print()
+
+    await asyncio.sleep(2)
+
+    # TODO wait futures?
 
 
 def listen():
-    print(LISTEN_MESSAGE, end="")
-    enter_event = _start_listening_enter()
-    for _ in range(50):
-        time.sleep(0.1)
-        if enter_event.is_set():
-            break
+    import signal
 
-    if enter_event.is_set():
-        print(LISTEN_KEYBOARD_MESSAGE)
-        asyncio.run(_main())
-    else:
-        _stop_listening_enter()
-        print(LISTEN_WEB_MESSAGE)
+    original_sigint_handler = signal.getsignal(signal.SIGINT)
+
+    def signal_handler(_signal, frame):
+        signal.signal(signal.SIGINT, original_sigint_handler)  # Reset
+        print(SIGINT_MESSAGE)
+        global server
+        _server.stop()
+        _stop_listening_enter() # Not sure if this ok
+        global _connected
+        _connected = True # TODO better way
+        asyncio.run_coroutine_threadsafe(_stop_listener(), _loop)
+
+    signal.signal(signal.SIGINT, signal_handler)
+    asyncio.run(_main())

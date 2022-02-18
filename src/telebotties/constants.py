@@ -1,4 +1,4 @@
-from .misc import _bold, _dim, _key
+from .string_utils import _bold, _dim, _key
 
 KEYS = {
     "A",
@@ -34,6 +34,9 @@ KEYS = {
     "RIGHT",
 }
 
+SENDERS = {"player", "host"}
+ORIGINS = {"keyboard", "screen"}
+
 LISTEN_MESSAGE = f"""Listening to web connections at 192.168.1.123:1996
 
 Go to {_bold("http://localhost:3000/new?address=192-168-1-123-1996")} to connect
@@ -50,5 +53,7 @@ LISTEN_KEYBOARD_MESSAGE = f"""
 """
 
 LISTEN_WEB_MESSAGE = f"Connected to web, will not listen to local keyboard events.\n\nPress {_key('Ctrl')} + {_key('C')} to exit.\n"
+
+SIGINT_MESSAGE = f"\n\n{_key('Ctrl')} + {_key('C')} received, shutting down gracefully... {_dim('(Press again to exit immediately)')}"
 
 # TODO a separate message on when pynput cannot be initialized, and should be connected from remotely

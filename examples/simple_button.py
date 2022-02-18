@@ -9,12 +9,12 @@ b = tb.Button("A")
 
 
 @b.on_press
-def press_callback():  # Access input event: `def press_callback('event')`
+def press_callback():  # Access event: `def press_callback('event')`
     print("Button pressed")
 
 
 @b.on_release
-def release_callback():  # Access input event: `def release_callback('event')`
+def release_callback():  # Access event: `def release_callback('event')`
     print("Button released")
 
 
