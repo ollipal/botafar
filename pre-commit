@@ -15,10 +15,6 @@ function die(){
  exit 1
 }
 
-echo "tox:"
-tox -e $TOX_ENVS --parallel || die
-echo -e "--------------------------------\n"
-
 echo "isort:"
 isort --settings-file pyproject.toml ./src ./tests || die
 echo -e "--------------------------------\n"
@@ -33,6 +29,10 @@ echo -e "--------------------------------\n"
 
 echo "codespell:"
 codespell ./src ./tests || die
+echo -e "--------------------------------\n"
+
+echo "tox:"
+tox -e $TOX_ENVS --parallel || die
 echo -e "--------------------------------\n"
 
 if [ "$RUN_MDL" = true ] ; then
