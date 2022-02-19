@@ -2,6 +2,7 @@ import asyncio
 import signal
 from abc import ABC, abstractmethod
 
+from .listeners import KeyboardListener
 from .log_formatter import get_logger
 from .string_utils import error_to_string
 
@@ -9,23 +10,24 @@ logger = get_logger()
 
 
 class TelebottiesBase(ABC):
-    def __init__(self):
-        self.loop = None  # Will be set in _main
-        self.listener = None
+    def __init__(self, suppress_keys=False):
+        self.loop = None
+        self.keyboard_listener = KeyboardListener(
+            self.process_input, suppress_keys
+        )
         self.futures = set()
         self.register_sigint_handler()
 
     async def _stop_listener(self):
-        if self.listener is not None:
-            self.listener.wait()
-            self.listener.stop()
+        if self.keyboard_listener.running:
+            self.keyboard_listener.stop()
         else:
-            logger.debug("listener was None")
+            logger.debug("KeyboardListener was not running")
 
     def _done(self, future):
         self.futures.remove(future)
         if not future.cancelled() and future.exception() is not None:
-            if self.listener.running:
+            if self.keyboard_listener.running:
                 e = future.exception()
                 logger.error(error_to_string(e))
                 asyncio.run_coroutine_threadsafe(
@@ -35,6 +37,10 @@ class TelebottiesBase(ABC):
     @abstractmethod
     def process_input(self, key, sender, origin, name):
         pass
+
+    async def _main(self):
+        self.loop = asyncio.get_running_loop()
+        await self.main()
 
     @abstractmethod
     async def main(self):
@@ -59,4 +65,4 @@ class TelebottiesBase(ABC):
         signal.signal(signal.SIGINT, signal_handler)
 
     def run(self):
-        asyncio.run(self.main())
+        asyncio.run(self._main())

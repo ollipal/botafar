@@ -1,18 +1,9 @@
 import asyncio
 import concurrent.futures
 
-from .constants import (
-    LISTEN_KEYBOARD_MESSAGE,
-    LISTEN_MESSAGE,
-    LISTEN_WEB_MESSAGE,
-    SIGINT_MESSAGE,
-)
+from .constants import LISTEN_MESSAGE, LISTEN_WEB_MESSAGE, SIGINT_MESSAGE
 from .inputs import Event, InputBase
-from .listeners import (
-    listen_keyboard_wrapper,
-    start_listening_enter,
-    stop_listening_enter,
-)
+from .listeners import EnterListener
 from .log_formatter import get_logger, setup_logging
 from .telebotties_base import TelebottiesBase
 from .websocket import Server
@@ -25,6 +16,7 @@ class Main(TelebottiesBase):
         self.executor = concurrent.futures.ThreadPoolExecutor()
         self.server = None
         self.connected = False
+        self.enter_listener = None
         super().__init__()
 
     def process_input(self, key, sender, origin, name):
@@ -61,58 +53,38 @@ class Main(TelebottiesBase):
             self.register_future(future)
 
     async def main(self):
-        self.loop = asyncio.get_running_loop()
-
         print(LISTEN_MESSAGE, end="")
+
+        self.enter_listener = EnterListener()
 
         def event_handler(event):
             if "connect" in event:
-                stop_listening_enter()
+                if self.enter_listener.running:
+                    self.enter_listener.stop()
                 print(LISTEN_WEB_MESSAGE)
                 self.connected = True
             print(f"event={event}")
 
         self.server = Server(event_handler)
 
-        enter_event = start_listening_enter()
-
-        async def wait_enter():
-            while not self.connected:
-                if enter_event.is_set():
-                    self.server.stop()
-                    break
-                await asyncio.sleep(0.1)
-
         await asyncio.gather(
+            self.enter_listener.run_until_finished(self.server.stop),
             self.server.serve(8080),
-            wait_enter(),
         )
 
         if not self.connected:
-            print(LISTEN_KEYBOARD_MESSAGE)
-
-            listen_keyboard_non_blocking = listen_keyboard_wrapper(
-                self.process_input
-            )
-            self.listener = listen_keyboard_non_blocking()
-
-            try:
-                # asyncio.Event() would be cleaner if can get to work
-                while self.listener.running:
-                    await asyncio.sleep(0.1)
-            finally:
-                print()
-
-        await asyncio.sleep(2)
+            await self.keyboard_listener.run_until_finished()
 
     def sigint_callback(self):
         print(SIGINT_MESSAGE)
         self.server.stop()
-        stop_listening_enter()  # Not sure if this ok
+        if self.enter_listener is not None and self.enter_listener.running:
+            self.enter_listener.stop()  # Not sure if this ok
+        else:
+            logger.debug("enter_listener was None or not running")
         self.connected = True  # TODO better way
 
 
 def listen():
     setup_logging("DEBUG")
-    tb_main = Main()
-    tb_main.run()
+    Main().run()
