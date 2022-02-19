@@ -16,7 +16,7 @@ class Cli(TelebottiesBase):
         super()._done(future)
 
         if future.result() is False:  # Send failed
-            logger.info("disconnected")
+            logger.info("Keyboard disconnected")
             if self.keyboard_listener.running:
                 self.keyboard_listener.stop()
 

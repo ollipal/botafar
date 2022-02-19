@@ -2,7 +2,8 @@ import asyncio
 import concurrent.futures
 
 from .constants import LISTEN_MESSAGE, LISTEN_WEB_MESSAGE, SIGINT_MESSAGE
-from .inputs import Event, InputBase
+from .inputs import InputBase
+from .events import Event
 from .listeners import EnterListener
 from .log_formatter import get_logger, setup_logging
 from .telebotties_base import TelebottiesBase
@@ -14,9 +15,18 @@ logger = get_logger()
 class Main(TelebottiesBase):
     def __init__(self):
         self.executor = concurrent.futures.ThreadPoolExecutor()
-        self.server = None
-        self.connected = False
-        self.enter_listener = None
+        self.should_connect_keyboard = True
+        self.enter_listener = EnterListener()
+
+        def event_handler(event): # TODO a proper handler
+            if "connect" in event:
+                self.enter_listener.stop()
+                print(LISTEN_WEB_MESSAGE)
+                self.should_connect_keyboard = False
+            print(f"event={event}")
+
+        self.server = Server(event_handler)
+
         super().__init__()
 
     def process_input(self, key, sender, origin, name):
@@ -47,34 +57,19 @@ class Main(TelebottiesBase):
     async def main(self):
         print(LISTEN_MESSAGE, end="")
 
-        self.enter_listener = EnterListener()
-
-        def event_handler(event):
-            if "connect" in event:
-                if self.enter_listener.running:
-                    self.enter_listener.stop()
-                print(LISTEN_WEB_MESSAGE)
-                self.connected = True
-            print(f"event={event}")
-
-        self.server = Server(event_handler)
-
         await asyncio.gather(
             self.enter_listener.run_until_finished(self.server.stop),
             self.server.serve(8080),
         )
 
-        if not self.connected:
+        if self.should_connect_keyboard:
             await self.keyboard_listener.run_until_finished()
 
     def sigint_callback(self):
         print(SIGINT_MESSAGE)
         self.server.stop()
-        if self.enter_listener is not None and self.enter_listener.running:
-            self.enter_listener.stop()  # Not sure if this ok
-        else:
-            logger.debug("enter_listener was None or not running")
-        self.connected = True  # TODO better way
+        self.enter_listener.stop()
+        self.should_connect_keyboard = False 
 
 
 def listen():

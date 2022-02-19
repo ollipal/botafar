@@ -1,6 +1,9 @@
 import asyncio
 
+from ..log_formatter import get_logger
 from ..constants import KEYS, LISTEN_KEYBOARD_MESSAGE
+
+logger = get_logger()
 
 try:
     from pynput import keyboard
@@ -40,7 +43,10 @@ class KeyboardListener:
         self._event = None
 
     async def run_until_finished(self):
-        assert not self.running
+        if self.running:
+            logger.debug("KeyboardListener was already running")
+            return
+
         self._running = True
         self._event = asyncio.Event()
         self._loop = asyncio.get_running_loop()
@@ -74,7 +80,10 @@ class KeyboardListener:
             print()
 
     def stop(self):
-        assert self.running
+        if not self.running:
+            logger.debug("KeyboardListener was not running")
+            return
+
         self._running = False
         self._loop.call_soon_threadsafe(self._event.set)
 

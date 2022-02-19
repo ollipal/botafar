@@ -4,6 +4,7 @@ import sys
 import threading
 from contextlib import contextmanager
 from platform import system
+from ..log_formatter import get_logger
 
 is_windows = system().lower() == "windows"
 
@@ -11,6 +12,9 @@ if is_windows:
     import msvcrt
 else:
     import fcntl
+
+logger = get_logger()
+
 
 
 # Nonblocking input check, inspiration from:
@@ -49,7 +53,10 @@ class EnterListener:
         self._thread = None
 
     async def run_until_finished(self, enter_callback):
-        assert not self.running
+        if self.running:
+            logger.debug("EnterListener was already running")
+            return
+
         self._running = True
         self._event = asyncio.Event()
         self._loop = asyncio.get_running_loop()
@@ -67,7 +74,10 @@ class EnterListener:
         self._thread.join()
 
     def stop(self):
-        assert self.running
+        if not self.running:
+            logger.debug("EnterListener was not running")
+            return
+
         self._running = False
         self._loop.call_soon_threadsafe(self._event.set)
 

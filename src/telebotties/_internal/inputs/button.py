@@ -1,4 +1,4 @@
-from .event import Event
+from ..events import Event
 from .input_base import InputBase
 
 
