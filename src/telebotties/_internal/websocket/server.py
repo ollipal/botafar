@@ -3,9 +3,8 @@ import asyncio
 import websockets
 
 from ..log_formatter import get_logger
-from .json_utils import decode_message
-
 from ..string_utils import error_to_string
+from .json_utils import decode_message
 
 logger = get_logger()
 

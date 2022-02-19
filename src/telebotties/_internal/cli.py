@@ -1,90 +1,66 @@
 import asyncio
-import signal
 
-from .constants import LISTEN_KEYBOARD_MESSAGE, SIGINT_MESSAGE
+from .constants import LISTEN_KEYBOARD_MESSAGE
 from .listeners import listen_keyboard_wrapper
-from .log_formatter import get_logger
+from .log_formatter import get_logger, setup_logging
+from .telebotties_base import TelebottiesBase
 from .websocket import Client
-from .string_utils import error_to_string
 
 logger = get_logger()
 
-# Will be set in _main()
-client = None
-loop = None
-listener = None
 
+class Cli(TelebottiesBase):
+    def __init__(self):
+        self.client = None
+        super().__init__()
 
-async def _stop_listener():
-    global listener
-    listener.wait()
-    listener.stop()
-
-
-def _done(future):
-    if not future.cancelled() and future.exception() is not None:
-        global listener
-        if listener.running:
-            e = future.exception()
-            logger.error(error_to_string(e))
-            loop.create_task(_stop_listener())
-
-    if future.result() is False:  # Send failed
-        logger.info("disconnected")
-        loop.create_task(_stop_listener())
-
-
-def _process_input(key, sender, origin, name):
-    future = loop.create_task(client.send(key, sender, origin, name))
-    future.add_done_callback(_done)  # TODO raising error on send does not
-
-
-async def _main():
-    global loop
-    global client
-    global listener
-    loop = asyncio.get_running_loop()
-    client = Client(8080)
-
-    try:
-        await client.connect()
-    except ConnectionRefusedError:
-        print(
-            "Connection refused to 127.0.0.1:8080, "
-            "wrong address or bot not running?"
+    def process_input(self, key, sender, origin, name):
+        future = self.loop.create_task(
+            self.client.send(key, sender, origin, name)
         )
-        return
+        self.register_future(future)
 
-    # Check even first send, it does not raise errors
-    # (they do not seem to work as expected)
-    res = await client.send("A", "player", "keyboard", "connect")
-    if not res:
-        await client.stop()
-        return
+    async def main(self):
+        self.loop = asyncio.get_running_loop()
+        self.client = Client(8080)
 
-    print(LISTEN_KEYBOARD_MESSAGE)
+        try:
+            await self.client.connect()
+        except ConnectionRefusedError:
+            print(
+                "Connection refused to 127.0.0.1:8080, "
+                "wrong address or bot not running?"
+            )
+            return
 
-    listen_keyboard_non_blocking = listen_keyboard_wrapper(_process_input)
-    listener = listen_keyboard_non_blocking()
+        # Check even first send, it does not raise errors
+        # (they do not seem to work as expected)
+        res = await self.client.send("A", "player", "keyboard", "connect")
+        if not res:
+            await self.client.stop()
+            return
 
-    try:
-        while listener.running:
-            await asyncio.sleep(0.1)
-    finally:
-        await client.stop()
-        print()
+        print(LISTEN_KEYBOARD_MESSAGE)
 
-    await asyncio.sleep(2)
+        listen_keyboard_non_blocking = listen_keyboard_wrapper(
+            self.process_input
+        )
+        self.listener = listen_keyboard_non_blocking()
+
+        try:
+            while self.listener.running:
+                await asyncio.sleep(0.1)
+        finally:
+            await self.client.stop()
+            print()
+
+        await asyncio.sleep(2)
+
+    def sigint_callback(self):
+        asyncio.run_coroutine_threadsafe(self._stop_listener(), self.loop)
 
 
 def _cli():
-    original_sigint_handler = signal.getsignal(signal.SIGINT)
-
-    def signal_handler(_signal, frame):
-        signal.signal(signal.SIGINT, original_sigint_handler)  # Reset
-        print(SIGINT_MESSAGE)
-        asyncio.run_coroutine_threadsafe(_stop_listener(), loop)
-
-    signal.signal(signal.SIGINT, signal_handler)
-
-    asyncio.run(_main())
+    setup_logging("DEBUG")
+    tb_cli = Cli()
+    tb_cli.run()
