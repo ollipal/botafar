@@ -1,14 +1,11 @@
 import asyncio
-import traceback
 import signal
 
+from .constants import LISTEN_KEYBOARD_MESSAGE, SIGINT_MESSAGE
 from .listeners import listen_keyboard_wrapper
 from .log_formatter import get_logger
 from .websocket import Client
-from .constants import (
-    LISTEN_KEYBOARD_MESSAGE,
-    SIGINT_MESSAGE,
-)
+from .string_utils import error_to_string
 
 logger = get_logger()
 
@@ -28,11 +25,8 @@ def _done(future):
     if not future.cancelled() and future.exception() is not None:
         global listener
         if listener.running:
-            ex = future.exception()
-            exception_string = "".join(
-                traceback.format_exception(type(ex), ex, ex.__traceback__)
-            )
-            logger.error(exception_string)
+            e = future.exception()
+            logger.error(error_to_string(e))
             loop.create_task(_stop_listener())
 
     if future.result() is False:  # Send failed
@@ -67,7 +61,7 @@ async def _main():
     if not res:
         await client.stop()
         return
-    
+
     print(LISTEN_KEYBOARD_MESSAGE)
 
     listen_keyboard_non_blocking = listen_keyboard_wrapper(_process_input)
@@ -79,7 +73,7 @@ async def _main():
     finally:
         await client.stop()
         print()
-    
+
     await asyncio.sleep(2)
 
 

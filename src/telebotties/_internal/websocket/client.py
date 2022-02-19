@@ -1,9 +1,9 @@
-import traceback
-
 import websockets
 
 from ..log_formatter import get_logger
 from .json_utils import decode_message, encode_message
+
+from ..string_utils import error_to_string
 
 logger = get_logger()
 
@@ -38,10 +38,7 @@ class Client:
         except websockets.exceptions.ConnectionClosedOK as e:
             logger.debug(f"Client.send connection closed: {e}")
         except Exception as e:
-            exception_string = "".join(
-                traceback.format_exception(type(e), e, e.__traceback__)
-            )
-            logger.error(exception_string)
+            logger.error(error_to_string(e))
         return False
 
     async def stop(self):

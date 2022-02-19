@@ -1,6 +1,5 @@
 import asyncio
 import concurrent.futures
-import traceback
 import signal
 
 from .constants import (
@@ -17,6 +16,7 @@ from .listeners import (
 )
 from .log_formatter import get_logger, setup_logging
 from .websocket import Server
+from .string_utils import error_to_string
 
 setup_logging("DEBUG")
 logger = get_logger()
@@ -43,11 +43,8 @@ def _done(future):
     if not future.cancelled() and future.exception() is not None:
         global listener
         if listener.running:
-            ex = future.exception()
-            exception_string = "".join(
-                traceback.format_exception(type(ex), ex, ex.__traceback__)
-            )
-            logger.error(exception_string)
+            e = future.exception()
+            logger.error(error_to_string(e))
             asyncio.run_coroutine_threadsafe(_stop_listener(), loop)
 
 

@@ -1,10 +1,11 @@
 import asyncio
-import traceback
 
 import websockets
 
 from ..log_formatter import get_logger
 from .json_utils import decode_message
+
+from ..string_utils import error_to_string
 
 logger = get_logger()
 
@@ -32,9 +33,9 @@ class Server:
                 logger.info("disconnected")  # TODO in event handler
                 logger.debug(f"Server disconnected ok: {e}")
                 break
-            except Exception:
+            except Exception as e:
                 # TODO print error properly
-                traceback.print_exc()
+                error_to_string(e)
                 self.stop()
                 break
 
