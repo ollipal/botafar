@@ -30,7 +30,7 @@ def _format_key(key):
     return None
 
 
-def _listen_keyboard_wrapper(process_input):
+def listen_keyboard_wrapper(process_input):
     def listen_keyboard_non_blocking():
         def on_press(key):
             key = _format_key(key)
@@ -63,9 +63,7 @@ if __name__ == "__main__":
         if key is not None:
             print(key)
 
-    listen_keyboard_non_blocking = _listen_keyboard_wrapper(
-        dummy_process_input
-    )
+    listen_keyboard_non_blocking = listen_keyboard_wrapper(dummy_process_input)
     listener = listen_keyboard_non_blocking()
 
     try:

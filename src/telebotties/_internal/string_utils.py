@@ -1,10 +1,10 @@
-def _dim(string):
+def dim(string):
     return f"\033[2m{string}\033[0m"
 
 
-def _bold(string):
+def bold(string):
     return f"\033[1m{string}\033[0m"
 
 
-def _key(string):
+def key(string):
     return f"\033[1;30;107m {string} \033[0m"

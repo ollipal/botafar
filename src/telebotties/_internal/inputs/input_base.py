@@ -32,7 +32,6 @@ ORIGIN_REPR = {
 
 class InputBase(ABC):
     _event_callbacks = {}
-    _blocked_event_keys = set()  # TODO
 
     def __init__(
         self,

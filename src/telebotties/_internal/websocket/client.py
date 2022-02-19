@@ -1,4 +1,3 @@
-import asyncio
 import traceback
 
 import websockets
@@ -11,15 +10,15 @@ logger = get_logger()
 
 class Client:
     def __init__(self, port):
-        self._port = port
-        self._websocket = None
+        self.port = port
+        self.websocket = None
 
     async def receive(self):
         assert (
-            self._websocket is not None
+            self.websocket is not None
         ), "Client.connect() not called before .receive()"
         try:
-            data = await self._websocket.recv()
+            data = await self.websocket.recv()
         except websockets.exceptions.ConnectionClosed:
             return None  # TODO maybe indicate was closed?
 
@@ -27,10 +26,10 @@ class Client:
 
     async def send(self, key, sender, origin, name):
         assert (
-            self._websocket is not None
+            self.websocket is not None
         ), "Client.connect() not called before .send()"
         try:
-            await self._websocket.send(
+            await self.websocket.send(
                 encode_message(key, sender, origin, name)
             )
             return True
@@ -46,12 +45,12 @@ class Client:
         return False
 
     async def stop(self):
-        if self._websocket is None:
-            logger.debug(f"Client.stop skipped, not connected?")
+        if self.websocket is None:
+            logger.debug("Client.stop skipped, not connected?")
             return
-        await self._websocket.close()
+        await self.websocket.close()
 
     async def connect(self):
-        self._websocket = await websockets.connect(
-            f"ws://localhost:{self._port}"
+        self.websocket = await websockets.connect(
+            f"ws://localhost:{self.port}"
         )

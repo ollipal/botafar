@@ -2,6 +2,6 @@
 
 __version__ = "0.0.1"
 
-from .cli import _cli
-from .inputs import Button
-from .telebotties import listen
+from ._internal.cli import _cli  # This enables `telebotties` from cli
+from ._internal.inputs import Button
+from ._internal.telebotties import listen
