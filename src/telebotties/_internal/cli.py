@@ -1,9 +1,14 @@
 import asyncio
 import traceback
+import signal
 
 from .listeners import listen_keyboard_wrapper
 from .log_formatter import get_logger
 from .websocket import Client
+from .constants import (
+    LISTEN_KEYBOARD_MESSAGE,
+    SIGINT_MESSAGE,
+)
 
 logger = get_logger()
 
@@ -62,6 +67,8 @@ async def _main():
     if not res:
         await client.stop()
         return
+    
+    print(LISTEN_KEYBOARD_MESSAGE)
 
     listen_keyboard_non_blocking = listen_keyboard_wrapper(_process_input)
     listener = listen_keyboard_non_blocking()
@@ -72,7 +79,18 @@ async def _main():
     finally:
         await client.stop()
         print()
+    
+    await asyncio.sleep(2)
 
 
 def _cli():
+    original_sigint_handler = signal.getsignal(signal.SIGINT)
+
+    def signal_handler(_signal, frame):
+        signal.signal(signal.SIGINT, original_sigint_handler)  # Reset
+        print(SIGINT_MESSAGE)
+        asyncio.run_coroutine_threadsafe(_stop_listener(), loop)
+
+    signal.signal(signal.SIGINT, signal_handler)
+
     asyncio.run(_main())

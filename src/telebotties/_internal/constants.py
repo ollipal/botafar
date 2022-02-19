@@ -53,13 +53,13 @@ LISTEN_KEYBOARD_MESSAGE = f"""
 """
 
 LISTEN_WEB_MESSAGE = (
-  "Connected to web, will not listen to local keyboard events.\n\n"
-  f"Press {key('Ctrl')} + {key('C')} to exit.\n"
+    "Connected to web, will not listen to local keyboard events.\n\n"
+    f"Press {key('Ctrl')} + {key('C')} to exit.\n"
 )
 
 SIGINT_MESSAGE = (
-  f"\n\n{key('Ctrl')} + {key('C')} received, "
-  f"shutting down gracefully... {dim('(Press again to exit immediately)')}"
+    f"\n\n{key('Ctrl')} + {key('C')} received, "
+    f"shutting down gracefully... {dim('(Press again to exit immediately)')}"
 )
 
 # TODO a separate message on when pynput cannot be initialized,

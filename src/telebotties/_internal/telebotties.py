@@ -1,6 +1,7 @@
 import asyncio
 import concurrent.futures
 import traceback
+import signal
 
 from .constants import (
     LISTEN_KEYBOARD_MESSAGE,
@@ -58,7 +59,7 @@ def _process_input(key, sender, origin, name):
     event = Event(name, True, sender, origin, -1)
     callbacks = InputBase._event_callbacks[
         event_key
-    ].get_callbacks_with_parameters(key, event)
+    ]._get_callbacks_with_parameters(key, event)
 
     if callbacks is None:
         return
@@ -135,8 +136,6 @@ async def _main():
 
 
 def listen():
-    import signal
-
     original_sigint_handler = signal.getsignal(signal.SIGINT)
 
     def signal_handler(_signal, frame):
