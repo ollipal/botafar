@@ -22,8 +22,7 @@ class Cli(TelebottiesBase):
 
     def process_input(self, key, sender, origin, name):
         future = asyncio.run_coroutine_threadsafe(
-            self.client.send(key, sender, origin, name),
-            self.loop
+            self.client.send(key, sender, origin, name), self.loop
         )
         self.register_future(future)
 

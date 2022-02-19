@@ -33,23 +33,15 @@ class Main(TelebottiesBase):
             return
 
         # Set callbacks to execute soon (non-blocking)
-        # TODO check sshkeyboard for more up to date handling?
         for callback, takes_event in callbacks:
-            # TODO use param
             if asyncio.iscoroutinefunction(callback):
-                if takes_event:
-                    future = asyncio.run_coroutine_threadsafe(
-                        callback(event), self.loop
-                    )
-                else:
-                    future = asyncio.run_coroutine_threadsafe(
-                        callback(), self.loop
-                    )
+                params = [event] if takes_event else []
+                future = asyncio.run_coroutine_threadsafe(
+                    callback(*params), self.loop
+                )
             else:
-                if takes_event:
-                    future = self.executor.submit(callback, event)
-                else:
-                    future = self.executor.submit(callback)
+                params = [callback, event] if takes_event else [callback]
+                future = self.executor.submit(*params)
             self.register_future(future)
 
     async def main(self):

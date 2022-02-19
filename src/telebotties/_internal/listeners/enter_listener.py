@@ -88,6 +88,7 @@ class EnterListener:
 
 
 if __name__ == "__main__":
+
     def enter():
         print("Enter")
 
