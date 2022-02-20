@@ -1,7 +1,12 @@
 import asyncio
 import concurrent.futures
 
-from .constants import LISTEN_MESSAGE, LISTEN_WEB_MESSAGE, SIGINT_MESSAGE, SYSTEM_EVENT
+from .constants import (
+    LISTEN_MESSAGE,
+    LISTEN_WEB_MESSAGE,
+    SIGINT_MESSAGE,
+    SYSTEM_EVENT,
+)
 from .inputs import InputBase
 from .listeners import EnterListener
 from .log_formatter import get_logger, setup_logging
@@ -29,8 +34,8 @@ class Main(TelebottiesBase):
                 logger.info(f"{event.value} connected")
             return
 
-        event._update(True, -1) # TODO properly
-        
+        event._update(True, -1)  # TODO properly
+
         if event._callback_key not in InputBase._event_callbacks:
             return
 

@@ -54,7 +54,7 @@ class Cli(TelebottiesBase):
             await self.client.stop()
 
     def sigint_callback(self):
-        asyncio.run_coroutine_threadsafe(self._stop_listener(), self.loop)
+        pass
 
 
 def _cli():

@@ -16,15 +16,15 @@ def setup_logging(level):
             ),
             secondary_log_colors={
                 "message": {
-                    "DEBUG": "cyan",
-                    "INFO": "green",
+                    "DEBUG": "green",
+                    "INFO": "cyan",
                     "WARNING": "yellow",
                     "ERROR": "red",
                     "CRITICAL": "bold_red",
                 },
                 "level": {
-                    "DEBUG": "bold_cyan",
-                    "INFO": "bold_green",
+                    "DEBUG": "bold_green",
+                    "INFO": "bold_cyan",
                     "WARNING": "bold_yellow",
                     "ERROR": "bold_red",
                     "CRITICAL": "bold_red",

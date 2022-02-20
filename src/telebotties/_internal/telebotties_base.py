@@ -18,21 +18,13 @@ class TelebottiesBase(ABC):
         self.futures = set()
         self.register_sigint_handler()
 
-    async def _stop_listener(self):
-        if self.keyboard_listener.running:
-            self.keyboard_listener.stop()
-        else:
-            logger.debug("KeyboardListener was not running")
-
     def _done(self, future):
         self.futures.remove(future)
         if not future.cancelled() and future.exception() is not None:
             if self.keyboard_listener.running:
                 e = future.exception()
                 logger.error(error_to_string(e))
-                asyncio.run_coroutine_threadsafe(
-                    self._stop_listener(), self.loop
-                )
+                self.keyboard_listener.stop()
 
     @abstractmethod
     def event_handler(self, event):
@@ -60,7 +52,7 @@ class TelebottiesBase(ABC):
         def signal_handler(_signal, frame):
             signal.signal(signal.SIGINT, original_sigint_handler)  # Reset
             self.sigint_callback()
-            asyncio.run_coroutine_threadsafe(self._stop_listener(), self.loop)
+            self.keyboard_listener.stop()
 
         signal.signal(signal.SIGINT, signal_handler)
 
