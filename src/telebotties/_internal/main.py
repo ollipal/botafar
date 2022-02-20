@@ -1,9 +1,8 @@
 import asyncio
 import concurrent.futures
 
-from .constants import LISTEN_MESSAGE, LISTEN_WEB_MESSAGE, SIGINT_MESSAGE
+from .constants import LISTEN_MESSAGE, LISTEN_WEB_MESSAGE, SIGINT_MESSAGE, SYSTEM_EVENT
 from .inputs import InputBase
-from .events import Event
 from .listeners import EnterListener
 from .log_formatter import get_logger, setup_logging
 from .telebotties_base import TelebottiesBase
@@ -17,27 +16,27 @@ class Main(TelebottiesBase):
         self.executor = concurrent.futures.ThreadPoolExecutor()
         self.should_connect_keyboard = True
         self.enter_listener = EnterListener()
-
-        def event_handler(event): # TODO a proper handler
-            if "connect" in event:
-                self.enter_listener.stop()
-                print(LISTEN_WEB_MESSAGE)
-                self.should_connect_keyboard = False
-            print(f"event={event}")
-
-        self.server = Server(event_handler)
+        self.server = Server(self.event_handler)
 
         super().__init__()
 
-    def process_input(self, key, sender, origin, name):
-        event_key = (key, sender, origin)
-        if event_key not in InputBase._event_callbacks:
+    def event_handler(self, event):
+        if event._type == SYSTEM_EVENT:
+            if event.name == "connect":
+                self.enter_listener.stop()
+                print(LISTEN_WEB_MESSAGE)
+                self.should_connect_keyboard = False
+                logger.info(f"{event.value} connected")
             return
 
-        event = Event(name, True, sender, origin, -1)
+        event._update(True, -1) # TODO properly
+        
+        if event._callback_key not in InputBase._event_callbacks:
+            return
+
         callbacks = InputBase._event_callbacks[
-            event_key
-        ]._get_callbacks_with_parameters(key, event)
+            event._callback_key
+        ]._get_callbacks_with_parameters(event)
 
         if callbacks is None:
             return
@@ -69,7 +68,7 @@ class Main(TelebottiesBase):
         print(SIGINT_MESSAGE)
         self.server.stop()
         self.enter_listener.stop()
-        self.should_connect_keyboard = False 
+        self.should_connect_keyboard = False
 
 
 def listen():

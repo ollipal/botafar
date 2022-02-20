@@ -37,6 +37,9 @@ KEYS = {
 SENDERS = {"player", "host"}
 ORIGINS = {"keyboard", "screen"}
 
+INPUT_EVENT = "INPUT_EVENT"
+SYSTEM_EVENT = "SYSTEM_EVENT"
+
 LISTEN_MESSAGE = f"""Listening to web connections at 192.168.1.123:1996
 
 Go to {bold("http://localhost:3000/new?address=192-168-1-123-1996")} to connect

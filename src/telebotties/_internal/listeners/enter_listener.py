@@ -4,6 +4,7 @@ import sys
 import threading
 from contextlib import contextmanager
 from platform import system
+
 from ..log_formatter import get_logger
 
 is_windows = system().lower() == "windows"
@@ -14,7 +15,6 @@ else:
     import fcntl
 
 logger = get_logger()
-
 
 
 # Nonblocking input check, inspiration from:

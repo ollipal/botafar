@@ -1,5 +1,6 @@
 import asyncio
 
+from .events import SystemEvent
 from .log_formatter import get_logger, setup_logging
 from .telebotties_base import TelebottiesBase
 from .websocket import Client
@@ -20,9 +21,10 @@ class Cli(TelebottiesBase):
             if self.keyboard_listener.running:
                 self.keyboard_listener.stop()
 
-    def process_input(self, key, sender, origin, name):
+    def event_handler(self, event):
+        event._update(True, -1)
         future = asyncio.run_coroutine_threadsafe(
-            self.client.send(key, sender, origin, name), self.loop
+            self.client.send(event), self.loop
         )
         self.register_future(future)
 
@@ -40,7 +42,8 @@ class Cli(TelebottiesBase):
 
         # Check even first send, it does not raise errors
         # (they do not seem to work as expected)
-        success = await self.client.send("A", "player", "keyboard", "connect")
+        connect_event = SystemEvent("connect", "player", "")
+        success = await self.client.send(connect_event)
         if not success:
             await self.client.stop()
             return

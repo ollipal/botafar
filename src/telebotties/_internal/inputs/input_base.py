@@ -103,18 +103,18 @@ class InputBase(ABC):
         pass
 
     @abstractmethod
-    def _process_event(self, key, event):
+    def _process_event(self, event):
         pass
 
     @abstractmethod
     def __repr__(self):
         pass
 
-    def _get_callbacks_with_parameters(self, key, event):
-        if key in self._alternative_map:
-            key = self._alternative_map[key]
+    def _get_callbacks_with_parameters(self, event):
+        if event._key in self._alternative_map:
+            event._key = self._alternative_map[event._key]
 
-        ignore, event = self._process_event(key, event)
+        ignore, event = self._process_event(event)
         self._state = event.name  # Update state even if no callbacks
         if ignore or event.name not in self._state_callbacks:
             return

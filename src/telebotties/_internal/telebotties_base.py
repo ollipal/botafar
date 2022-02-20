@@ -13,7 +13,7 @@ class TelebottiesBase(ABC):
     def __init__(self, suppress_keys=False):
         self.loop = None
         self.keyboard_listener = KeyboardListener(
-            self.process_input, suppress_keys
+            self.event_handler, suppress_keys
         )
         self.futures = set()
         self.register_sigint_handler()
@@ -35,7 +35,7 @@ class TelebottiesBase(ABC):
                 )
 
     @abstractmethod
-    def process_input(self, key, sender, origin, name):
+    def event_handler(self, event):
         pass
 
     async def _main(self):

@@ -2,7 +2,7 @@ import websockets
 
 from ..log_formatter import get_logger
 from ..string_utils import error_to_string
-from .json_utils import decode_message, encode_message
+from .json_utils import parse_event
 
 logger = get_logger()
 
@@ -21,23 +21,23 @@ class Client:
         except websockets.exceptions.ConnectionClosed:
             return None  # TODO maybe indicate was closed?
 
-        return decode_message(data)
+        return parse_event(data)
 
-    async def send(self, key, sender, origin, name):
+    async def send(self, event):
         assert (
             self.websocket is not None
         ), "Client.connect() not called before .send()"
         try:
-            await self.websocket.send(
-                encode_message(key, sender, origin, name)
-            )
+            await self.websocket.send(event._to_json())
             return True
         except websockets.exceptions.ConnectionClosedError as e:
             logger.debug(f"Client.send connection closed error: {e}")
         except websockets.exceptions.ConnectionClosedOK as e:
             logger.debug(f"Client.send connection closed: {e}")
         except Exception as e:
-            logger.error(error_to_string(e))
+            logger.debug(
+                f"Unexpected Client.send error:\n{error_to_string(e)}"
+            )
         return False
 
     async def stop(self):

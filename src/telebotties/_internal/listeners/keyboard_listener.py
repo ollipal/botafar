@@ -1,7 +1,8 @@
 import asyncio
 
-from ..log_formatter import get_logger
 from ..constants import KEYS, LISTEN_KEYBOARD_MESSAGE
+from ..events import Event
+from ..log_formatter import get_logger
 
 logger = get_logger()
 
@@ -54,7 +55,8 @@ class KeyboardListener:
         def on_press(key):
             key = _format_key(key)
             if key is not None:
-                self._event_handler(key, "host", "keyboard", "press")
+                event = Event("press", "host", "keyboard", key)
+                self._event_handler(event)
 
         def on_release(key):
             if key == keyboard.Key.esc:
@@ -63,7 +65,8 @@ class KeyboardListener:
 
             key = _format_key(key)
             if key is not None:
-                self._event_handler(key, "host", "keyboard", "release")
+                event = Event("release", "host", "keyboard", key)
+                self._event_handler(event)
 
         listener = keyboard.Listener(
             on_press=on_press,

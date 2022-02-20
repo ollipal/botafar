@@ -4,7 +4,7 @@ import websockets
 
 from ..log_formatter import get_logger
 from ..string_utils import error_to_string
-from .json_utils import decode_message
+from .json_utils import parse_event
 
 logger = get_logger()
 
@@ -34,35 +34,30 @@ class Server:
                 break
             except Exception as e:
                 # TODO print error properly
-                error_to_string(e)
+                logger.error(f"Unecpected Server error:\n{error_to_string(e)}")
                 self.stop()
                 break
 
-            data = decode_message(data)
-            if data is not None:
-                # TODO in event handler
-                if data[3] == "connect":
-                    logger.info(f"{data[2]} connected as {data[1]}")
+            event = parse_event(data)
+            if event is not None:
+                self.event_handler(event)
 
-                self.event_handler(data)
-
-    async def send(self, event, value=None, player=None):
+    async def send(self, event):
         assert (
             self.server is not None
         ), "Server.serve() not called before .send()"
 
         try:
-            await self.server.send(
-                {
-                    "event": event,
-                    "value": value,
-                    "player": player,
-                }
-            )
+            await self.server.send(event._to_json())
         except websockets.exceptions.ConnectionClosedError as e:
-            logger.debug(f"Server.send failed: {e}")
+            logger.debug(f"Server.send failed, error: {e}")
         except websockets.exceptions.ConnectionClosedOK as e:
-            logger.debug(f"Server.send failed: {e}")
+            logger.debug(f"Server.send failed, closed: {e}")
+        except Exception as e:
+            logger.error(
+                f"Unecpected Server.send error:\n{error_to_string(e)}"
+            )
+            self.stop()
 
     def stop(self):
         if self._stop is None:

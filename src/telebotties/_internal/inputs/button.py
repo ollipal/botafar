@@ -11,7 +11,8 @@ class Button(InputBase):
         keyboard_only=False,
         screen_only=False,
     ):
-        start_event = Event("release", False, "host", "keyboard", -1)
+        start_event = Event("release", "host", "keyboard", "A")
+        start_event._update(False, -1)
         super().__init__(
             [key],
             host_only,
@@ -55,7 +56,8 @@ class Button(InputBase):
     def state(self):
         return self._state
 
-    def _process_event(self, key, event):
+    def _process_event(self, event):
+        """Returns: ignore, updated event"""
         return self._state == event.name, event
 
     def __repr__(self):
