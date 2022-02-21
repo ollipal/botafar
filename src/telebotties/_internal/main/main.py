@@ -10,9 +10,9 @@ from ..constants import (
 from ..inputs import InputBase
 from ..listeners import EnterListener
 from ..log_formatter import get_logger, setup_logging
-from .telebotties_base import TelebottiesBase
-from ..websocket import Server
 from ..string_utils import error_to_string
+from ..websocket import Server
+from .telebotties_base import TelebottiesBase
 
 logger = get_logger()
 
@@ -25,6 +25,9 @@ class Main(TelebottiesBase):
         self.server = Server(self.event_handler)
 
         super().__init__()
+
+    def post_done(self, future):
+        pass 
 
     def event_handler(self, event):
         if event._type == SYSTEM_EVENT:

@@ -40,7 +40,9 @@ def parse_event(data):
             and isinstance(data["text"], str)
         ):
             # TODO proper value validation
-            return SystemEvent(data["name"], data["value"], data["text"], data["data"])
+            return SystemEvent(
+                data["name"], data["value"], data["text"], data["data"]
+            )
         else:
             logger.warning(f"Malformed SystemEvent received: {data}")
             return None

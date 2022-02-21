@@ -2,9 +2,9 @@ import asyncio
 
 from ..events import SystemEvent
 from ..log_formatter import get_logger, setup_logging
-from .telebotties_base import TelebottiesBase
-from ..websocket import Client
 from ..string_utils import error_to_string
+from ..websocket import Client
+from .telebotties_base import TelebottiesBase
 
 logger = get_logger()
 
@@ -14,9 +14,7 @@ class Cli(TelebottiesBase):
         self.client = None
         super().__init__()
 
-    def _done(self, future):
-        super()._done(future)
-
+    def post_done(self, future):
         if future.result() is False:  # Send failed
             logger.info("Keyboard disconnected")
             if self.keyboard_listener.running:
@@ -58,7 +56,6 @@ class Cli(TelebottiesBase):
                 self.keyboard_listener.stop()
             if self.client is not None:
                 await self.client.stop()
-
 
     def sigint_callback(self):
         pass

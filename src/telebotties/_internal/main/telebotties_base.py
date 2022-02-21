@@ -26,6 +26,12 @@ class TelebottiesBase(ABC):
                 logger.error(error_to_string(e))
                 self.keyboard_listener.stop()
 
+        self.post_done(future)
+
+    @abstractmethod
+    def post_done(self, future):
+        pass 
+
     @abstractmethod
     def event_handler(self, event):
         pass
