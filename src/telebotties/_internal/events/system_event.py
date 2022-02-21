@@ -4,10 +4,11 @@ from ..constants import SYSTEM_EVENT
 
 
 class SystemEvent:
-    def __init__(self, name, value, text):
+    def __init__(self, name, value, text, data):
         self._name = name
         self._value = value
         self._text = text
+        self._data = data
         self._type = SYSTEM_EVENT
 
     @property
@@ -22,12 +23,17 @@ class SystemEvent:
     def text(self):
         return self._text
 
+    @property
+    def data(self):
+        return self._data
+
     def _to_json(self):
         return json.dumps(
             {
                 "name": self.name,
                 "value": self.value,
                 "text": self.text,
+                "data": self.data,
                 "type": self._type,
             }
         )
@@ -35,5 +41,5 @@ class SystemEvent:
     def __repr__(self):
         return (
             f"SystemEvent(name='{self.name}', value={self.value}, "
-            f"text='{self.text}')"
+            f"text='{self.text}' {'+ data' if self.data else ''})"
         )

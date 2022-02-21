@@ -1,17 +1,18 @@
 import asyncio
 import concurrent.futures
 
-from .constants import (
+from ..constants import (
     LISTEN_MESSAGE,
     LISTEN_WEB_MESSAGE,
     SIGINT_MESSAGE,
     SYSTEM_EVENT,
 )
-from .inputs import InputBase
-from .listeners import EnterListener
-from .log_formatter import get_logger, setup_logging
+from ..inputs import InputBase
+from ..listeners import EnterListener
+from ..log_formatter import get_logger, setup_logging
 from .telebotties_base import TelebottiesBase
-from .websocket import Server
+from ..websocket import Server
+from ..string_utils import error_to_string
 
 logger = get_logger()
 
@@ -59,15 +60,20 @@ class Main(TelebottiesBase):
             self.register_future(future)
 
     async def main(self):
-        print(LISTEN_MESSAGE, end="")
+        try:
+            print(LISTEN_MESSAGE, end="")
 
-        await asyncio.gather(
-            self.enter_listener.run_until_finished(self.server.stop),
-            self.server.serve(8080),
-        )
+            await asyncio.gather(
+                self.enter_listener.run_until_finished(self.server.stop),
+                self.server.serve(8080),
+            )
 
-        if self.should_connect_keyboard:
-            await self.keyboard_listener.run_until_finished()
+            if self.should_connect_keyboard:
+                await self.keyboard_listener.run_until_finished()
+        except Exception as e:
+            logger.error(f"Unexpected internal error: {error_to_string(e)}")
+            self.server.stop()
+            self.enter_listener.stop()
 
     def sigint_callback(self):
         print(SIGINT_MESSAGE)

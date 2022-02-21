@@ -35,12 +35,12 @@ def parse_event(data):
             return None
     elif data["type"] == SYSTEM_EVENT:
         if (
-            all(key in data for key in ("name", "value", "text"))
+            all(key in data for key in ("name", "value", "text", "data"))
             and isinstance(data["name"], str)
             and isinstance(data["text"], str)
         ):
             # TODO proper value validation
-            return SystemEvent(data["name"], data["value"], data["text"])
+            return SystemEvent(data["name"], data["value"], data["text"], data["data"])
         else:
             logger.warning(f"Malformed SystemEvent received: {data}")
             return None

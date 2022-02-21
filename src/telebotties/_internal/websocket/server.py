@@ -14,6 +14,7 @@ class Server:
         self.event_handler = event_handler
         self.server = None
         self.loop = None
+        self._stop = None
 
     async def _server_start(self, websocket, path):
         assert self.server is not None
