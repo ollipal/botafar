@@ -1,6 +1,5 @@
 import asyncio
 
-from ..events import SystemEvent
 from ..log_formatter import get_logger, setup_logging
 from ..string_utils import error_to_string
 from ..websocket import Client
@@ -30,22 +29,13 @@ class Cli(TelebottiesBase):
     async def main(self):
         try:
             self.client = Client(8080)
-
             try:
-                await self.client.connect()
+                await self.client.connect(connect_as="player")
             except ConnectionRefusedError:
                 print(
                     "Connection refused to 127.0.0.1:8080, "
                     "wrong address or bot not running?"
                 )
-                return
-
-            # Check even first send, it does not raise errors
-            # (they do not seem to work as expected)
-            connect_event = SystemEvent("connect", "player", "", None)
-            success = await self.client.send(connect_event)
-            if not success:
-                await self.client.stop()
                 return
 
             await self.keyboard_listener.run_until_finished()

@@ -27,7 +27,7 @@ class Main(TelebottiesBase):
         super().__init__()
 
     def post_done(self, future):
-        pass 
+        pass
 
     def event_handler(self, event):
         if event._type == SYSTEM_EVENT:

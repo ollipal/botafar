@@ -3,6 +3,7 @@ import websockets
 from ..log_formatter import get_logger
 from ..string_utils import error_to_string
 from .json_utils import parse_event
+from ..events import SystemEvent
 
 logger = get_logger()
 
@@ -46,7 +47,15 @@ class Client:
             return
         await self.websocket.close()
 
-    async def connect(self):
+    async def connect(self, connect_as):
         self.websocket = await websockets.connect(
             f"ws://localhost:{self.port}"
         )
+
+        # Check first send, it does not raise errors
+        # (they do not seem to work as expected)
+        connect_event = SystemEvent("connect", connect_as, "", None)
+        success = await self.send(connect_event)
+        if not success:
+            await self.stop()
+            raise ConnectionRefusedError

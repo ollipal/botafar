@@ -30,7 +30,7 @@ class TelebottiesBase(ABC):
 
     @abstractmethod
     def post_done(self, future):
-        pass 
+        pass
 
     @abstractmethod
     def event_handler(self, event):
