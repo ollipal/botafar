@@ -20,6 +20,7 @@ try:
 except ImportError:
     pynput_supported = False
 
+is_pressed = {key: False for key in KEYS }
 
 def _format_key(key):
     if key in PYNPUT_KEY_TO_KEY.keys():
@@ -54,9 +55,10 @@ class KeyboardListener:
 
         def on_press(key):
             key = _format_key(key)
-            if key is not None:
+            if key is not None and not is_pressed[key]:
                 event = Event("press", "host", "keyboard", key)
                 self._event_handler(event)
+                is_pressed[key] = True
 
         def on_release(key):
             if key == keyboard.Key.esc:
@@ -64,9 +66,10 @@ class KeyboardListener:
                 return False
 
             key = _format_key(key)
-            if key is not None:
+            if key is not None and is_pressed[key]:
                 event = Event("release", "host", "keyboard", key)
                 self._event_handler(event)
+                is_pressed[key] = False
 
         listener = keyboard.Listener(
             on_press=on_press,
