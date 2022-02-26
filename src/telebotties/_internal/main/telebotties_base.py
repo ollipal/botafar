@@ -2,6 +2,7 @@ import asyncio
 import signal
 from abc import ABC, abstractmethod
 
+from ..callback_executor import CallbackExecutor
 from ..listeners import KeyboardListener
 from ..log_formatter import get_logger
 from ..string_utils import error_to_string
@@ -11,26 +12,19 @@ logger = get_logger()
 
 class TelebottiesBase(ABC):
     def __init__(self, suppress_keys=False):
-        self.loop = None
         self.keyboard_listener = KeyboardListener(
             self.event_handler, suppress_keys
         )
-        self.futures = set()
         self.register_sigint_handler()
+        self.callback_executor = CallbackExecutor(
+            self.done_callback, self.error_callback
+        )
+        self.loop = None
 
-    def _done(self, future):
-        self.futures.remove(future)
-        if not future.cancelled() and future.exception() is not None:
-            if self.keyboard_listener.running:
-                e = future.exception()
-                logger.error(error_to_string(e))
-                self.keyboard_listener.stop()
-
-        self.post_done(future)
-
-    @abstractmethod
-    def post_done(self, future):
-        pass
+    def error_callback(self, e):
+        if self.keyboard_listener.running:
+            logger.error(error_to_string(e))
+            self.keyboard_listener.stop()
 
     @abstractmethod
     def event_handler(self, event):
@@ -38,6 +32,7 @@ class TelebottiesBase(ABC):
 
     async def _main(self):
         self.loop = asyncio.get_running_loop()
+        self.callback_executor.set_loop(self.loop)
         await self.main()
 
     @abstractmethod
@@ -45,12 +40,12 @@ class TelebottiesBase(ABC):
         pass
 
     @abstractmethod
-    def sigint_callback(self):
+    def done_callback(self, future):
         pass
 
-    def register_future(self, future):
-        self.futures.add(future)
-        future.add_done_callback(self._done)
+    @abstractmethod
+    def sigint_callback(self):
+        pass
 
     def register_sigint_handler(self):
         original_sigint_handler = signal.getsignal(signal.SIGINT)

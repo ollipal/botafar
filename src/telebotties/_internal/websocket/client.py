@@ -1,9 +1,9 @@
 import websockets
 
+from ..events import SystemEvent
 from ..log_formatter import get_logger
 from ..string_utils import error_to_string
 from .json_utils import parse_event
-from ..events import SystemEvent
 
 logger = get_logger()
 

@@ -1,5 +1,4 @@
-import asyncio
-
+from ..constants import INPUT_EVENT, SYSTEM_EVENT
 from ..log_formatter import get_logger, setup_logging
 from ..string_utils import error_to_string
 from ..websocket import Client
@@ -10,21 +9,22 @@ logger = get_logger()
 
 class Cli(TelebottiesBase):
     def __init__(self):
-        self.client = None
         super().__init__()
+        self.client = None
+        self.callback_executor.add_to_takes_event(self._forward_event)
 
-    def post_done(self, future):
-        if future.result() is False:  # Send failed
-            logger.info("Keyboard disconnected")
-            if self.keyboard_listener.running:
-                self.keyboard_listener.stop()
+    async def _forward_event(self, event):
+        send_success = await self.client.send(event)
+
+        if not send_success or event._type == SYSTEM_EVENT:
+            return False
 
     def event_handler(self, event):
-        event._update(True, -1)
-        future = asyncio.run_coroutine_threadsafe(
-            self.client.send(event), self.loop
+        if event._type == INPUT_EVENT:
+            event._update(True, -1)
+        self.callback_executor.execute_callbacks(
+            [self._forward_event], event=event
         )
-        self.register_future(future)
 
     async def main(self):
         try:
@@ -42,10 +42,14 @@ class Cli(TelebottiesBase):
             await self.client.stop()
         except Exception as e:
             logger.error(f"Unexpected internal error: {error_to_string(e)}")
-            if self.keyboard_listener.running:
-                self.keyboard_listener.stop()
+            self.keyboard_listener.stop()
             if self.client is not None:
                 await self.client.stop()
+
+    def done_callback(self, future):
+        if future.result() is False:  # Send failed or Esc pressed
+            logger.info("Keyboard disconnected")
+            self.keyboard_listener.stop()
 
     def sigint_callback(self):
         pass

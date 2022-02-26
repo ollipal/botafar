@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
-from inspect import Parameter, signature
 
+from ..callback_executor import CallbackExecutor
 from ..constants import KEYS
+from ..function_utils import takes_parameter
 
 # (host_only, player_only)
 SENDER_MAP = {
@@ -63,6 +64,17 @@ class InputBase(ABC):
         for key in self._keys:
             self._register_key(key)
 
+    @staticmethod
+    def _get_callbacks(event):
+        event._update(True, -1)  # TODO properly
+
+        if event._callback_key not in InputBase._event_callbacks:
+            return []
+
+        return InputBase._event_callbacks[
+            event._callback_key
+        ]._get_instance_callbacks(event)
+
     def _register_alternative_keys(self, alternatives):
         if self._callbacks_added:
             raise RuntimeError(
@@ -110,61 +122,30 @@ class InputBase(ABC):
     def __repr__(self):
         pass
 
-    def _get_callbacks_with_parameters(self, event):
+    def _get_instance_callbacks(self, event):
         if event._key in self._alternative_map:
             event._key = self._alternative_map[event._key]
 
         ignore, event = self._process_event(event)
         self._state = event.name  # Update state even if no callbacks
         if ignore or event.name not in self._state_callbacks:
-            return
+            return []
 
         self._latest_event = event
         return self._state_callbacks[event.name]
 
-    def _takes_event(self, function):
-        parameters = signature(function).parameters.values()
-        takes_event = False
-        for i, param in enumerate(parameters):
-            if i == 0:
-                if param.name == "event":
-                    takes_event = True
-                elif param.kind == Parameter.POSITIONAL_ONLY:
-                    raise RuntimeError(
-                        f"The first input callback argument must be called "
-                        "'event', or it needs to be optional. Currently it "
-                        f"is '{param.name}' and it is required."
-                    )
-            else:
-                if (
-                    (
-                        param.kind == Parameter.POSITIONAL_OR_KEYWORD
-                        and param.default == Parameter.empty
-                    )
-                    or param.kind  # Reguired positional or keyword argument
-                    == Parameter.POSITIONAL_ONLY
-                    or (  # Reguired positional argument
-                        param.kind == Parameter.KEYWORD_ONLY
-                        and param.default == Parameter.empty
-                    )  # Required keyword only argument
-                ):
-                    raise RuntimeError(
-                        "Input callback arguments need to be optional, "
-                        "except the first one that can be required if it "
-                        f"called 'event'. Argument '{param.name}' should be "
-                        "made optional or removed."
-                    )
-        return takes_event
+    @staticmethod
+    def _takes_event(function):
+        return takes_parameter(function, "event")
 
     def _add_state_callback(self, name, function):
-        takes_event = self._takes_event(
-            function
-        )  # Also validates other parameters
+        if self._takes_event(function):  # Also validates other parameters
+            CallbackExecutor.add_to_takes_event(function)
 
         if name in self._state_callbacks:
-            self._state_callbacks[name].append((function, takes_event))
+            self._state_callbacks[name].append(function)
         else:
-            self._state_callbacks[name] = [(function, takes_event)]
+            self._state_callbacks[name] = [function]
 
         self._callbacks_added = True
 
