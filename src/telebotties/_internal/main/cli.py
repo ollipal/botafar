@@ -1,31 +1,40 @@
-from ..constants import INPUT_EVENT, SYSTEM_EVENT
+from ..callback_executor import CallbackExecutor
+from ..constants import SYSTEM_EVENT
 from ..log_formatter import get_logger, setup_logging
+from ..states import KeyboardClientState
 from ..string_utils import error_to_string
 from ..websocket import Client
 from .telebotties_base import TelebottiesBase
-from ..events import SystemEvent
 
 logger = get_logger()
 
 
 class Cli(TelebottiesBase):
     def __init__(self):
+        self.callback_executor = CallbackExecutor(
+            self.done_callback, self.error_callback
+        )
+        self.state = KeyboardClientState(self.send_event)
         super().__init__()
         self.client = None
-        self.callback_executor.add_to_takes_event(self._forward_event)
+        self.callback_executor.add_to_takes_event(self._send_event_async)
 
-    async def _forward_event(self, event):
-        send_success = await self.client.send(event)
-
-        if not send_success or event._type == SYSTEM_EVENT:
-            return False
-
-    def event_handler(self, event):
-        if event._type == INPUT_EVENT:
-            event._update(True, -1)
+    def send_event(self, event):
         self.callback_executor.execute_callbacks(
-            [self._forward_event], event=event
+            [self._send_event_async], event=event
         )
+
+    async def _send_event_async(self, event):
+        send_success = await self.client.send(event)
+        if not send_success or (
+            event._type == SYSTEM_EVENT and event.name == "client_disconnect"
+        ):
+            if (
+                event._type == SYSTEM_EVENT
+                and event.name == "client_disconnect"
+            ):
+                logger.debug("client_disconnect detected")
+            return False
 
     async def main(self):
         try:
@@ -46,10 +55,6 @@ class Cli(TelebottiesBase):
             self.keyboard_listener.stop()
             if self.client is not None:
                 await self.client.stop()
-
-    def esc_callback(self):
-        event = SystemEvent("disconnect", "host", "", None)
-        self.event_handler(event)
 
     def done_callback(self, future):
         if future.result() is False:  # Send failed or Esc pressed

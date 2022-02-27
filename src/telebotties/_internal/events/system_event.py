@@ -4,12 +4,15 @@ from ..constants import SYSTEM_EVENT
 
 
 class SystemEvent:
-    def __init__(self, name, value, text, data):
+    def __init__(self, name, value, text="", data=None):
         self._name = name
         self._value = value
         self._text = text
         self._data = data
         self._type = SYSTEM_EVENT
+
+    def set_value(self, value):
+        self._value = value
 
     @property
     def name(self):

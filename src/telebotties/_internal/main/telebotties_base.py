@@ -2,7 +2,6 @@ import asyncio
 import signal
 from abc import ABC, abstractmethod
 
-from ..callback_executor import CallbackExecutor
 from ..listeners import KeyboardListener
 from ..log_formatter import get_logger
 from ..string_utils import error_to_string
@@ -12,13 +11,14 @@ logger = get_logger()
 
 class TelebottiesBase(ABC):
     def __init__(self, suppress_keys=False):
+        assert self.callback_executor is not None
+        assert self.state is not None
+        assert self.state.process_event is not None
+
         self.keyboard_listener = KeyboardListener(
-            self.event_handler, suppress_keys, self.esc_callback
+            self.state.process_event, suppress_keys
         )
         self.register_sigint_handler()
-        self.callback_executor = CallbackExecutor(
-            self.done_callback, self.error_callback
-        )
         self.loop = None
 
     def error_callback(self, e):
@@ -26,21 +26,17 @@ class TelebottiesBase(ABC):
             logger.error(error_to_string(e))
             self.keyboard_listener.stop()
 
-    @abstractmethod
-    def event_handler(self, event):
-        pass
-
     async def _main(self):
         self.loop = asyncio.get_running_loop()
         self.callback_executor.set_loop(self.loop)
         await self.main()
 
     @abstractmethod
-    async def main(self):
+    def send_event(self, event):
         pass
 
     @abstractmethod
-    def esc_callback(self):
+    async def main(self):
         pass
 
     @abstractmethod

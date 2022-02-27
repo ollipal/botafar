@@ -1,7 +1,7 @@
 import asyncio
 
 from ..constants import KEYS, LISTEN_KEYBOARD_MESSAGE
-from ..events import Event
+from ..events import Event, SystemEvent
 from ..log_formatter import get_logger
 from ..string_utils import error_to_string
 
@@ -40,12 +40,11 @@ def _format_key(key):
 
 
 class KeyboardListener:
-    def __init__(self, event_handler, suppress_keys, esc_callback):
-        self._event_handler = event_handler
+    def __init__(self, process_event, suppress_keys):
+        self._process_event = process_event
         self._suppress_keys = suppress_keys
-        self._esc_callback = esc_callback
         self._running = False
-        self._event = None
+        self._stop_event = None
 
     async def run_until_finished(self):
         if self.running:
@@ -53,15 +52,15 @@ class KeyboardListener:
             return
 
         self._running = True
-        self._event = asyncio.Event()
+        self._stop_event = asyncio.Event()
         self._loop = asyncio.get_running_loop()
 
         def on_press(key):
             try:
                 key = _format_key(key)
                 if key is not None and not is_pressed[key]:
-                    event = Event("press", "host", "keyboard", key)
-                    self._event_handler(event)
+                    event = Event("press", "player", "keyboard", key)
+                    self._process_event(event)
                     is_pressed[key] = True
             except Exception as e:
                 logger.error(
@@ -73,14 +72,19 @@ class KeyboardListener:
         def on_release(key):
             try:
                 if key == keyboard.Key.esc:
-                    self._esc_callback()
+                    event = SystemEvent("client_disconnect", "keyboard")
+                    self._process_event(event)
                     self.stop()
                     return False
+                elif key == keyboard.Key.tab:
+                    event = SystemEvent("keyboard_tab", "keyboard")
+                    self._process_event(event)
+                    return
 
                 key = _format_key(key)
                 if key is not None and is_pressed[key]:
-                    event = Event("release", "host", "keyboard", key)
-                    self._event_handler(event)
+                    event = Event("release", "player", "keyboard", key)
+                    self._process_event(event)
                     is_pressed[key] = False
             except Exception as e:
                 logger.error(
@@ -96,10 +100,11 @@ class KeyboardListener:
         )
         listener.start()
         listener.wait()
-
         print(LISTEN_KEYBOARD_MESSAGE)
+        event = SystemEvent("client_connect", "keyboard")
+        self._process_event(event)
         try:
-            await self._event.wait()
+            await self._stop_event.wait()
         finally:
             print()
 
@@ -109,7 +114,7 @@ class KeyboardListener:
             return
 
         self._running = False
-        self._loop.call_soon_threadsafe(self._event.set)
+        self._loop.call_soon_threadsafe(self._stop_event.set)
 
     @property
     def running(self):

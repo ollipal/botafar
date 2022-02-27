@@ -49,14 +49,14 @@ Press {key("ENTER")} to start listening to local keyboard events: """
 LISTEN_KEYBOARD_MESSAGE = f"""
 
 {bold("Listening to local keyboard events")}, web connection listening stopped.
-- stop listening and exit: {key('Esc')}
-- send keyboard events as player: {key("1")} {dim("(default)")}
-- send keyboard events as host: {key("0")}
-- simulate player getting disconnected: {key("Enter")}
+- stop listening and exit: {key("Esc")}
+- cycle between player and host: {key("Tab")}
+- simulate player getting disconnected: {key("Backspace")}
+- show controls: {key("Right Shift")}
 """
 
 LISTEN_WEB_MESSAGE = (
-    "Connected to web, will not listen to local keyboard events.\n\n"
+    "Connected to a remote keyboard, will not listen to local keyboard events.\n\n"
     f"Press {key('Ctrl')} + {key('C')} to exit.\n"
 )
 

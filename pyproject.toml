@@ -91,6 +91,6 @@ max-complexity = 18
 select = "B,C,E,F,W,T4,B9,N"
 exclude = ".git,.tox,.venv,.env,docs,dist,.github,__pycache__"
 per-file-ignores = '''
-    ./src/telebotties/constants.py: E501
+    ./src/telebotties/_internal/constants.py: E501
     */__init__.py:F401
 '''
