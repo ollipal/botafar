@@ -1,7 +1,7 @@
 import asyncio
 
 from ..constants import KEYS, LISTEN_KEYBOARD_MESSAGE
-from ..events import Event, SystemEvent
+from ..events import Event
 from ..log_formatter import get_logger
 from ..string_utils import error_to_string
 
@@ -40,9 +40,10 @@ def _format_key(key):
 
 
 class KeyboardListener:
-    def __init__(self, event_handler, suppress_keys):
+    def __init__(self, event_handler, suppress_keys, esc_callback):
         self._event_handler = event_handler
         self._suppress_keys = suppress_keys
+        self._esc_callback = esc_callback
         self._running = False
         self._event = None
 
@@ -72,9 +73,7 @@ class KeyboardListener:
         def on_release(key):
             try:
                 if key == keyboard.Key.esc:
-                    event = SystemEvent("disconnect", "host", "", None)
-                    self._event_handler(event)
-                    print("esc received")
+                    self._esc_callback()
                     self.stop()
                     return False
 

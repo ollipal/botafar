@@ -3,6 +3,7 @@ from ..log_formatter import get_logger, setup_logging
 from ..string_utils import error_to_string
 from ..websocket import Client
 from .telebotties_base import TelebottiesBase
+from ..events import SystemEvent
 
 logger = get_logger()
 
@@ -45,6 +46,10 @@ class Cli(TelebottiesBase):
             self.keyboard_listener.stop()
             if self.client is not None:
                 await self.client.stop()
+
+    def esc_callback(self):
+        event = SystemEvent("disconnect", "host", "", None)
+        self.event_handler(event)
 
     def done_callback(self, future):
         if future.result() is False:  # Send failed or Esc pressed

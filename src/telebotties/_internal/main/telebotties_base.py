@@ -13,7 +13,7 @@ logger = get_logger()
 class TelebottiesBase(ABC):
     def __init__(self, suppress_keys=False):
         self.keyboard_listener = KeyboardListener(
-            self.event_handler, suppress_keys
+            self.event_handler, suppress_keys, self.esc_callback
         )
         self.register_sigint_handler()
         self.callback_executor = CallbackExecutor(
@@ -37,6 +37,10 @@ class TelebottiesBase(ABC):
 
     @abstractmethod
     async def main(self):
+        pass
+
+    @abstractmethod
+    def esc_callback(self):
         pass
 
     @abstractmethod

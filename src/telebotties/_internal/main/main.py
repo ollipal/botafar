@@ -66,6 +66,9 @@ class Main(TelebottiesBase):
             self.server.stop()
             self.enter_listener.stop()
 
+    def esc_callback(self):
+        pass
+
     def done_callback(self, future):
         pass
 
