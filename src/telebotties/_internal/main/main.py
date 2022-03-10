@@ -26,15 +26,21 @@ class Main(TelebottiesBase):
         self.should_connect_keyboard = True
         self.enter_listener = EnterListener()
         self.server = Server(self.state.process_event)
+        self.callback_executor.add_to_takes_event(self._send_event_async)
+
+    def send_event(self, event):
+        self.callback_executor.execute_callbacks(
+            [self._send_event_async], event=event
+        )
+
+    async def _send_event_async(self, event):
+        await self.server.send(event)
 
     def on_remote_client_connect(self):
         if self.enter_listener.running:
             self.enter_listener.stop()
             print(LISTEN_WEB_MESSAGE)
             self.should_connect_keyboard = False
-
-    def send_event(self, event):
-        logger.debug(f"Sending event attempted: {event}")
 
     async def main(self):
         try:

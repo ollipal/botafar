@@ -1,3 +1,5 @@
+import asyncio
+
 from ..callback_executor import CallbackExecutor
 from ..constants import SYSTEM_EVENT
 from ..log_formatter import get_logger, setup_logging
@@ -16,7 +18,7 @@ class Cli(TelebottiesBase):
         )
         self.state = KeyboardClientState(self.send_event)
         super().__init__()
-        self.client = None
+        self.client = Client(8080, self.state.process_event)
         self.callback_executor.add_to_takes_event(self._send_event_async)
 
     def send_event(self, event):
@@ -38,7 +40,6 @@ class Cli(TelebottiesBase):
 
     async def main(self):
         try:
-            self.client = Client(8080)
             try:
                 await self.client.connect(connect_as="player")
             except ConnectionRefusedError:
@@ -48,8 +49,10 @@ class Cli(TelebottiesBase):
                 )
                 return
 
+            task = asyncio.create_task(self.client.receive())
             await self.keyboard_listener.run_until_finished()
             await self.client.stop()
+            await task
         except Exception as e:
             logger.error(f"Unexpected internal error: {error_to_string(e)}")
             self.keyboard_listener.stop()
@@ -58,7 +61,7 @@ class Cli(TelebottiesBase):
 
     def done_callback(self, future):
         if future.result() is False:  # Send failed or Esc pressed
-            logger.info("Keyboard disconnected")
+            logger.debug("Keyboard disconnected")
             self.keyboard_listener.stop()
 
     def sigint_callback(self):

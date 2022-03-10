@@ -1,5 +1,6 @@
 from ..callbacks import CallbackBase
-from ..constants import SYSTEM_EVENT
+from ..constants import INPUT_EVENT, SYSTEM_EVENT
+from ..events import SystemEvent
 from ..inputs import InputBase
 from ..log_formatter import get_logger
 
@@ -20,26 +21,36 @@ class ServerState:
         self._on_remote_client_connect = on_remote_client_connect
         self._client_type = ""
         self._connected = False
+        self._player_connected = False
 
     def process_event(self, event):
+        # Update input events, required...
+        if event._type == INPUT_EVENT:
+            event._update(True, -1)
+
         if event._type == SYSTEM_EVENT:
-            if (
-                event.name == "client_connect"
-                and event.value == "remote_keyboard"
-            ):
+            if event.name == "client_connect" and not self._connected:
                 self._client_type = event.value
                 self._on_remote_client_connect()
                 self._connected = True
-                logger.info(
-                    f"{self._client_type.capitalize().replace('_',' ')} "
-                    "connected"
-                )
+                message = "client connected"
+                logger.info(message)
+                self._send_event(SystemEvent("info", None, message))
             elif event.name == "client_disconnect" and self._connected:
                 self._connected = False
-                logger.info(
-                    f"{self._client_type.capitalize().replace('_',' ')} "
-                    "disconnected"
-                )
+                message = "client disconnected"
+                logger.info(message)
+                self._send_event(SystemEvent("info", None, message))
+            elif event.name == "player_connect" and not self._player_connected:
+                self._player_connected = True
+                message = "player connected"
+                logger.info(message)
+                self._send_event(SystemEvent("info", None, message))
+            elif event.name == "player_disconnect" and self._player_connected:
+                self._player_connected = False
+                message = "player disconnected"
+                logger.info(message)
+                self._send_event(SystemEvent("info", None, message))
 
             callbacks = CallbackBase._get_callbacks(event)
             self._execute_callbacks(callbacks)  # TODO give time if needed?

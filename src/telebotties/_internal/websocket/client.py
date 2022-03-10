@@ -9,20 +9,24 @@ logger = get_logger()
 
 
 class Client:
-    def __init__(self, port):
+    def __init__(self, port, receive_callback):
         self.port = port
+        self.receive_callback = receive_callback
         self.websocket = None
 
     async def receive(self):
         assert (
             self.websocket is not None
         ), "Client.connect() not called before .receive()"
-        try:
-            data = await self.websocket.recv()
-        except websockets.exceptions.ConnectionClosed:
-            return None  # TODO maybe indicate was closed?
 
-        return parse_event(data)
+        while True:
+            try:
+                data = await self.websocket.recv()
+            except websockets.exceptions.ConnectionClosed:
+                break
+                logger.info("CONNECTION CLOSED")
+
+            self.receive_callback(parse_event(data))
 
     async def send(self, event):
         assert (

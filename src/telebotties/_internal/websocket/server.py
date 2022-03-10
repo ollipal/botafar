@@ -16,50 +16,64 @@ class Server:
         self.server = None
         self.loop = None
         self._stop = None
+        self._connections = set()
 
     async def _server_start(self, websocket, path):
         assert self.server is not None
 
-        while True:
-            try:
-                data = await websocket.recv()
-            except websockets.exceptions.ConnectionClosedError as e:
-                event = SystemEvent("client_disconnect", "server", text=str(e))
-                self.process_event(event)
-                logger.debug(f"Server disconnected error: {e}")
-                break
-            except websockets.exceptions.ConnectionClosedOK as e:
-                event = SystemEvent("client_disconnect", "server", text=str(e))
-                self.process_event(event)
-                logger.debug(f"Server disconnected ok: {e}")
-                break
-            except Exception as e:
-                event = SystemEvent("client_disconnect", "server", text=str(e))
-                self.process_event(event)
-                logger.error(f"Unecpected Server error:\n{error_to_string(e)}")
-                self.stop()
-                break
+        self._connections.add(websocket)
+        try:
+            while True:
+                try:
+                    data = await websocket.recv()
+                except websockets.exceptions.ConnectionClosedError as e:
+                    event = SystemEvent(
+                        "client_disconnect", "server", text=str(e)
+                    )
+                    self.process_event(event)
+                    logger.debug(f"Server disconnected error: {e}")
+                    break
+                except websockets.exceptions.ConnectionClosedOK as e:
+                    event = SystemEvent(
+                        "client_disconnect", "server", text=str(e)
+                    )
+                    self.process_event(event)
+                    logger.debug(f"Server disconnected ok: {e}")
+                    break
+                except Exception as e:
+                    event = SystemEvent(
+                        "client_disconnect", "server", text=str(e)
+                    )
+                    self.process_event(event)
+                    logger.error(
+                        f"Unecpected Server error:\n{error_to_string(e)}"
+                    )
+                    self.stop()
+                    break
 
-            event = parse_event(data)
-            if event is not None:
-                self.process_event(event)
+                event = parse_event(data)
+                if event is not None:
+                    self.process_event(event)
+        finally:
+            self._connections.remove(websocket)
 
     async def send(self, event):
         assert (
             self.server is not None
         ), "Server.serve() not called before .send()"
 
-        try:
-            await self.server.send(event._to_json())
-        except websockets.exceptions.ConnectionClosedError as e:
-            logger.debug(f"Server.send failed, error: {e}")
-        except websockets.exceptions.ConnectionClosedOK as e:
-            logger.debug(f"Server.send failed, closed: {e}")
-        except Exception as e:
-            logger.error(
-                f"Unecpected Server.send error:\n{error_to_string(e)}"
-            )
-            self.stop()
+        for connection in self._connections:
+            try:
+                await connection.send(event._to_json())
+            except websockets.exceptions.ConnectionClosedError as e:
+                logger.debug(f"Server.send failed, error: {e}")
+            except websockets.exceptions.ConnectionClosedOK as e:
+                logger.debug(f"Server.send failed, closed: {e}")
+            except Exception as e:
+                logger.error(
+                    f"Unecpected Server.send error:\n{error_to_string(e)}"
+                )
+                self.stop()
 
     def stop(self):
         if self._stop is None:

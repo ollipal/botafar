@@ -76,10 +76,6 @@ class KeyboardListener:
                     self._process_event(event)
                     self.stop()
                     return False
-                elif key == keyboard.Key.tab:
-                    event = SystemEvent("keyboard_tab", "keyboard")
-                    self._process_event(event)
-                    return
 
                 key = _format_key(key)
                 if key is not None and is_pressed[key]:
