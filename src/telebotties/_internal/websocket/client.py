@@ -1,3 +1,5 @@
+import asyncio
+
 import websockets
 
 from ..events import SystemEvent
@@ -24,9 +26,10 @@ class Client:
                 data = await self.websocket.recv()
             except websockets.exceptions.ConnectionClosed:
                 break
-                logger.info("CONNECTION CLOSED")
 
-            self.receive_callback(parse_event(data))
+            event = parse_event(data)
+            if event is not None:
+                self.receive_callback(event)
 
     async def send(self, event):
         assert (
@@ -58,8 +61,23 @@ class Client:
 
         # Check first send, it does not raise errors
         # (they do not seem to work as expected)
-        connect_event = SystemEvent("connect", connect_as, "", None)
+        connect_event = SystemEvent("client_connect", "keyboard")
         success = await self.send(connect_event)
         if not success:
+            await self.stop()
+            raise ConnectionRefusedError
+
+        try:
+            reply = await asyncio.wait_for(self.websocket.recv(), timeout=1)
+            event = parse_event(reply)
+            if event is not None and event.name == "connect_ok":
+                return
+
+            # Else, event.name is most likely "already_connected",
+            # but it could be other events as well if just happened to send a
+            # message to other connected client
+            await self.stop()
+            raise RuntimeError
+        except (asyncio.TimeoutError, websockets.exceptions.ConnectionClosed):
             await self.stop()
             raise ConnectionRefusedError

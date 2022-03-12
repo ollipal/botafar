@@ -27,24 +27,27 @@ class Server:
                 try:
                     data = await websocket.recv()
                 except websockets.exceptions.ConnectionClosedError as e:
-                    event = SystemEvent(
-                        "client_disconnect", "server", text=str(e)
-                    )
-                    self.process_event(event)
+                    if len(self._connections) == 1:
+                        event = SystemEvent(
+                            "client_disconnect", "server", text=str(e)
+                        )
+                        self.process_event(event)
                     logger.debug(f"Server disconnected error: {e}")
                     break
                 except websockets.exceptions.ConnectionClosedOK as e:
-                    event = SystemEvent(
-                        "client_disconnect", "server", text=str(e)
-                    )
-                    self.process_event(event)
+                    if len(self._connections) == 1:
+                        event = SystemEvent(
+                            "client_disconnect", "server", text=str(e)
+                        )
+                        self.process_event(event)
                     logger.debug(f"Server disconnected ok: {e}")
                     break
                 except Exception as e:
-                    event = SystemEvent(
-                        "client_disconnect", "server", text=str(e)
-                    )
-                    self.process_event(event)
+                    if len(self._connections) == 1:
+                        event = SystemEvent(
+                            "client_disconnect", "server", text=str(e)
+                        )
+                        self.process_event(event)
                     logger.error(
                         f"Unecpected Server error:\n{error_to_string(e)}"
                     )

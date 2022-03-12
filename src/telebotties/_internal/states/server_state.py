@@ -29,10 +29,14 @@ class ServerState:
             event._update(True, -1)
 
         if event._type == SYSTEM_EVENT:
-            if event.name == "client_connect" and not self._connected:
+            if event.name == "client_connect" and self._connected:
+                self._send_event(SystemEvent("already_connected", None))
+                return
+            elif event.name == "client_connect" and not self._connected:
                 self._client_type = event.value
                 self._on_remote_client_connect()
                 self._connected = True
+                self._send_event(SystemEvent("connect_ok", None))
                 message = "client connected"
                 logger.info(message)
                 self._send_event(SystemEvent("info", None, message))

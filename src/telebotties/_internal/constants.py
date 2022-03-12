@@ -47,7 +47,6 @@ Go to {bold("http://localhost:3000/new?address=192-168-1-123-1996")} to connect
 Press {key("ENTER")} to start listening to local keyboard events: """
 
 LISTEN_KEYBOARD_MESSAGE = f"""
-
 {bold("Listening to local keyboard events")}, web connection listening stopped.
 - stop listening and exit: {key("Esc")}
 - cycle between player and host: {key("Tab")}

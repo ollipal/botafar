@@ -48,6 +48,12 @@ class Cli(TelebottiesBase):
                     "wrong address or bot not running?"
                 )
                 return
+            except RuntimeError:
+                print(
+                    "Connection refused to 127.0.0.1:8080, "
+                    "other client already connected"
+                )
+                return
 
             task = asyncio.create_task(self.client.receive())
             await self.keyboard_listener.run_until_finished()

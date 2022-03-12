@@ -17,6 +17,8 @@ class KeyboardClientState:
         # Potentially send event before forwarding, modify
         # or block forwarding
         if event._type == SYSTEM_EVENT:
+            if event.name == "already_connected":
+                return
             if event.name == "client_disconnect":
                 self._send("player_disconnect")
             elif event.name == "info":
