@@ -40,12 +40,18 @@ class Client:
             return True
         except websockets.exceptions.ConnectionClosedError as e:
             logger.debug(f"Client.send connection closed error: {e}")
+            event = SystemEvent("client_disconnect", None, text=str(e))
+            self.receive_callback(event)
         except websockets.exceptions.ConnectionClosedOK as e:
             logger.debug(f"Client.send connection closed: {e}")
+            event = SystemEvent("client_disconnect", None, text=str(e))
+            self.receive_callback(event)
         except Exception as e:
             logger.debug(
                 f"Unexpected Client.send error:\n{error_to_string(e)}"
             )
+            event = SystemEvent("client_disconnect", None, text=str(e))
+            self.receive_callback(event)
         return False
 
     async def stop(self):

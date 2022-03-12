@@ -8,6 +8,7 @@ logger = get_logger()
 class KeyboardClientState:
     def __init__(self, send_event):
         self._send_event = send_event
+        self._player_connected = False
 
     def process_event(self, event):
         # Update input events, required...
@@ -19,11 +20,18 @@ class KeyboardClientState:
         if event._type == SYSTEM_EVENT:
             if event.name == "already_connected":
                 return
-            if event.name == "client_disconnect":
-                self._send("player_disconnect")
-            elif event.name == "info":
-                logger.info(event.text)
+            elif event.name == "client_disconnect":
+                # self._send("player_disconnect")
+                # Blocks forwarded messages
+                self._player_connected = False
+                # Write them yourself
+                logger.info("player disconnected")
+                logger.info("client disconnected")
                 return
+            elif event.name == "info":
+                if self._player_connected:
+                    logger.info(event.text)
+                    return
 
         # Forward the event
         self._send_event(event)
@@ -31,6 +39,7 @@ class KeyboardClientState:
         # And potentially send more
         if event._type == SYSTEM_EVENT:
             if event.name == "client_connect":
+                self._player_connected = True
                 self._send("player_connect")
 
     def _send(self, name):

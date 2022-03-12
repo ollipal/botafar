@@ -72,6 +72,8 @@ class KeyboardListener:
         def on_release(key):
             try:
                 if key == keyboard.Key.esc:
+                    if not self._suppress_keys:
+                        print()  # makes new line for easier reading (linux)
                     event = SystemEvent("client_disconnect", "keyboard")
                     self._process_event(event)
                     self.stop()

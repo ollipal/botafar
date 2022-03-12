@@ -41,6 +41,12 @@ class ServerState:
                 logger.info(message)
                 self._send_event(SystemEvent("info", None, message))
             elif event.name == "client_disconnect" and self._connected:
+                if self._player_connected:
+                    # NOTE: this is the same as "player_disconnect"...
+                    self._player_connected = False
+                    message = "player disconnected"
+                    logger.info(message)
+                    self._send_event(SystemEvent("info", None, message))
                 self._connected = False
                 message = "client disconnected"
                 logger.info(message)
