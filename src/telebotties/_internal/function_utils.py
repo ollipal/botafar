@@ -1,5 +1,7 @@
 from inspect import Parameter, signature
 
+from varname import VarnameRetrievingError, nameof
+
 
 def takes_parameter(function, param_name):
     parameters = signature(function).parameters.values()
@@ -34,3 +36,53 @@ def takes_parameter(function, param_name):
                     "be made optional or removed."
                 )
     return takes_param
+
+
+# NOTE: this should be used inside decorator, frame=3
+def get_function_name(f):
+    name = None
+    try:
+        name = nameof(f, frame=3, vars_only=False)
+    except VarnameRetrievingError:
+        if hasattr(f, "__name__"):
+            name = f.__name__
+        elif hasattr(f, "__func__") and hasattr(f.__func__, "__qualname__"):
+            name = f.__func__.__qualname__
+        elif hasattr(f, "__qualname__"):
+            name = f.__qualname__
+
+    if name is not None:
+        name = name.split(".")[-1]
+
+    return name
+
+
+if __name__ == "__main__":
+
+    def decorator(f):
+        name = get_function_name(f)
+        print(name)
+        return f
+
+    @decorator
+    def regular_function():
+        pass
+
+    class SampleClass:
+        @decorator
+        def regular_class_method(self):
+            pass
+
+        @decorator
+        @staticmethod
+        def static_class_method(self):
+            pass
+
+    # Using decorator indirectly:
+    decorator(regular_function)
+    named_lamda = lambda a: a + 10  # noqa:E731
+    decorator(named_lamda)
+    decorator(lambda a: a + 10)
+    c = SampleClass()
+    decorator(c.regular_class_method)
+    decorator(SampleClass.static_class_method)

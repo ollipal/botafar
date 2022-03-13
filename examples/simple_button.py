@@ -6,6 +6,8 @@ and release events with tb.Button
 import telebotties as tb
 
 b = tb.Button("A")
+b2 = tb.Button("Z")
+b2.alternative("SPACE")
 
 
 @b.on_press

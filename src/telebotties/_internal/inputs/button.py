@@ -1,4 +1,5 @@
 from ..events import Event
+from ..function_utils import get_function_name
 from .input_base import InputBase
 
 
@@ -13,7 +14,11 @@ class Button(InputBase):
     ):
         start_event = Event("release", "host", "keyboard", "A")
         start_event._update(False, -1)
+        # TODO why self._keys[0] was undefined inside 'on_release'
+        # and this was needed?...
+        self._key = key
         super().__init__(
+            "Button",
             [key],
             host_only,
             player_only,
@@ -26,10 +31,14 @@ class Button(InputBase):
         self._register_alternative_keys([key])
 
     def on_press(self, function):
+        title = get_function_name(function)
+        self._add_key_to_has_callbacks(self._key, title)
         self._add_state_callback("press", function)
         return function
 
     def on_release(self, function):
+        title = get_function_name(function)
+        self._add_key_to_has_callbacks(self._key, title)
         self._add_state_callback("release", function)
         return function
 
@@ -40,6 +49,8 @@ class Button(InputBase):
                 " as the first parameter."
             )
 
+        title = get_function_name(function)
+        self._add_key_to_has_callbacks(self._key, title)
         self._add_state_callback("press", function)
         self._add_state_callback("release", function)
         return function

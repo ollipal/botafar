@@ -1,5 +1,7 @@
 import asyncio
 
+from telebotties._internal.inputs.input_base import InputBase
+
 from ..callback_executor import CallbackExecutor
 from ..constants import LISTEN_MESSAGE, LISTEN_WEB_MESSAGE, SIGINT_MESSAGE
 from ..listeners import EnterListener
@@ -52,7 +54,9 @@ class Main(TelebottiesBase):
             )
 
             if self.should_connect_keyboard:
-                await self.keyboard_listener.run_until_finished()
+                await self.keyboard_listener.run_until_finished(
+                    InputBase._get_input_datas()
+                )
         except Exception as e:
             logger.error(f"Unexpected internal error: {error_to_string(e)}")
             self.server.stop()

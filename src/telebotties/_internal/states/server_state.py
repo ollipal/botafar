@@ -36,7 +36,11 @@ class ServerState:
                 self._client_type = event.value
                 self._on_remote_client_connect()
                 self._connected = True
-                self._send_event(SystemEvent("connect_ok", None))
+                self._send_event(
+                    SystemEvent(
+                        "connect_ok", None, data=InputBase._get_input_datas()
+                    )
+                )
                 message = "client connected"
                 logger.info(message)
                 self._send_event(SystemEvent("info", None, message))

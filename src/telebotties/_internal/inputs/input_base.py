@@ -1,3 +1,4 @@
+import copy
 from abc import ABC, abstractmethod
 
 from ..callback_executor import CallbackExecutor
@@ -33,9 +34,11 @@ ORIGIN_REPR = {
 
 class InputBase(ABC):
     _event_callbacks = {}
+    _input_datas = []
 
     def __init__(
         self,
+        type,
         keys,
         host_only,
         player_only,
@@ -64,6 +67,37 @@ class InputBase(ABC):
         for key in self._keys:
             self._register_key(key)
 
+        self._input_datas.append(
+            {
+                "pointer": self,
+                "type": type,
+                "keys": {key: [key] for key in keys},
+                "titles": {},
+                "has_callbacks": [],
+                "without_callbacks": keys,
+            }
+        )
+
+    @staticmethod
+    def _get_input_datas():
+        data_copy = copy.deepcopy(InputBase._input_datas)
+        for elem in data_copy:
+            del elem["pointer"]
+        return data_copy
+
+    def _get_self_from_input_datas(self):
+        for data in self._input_datas:
+            if data["pointer"] == self:
+                return data
+        raise RuntimeError("Self not found from input data")
+
+    def _add_key_to_has_callbacks(self, key, title):
+        data = self._get_self_from_input_datas()
+        if key not in data["has_callbacks"]:
+            data["has_callbacks"].append(key)
+            data["without_callbacks"].remove(key)
+            data["titles"][key] = title
+
     @staticmethod
     def _get_callbacks(event):
         event._update(True, -1)  # TODO properly
@@ -84,9 +118,11 @@ class InputBase(ABC):
         # TODO make sure can be called only if not listening started and
         # no callbacks has been registered
         assert len(alternatives) == len(self._keys)
+        data = self._get_self_from_input_datas()
         for key, alternative in zip(self._keys, alternatives):
             self._register_key(alternative)
             self._alternative_map[alternative] = key
+            data["keys"][key].append(alternative)
 
     def _register_key(self, key):
         assert (

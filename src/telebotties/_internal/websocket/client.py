@@ -76,8 +76,8 @@ class Client:
         try:
             reply = await asyncio.wait_for(self.websocket.recv(), timeout=1)
             event = parse_event(reply)
-            if event is not None and event.name == "connect_ok":
-                return
+            if event is not None and event.name == "connect_ok" and event.data:
+                return event.data
 
             # Else, event.name is most likely "already_connected",
             # but it could be other events as well if just happened to send a

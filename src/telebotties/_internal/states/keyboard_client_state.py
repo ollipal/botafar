@@ -21,7 +21,6 @@ class KeyboardClientState:
             if event.name == "already_connected":
                 return
             elif event.name == "client_disconnect":
-                # self._send("player_disconnect")
                 # Blocks forwarded messages
                 self._player_connected = False
                 # Write them yourself

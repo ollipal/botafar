@@ -1,4 +1,4 @@
-from .string_utils import bold, dim, key
+from .string_utils import bold, dim, key, underlined
 
 KEYS = {
     "A",
@@ -47,15 +47,14 @@ Go to {bold("http://localhost:3000/new?address=192-168-1-123-1996")} to connect
 Press {key("ENTER")} to start listening to local keyboard events: """
 
 LISTEN_KEYBOARD_MESSAGE = f"""
-{bold("Listening to local keyboard events")}, web connection listening stopped.
-- stop listening and exit: {key("Esc")}
-- cycle between player and host: {key("Tab")}
-- simulate player getting disconnected: {key("Backspace")}
-- show controls: {key("Right Shift")}
-"""
+
+{bold("Listening to local keyboard events")} {dim("(web connection listening stopped)")}
+Press {key("Esc")} to exit, {key("Enter")} to reconnect player.
+
+{underlined("Custom inputs")}:"""
 
 LISTEN_WEB_MESSAGE = (
-    "Connected to a remote keyboard, will not listen to local keyboard events.\n\n"
+    f"\n\n\n{bold('Connected to a remote keyboard')} {dim('(will not listen to local keyboard events)')}\n"
     f"Press {key('Ctrl')} + {key('C')} to exit.\n"
 )
 
