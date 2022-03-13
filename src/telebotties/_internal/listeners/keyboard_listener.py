@@ -1,6 +1,10 @@
 import asyncio
 
-from ..constants import KEYS, LISTEN_KEYBOARD_MESSAGE
+from ..constants import (
+    KEYS,
+    LISTEN_LOCAL_KEYBOARD_MESSAGE,
+    LISTEN_REMOTE_KEYBOARD_MESSAGE,
+)
 from ..events import Event, SystemEvent
 from ..log_formatter import get_logger
 from ..string_utils import error_to_string, input_list_string
@@ -46,7 +50,7 @@ class KeyboardListener:
         self._running = False
         self._stop_event = None
 
-    async def run_until_finished(self, input_datas):
+    async def run_until_finished(self, input_datas, local):
         if self.running:
             logger.debug("KeyboardListener was already running")
             return
@@ -98,7 +102,10 @@ class KeyboardListener:
         )
         listener.start()
         listener.wait()
-        print(LISTEN_KEYBOARD_MESSAGE)
+        if local:
+            print(LISTEN_LOCAL_KEYBOARD_MESSAGE)
+        else:
+            print(LISTEN_REMOTE_KEYBOARD_MESSAGE)
         print(input_list_string(input_datas))
 
         event = SystemEvent("client_connect", "keyboard")

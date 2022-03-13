@@ -46,9 +46,15 @@ Go to {bold("http://localhost:3000/new?address=192-168-1-123-1996")} to connect
   or
 Press {key("ENTER")} to start listening to local keyboard events: """
 
-LISTEN_KEYBOARD_MESSAGE = f"""
+LISTEN_LOCAL_KEYBOARD_MESSAGE = f"""
 
 {bold("Listening to local keyboard events")} {dim("(web connection listening stopped)")}
+Press {key("Esc")} to exit, {key("Enter")} to reconnect player.
+
+{underlined("Custom inputs")}:"""
+
+LISTEN_REMOTE_KEYBOARD_MESSAGE = f"""
+{bold("Remote keyboard connected successfully")}
 Press {key("Esc")} to exit, {key("Enter")} to reconnect player.
 
 {underlined("Custom inputs")}:"""

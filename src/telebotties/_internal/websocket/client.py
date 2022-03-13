@@ -76,7 +76,11 @@ class Client:
         try:
             reply = await asyncio.wait_for(self.websocket.recv(), timeout=1)
             event = parse_event(reply)
-            if event is not None and event.name == "connect_ok" and event.data:
+            if (
+                event is not None
+                and event.name == "connect_ok"
+                and hasattr(event, "data")
+            ):
                 return event.data
 
             # Else, event.name is most likely "already_connected",

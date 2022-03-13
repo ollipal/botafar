@@ -36,7 +36,7 @@ def _color_keys(keys, color):
         apparent_len += len(key_) + 5
         ret += f"{blue_key(key_) if color == 'blue' else key(key_)} / "
 
-    target = 16
+    target = 12
     padding = " " * (target - apparent_len) if apparent_len < target else ""
     return ret[:-3] + padding
 
@@ -55,4 +55,5 @@ def input_list_string(input_datas):
                 "- No callbacks registered\n"
             )
 
-    return ret + "\n" if ret != "" else dim("(no custom inputs registered)")
+    # TODO add link to input documentation if no inputs registered
+    return ret + "\n" if ret != "" else dim("(no custom inputs registered)\n")

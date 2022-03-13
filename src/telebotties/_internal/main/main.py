@@ -55,7 +55,7 @@ class Main(TelebottiesBase):
 
             if self.should_connect_keyboard:
                 await self.keyboard_listener.run_until_finished(
-                    InputBase._get_input_datas()
+                    InputBase._get_input_datas(), True
                 )
         except Exception as e:
             logger.error(f"Unexpected internal error: {error_to_string(e)}")

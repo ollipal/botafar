@@ -41,7 +41,7 @@ class Cli(TelebottiesBase):
     async def main(self):
         try:
             try:
-                input_data = await self.client.connect(connect_as="player")
+                input_datas = await self.client.connect(connect_as="player")
             except ConnectionRefusedError:
                 print(
                     "Connection refused to 127.0.0.1:8080, "
@@ -56,7 +56,7 @@ class Cli(TelebottiesBase):
                 return
 
             task = asyncio.create_task(self.client.receive())
-            await self.keyboard_listener.run_until_finished(input_data)
+            await self.keyboard_listener.run_until_finished(input_datas, False)
             await self.client.stop()
             await task
         except Exception as e:
