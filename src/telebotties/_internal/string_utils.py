@@ -29,29 +29,46 @@ def error_to_string(e):
     return "".join(traceback.format_exception(type(e), e, e.__traceback__))
 
 
-def _color_keys(keys, color):
+def _get_padding_target(input_datas):
+    """The actual target value makes no sense but it seems to work..."""
+    target = 0
+    for data in input_datas:
+        keys_map = data["keys"]
+        for key in data["has_callbacks"] + data["without_callbacks"]:
+            keys = keys_map[key]
+            length = 0
+            for key in keys:
+                length += len(key) + 5
+            target = max(target, length)
+    return target
+
+
+def _color_keys(keys, color, target):
     ret = ""
     apparent_len = 0  # ASCII does not add to len
     for key_ in keys:
         apparent_len += len(key_) + 5
         ret += f"{blue_key(key_) if color == 'blue' else key(key_)} / "
 
-    target = 12
     padding = " " * (target - apparent_len) if apparent_len < target else ""
     return ret[:-3] + padding
 
 
 def input_list_string(input_datas):
     ret = ""
+    target = _get_padding_target(input_datas)
     for data in input_datas:
         keys_map = data["keys"]
         for key in data["has_callbacks"]:
             description = data["titles"].get(key, ("Unknown action", 0))[0]
             description = function_name_to_sentence(description)
-            ret += f"{_color_keys(keys_map[key], 'blue')} - {description}\n"
+            ret += (
+                f"{_color_keys(keys_map[key], 'blue', target)} "
+                f"- {description}\n"
+            )
         for key in data["without_callbacks"]:
             ret += (
-                f"{_color_keys(keys_map[key], 'regular')} "
+                f"{_color_keys(keys_map[key], 'regular', target)} "
                 "- No callbacks added\n"  # TODO add link to add cbs
             )
 
