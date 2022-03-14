@@ -4,7 +4,7 @@ import telebotties as tb
 
 
 def test_unknown_key():
-    with pytest.raises(AssertionError):
+    with pytest.raises(RuntimeError):
         tb.Button("?")
 
 

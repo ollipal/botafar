@@ -122,9 +122,15 @@ class InputBase(ABC):
             self._data["keys"][key].append(alternative)
 
     def _register_key(self, key):
-        assert (
-            key in KEYS
-        ), f"Unknown key '{key}'"  # TODO add url to allowed keys
+        if key not in KEYS:
+            if isinstance(key, str) and key.upper() in KEYS:
+                raise RuntimeError(
+                    f"Unknown key '{key}', did you mean '{key.upper()}'?"
+                )
+            else:
+                raise RuntimeError(
+                    f"Unknown key '{key}'"
+                )  # TODO link to allowed keys
 
         new_event_callback_keys = self._get_event_callback_keys(
             key, self._sender, self._origin
