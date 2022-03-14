@@ -49,10 +49,10 @@ class InputBase(ABC):
         # Make sure makes sense
         assert not (
             host_only and player_only
-        ), "Input cannot be host_only and player_only"
+        ), "Input cannot be host_only and player_only at the same time"
         assert not (
             keyboard_only and screen_only
-        ), "Input cannot be host_only and player_only"
+        ), "Input cannot be keyboard_only and screen_only at the same time"
 
         self._keys = keys
         self._sender = SENDER_MAP[(host_only, player_only)]
@@ -64,7 +64,8 @@ class InputBase(ABC):
         self._callbacks_added = False
 
         for key in self._keys:
-            self._register_key(key)
+            self._register_key(key) # This first checks all keys are allowed
+        assert len(keys) == len(set(keys)), "Input cannot have multiple same keys"
 
         self._data = {
             "type": type,
