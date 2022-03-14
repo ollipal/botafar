@@ -44,6 +44,7 @@ class InputBase(ABC):
         keyboard_only,
         screen_only,
         start_event,
+        alternatives,
     ):
         # TODO makey assertions key makes sense, others type boolean
         # Make sure makes sense
@@ -64,7 +65,8 @@ class InputBase(ABC):
         self._callbacks_added = False
 
         for key in self._keys:
-            self._register_key(key)  # This first checks all keys are allowed
+            # Checks all keys are allowed before the assertion next
+            self._register_key(key)
         assert len(keys) == len(
             set(keys)
         ), "Input cannot have multiple same keys"
@@ -77,6 +79,9 @@ class InputBase(ABC):
             "without_callbacks": keys,
         }
         InputBase._inputs.append(self)
+
+        if alternatives is not None:
+            self._register_alternative_keys(alternatives)
 
     @staticmethod
     def _get_input_datas():
@@ -108,13 +113,6 @@ class InputBase(ABC):
         ]._get_instance_callbacks(event)
 
     def _register_alternative_keys(self, alternatives):
-        if self._callbacks_added:
-            raise RuntimeError(
-                "alternative() should be used before registering callbacks"
-            )
-
-        # TODO make sure can be called only if not listening started and
-        # no callbacks has been registered
         assert len(alternatives) == len(self._keys)
         for key, alternative in zip(self._keys, alternatives):
             self._register_key(alternative)

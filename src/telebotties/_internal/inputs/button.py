@@ -7,6 +7,7 @@ class Button(InputBase):
     def __init__(
         self,
         key,
+        alternative=None,
         host_only=False,
         player_only=False,
         keyboard_only=False,
@@ -25,10 +26,8 @@ class Button(InputBase):
             keyboard_only,
             screen_only,
             start_event,
+            alternative,
         )
-
-    def alternative(self, key):
-        self._register_alternative_keys([key])
 
     def on_press(self, function):
         title = get_function_name(function)
