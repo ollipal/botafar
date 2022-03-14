@@ -110,6 +110,9 @@ class KeyboardListener:
 
         event = SystemEvent("client_connect", "keyboard")
         self._process_event(event)
+        if local:
+            event = SystemEvent("player_connect", "keyboard")
+            self._process_event(event)
         try:
             await self._stop_event.wait()
         finally:
