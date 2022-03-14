@@ -52,8 +52,8 @@ def input_list_string(input_datas):
         for key in data["without_callbacks"]:
             ret += (
                 f"{_color_keys(keys_map[key], 'regular')} "
-                "- No callbacks registered\n"
+                "- No callbacks added\n"  # TODO add link to add cbs
             )
 
-    # TODO add link to input documentation if no inputs registered
-    return ret + "\n" if ret != "" else dim("(no custom inputs registered)\n")
+    # TODO add link to input documentation if no inputs have been created
+    return ret + "\n" if ret != "" else dim("(no inputs created)\n")
