@@ -64,8 +64,10 @@ class InputBase(ABC):
         self._callbacks_added = False
 
         for key in self._keys:
-            self._register_key(key) # This first checks all keys are allowed
-        assert len(keys) == len(set(keys)), "Input cannot have multiple same keys"
+            self._register_key(key)  # This first checks all keys are allowed
+        assert len(keys) == len(
+            set(keys)
+        ), "Input cannot have multiple same keys"
 
         self._data = {
             "type": type,
@@ -80,11 +82,19 @@ class InputBase(ABC):
     def _get_input_datas():
         return [input_._data for input_ in InputBase._inputs]
 
-    def _add_key_to_has_callbacks(self, key, title):
+    def _add_key_to_has_callbacks(self, key, title, tier):
+        if title is None:
+            tier = 0
+
         if key not in self._data["has_callbacks"]:
             self._data["has_callbacks"].append(key)
             self._data["without_callbacks"].remove(key)
-            self._data["titles"][key] = title
+
+        if (
+            key not in self._data["titles"]
+            or self._data["titles"][key][1] < tier
+        ):
+            self._data["titles"][key] = (title, tier)
 
     @staticmethod
     def _get_callbacks(event):

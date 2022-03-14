@@ -46,7 +46,7 @@ def input_list_string(input_datas):
     for data in input_datas:
         keys_map = data["keys"]
         for key in data["has_callbacks"]:
-            description = data["titles"].get(key, "Unknown action")
+            description = data["titles"].get(key, ("Unknown action", 0))[0]
             description = function_name_to_sentence(description)
             ret += f"{_color_keys(keys_map[key], 'blue')} - {description}\n"
         for key in data["without_callbacks"]:

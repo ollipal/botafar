@@ -32,13 +32,13 @@ class Button(InputBase):
 
     def on_press(self, function):
         title = get_function_name(function)
-        self._add_key_to_has_callbacks(self._key, title)
+        self._add_key_to_has_callbacks(self._key, title, 3)
         self._add_state_callback("press", function)
         return function
 
     def on_release(self, function):
         title = get_function_name(function)
-        self._add_key_to_has_callbacks(self._key, title)
+        self._add_key_to_has_callbacks(self._key, f"{title} (release)", 1)
         self._add_state_callback("release", function)
         return function
 
@@ -50,7 +50,7 @@ class Button(InputBase):
             )
 
         title = get_function_name(function)
-        self._add_key_to_has_callbacks(self._key, title)
+        self._add_key_to_has_callbacks(self._key, title, 2)
         self._add_state_callback("press", function)
         self._add_state_callback("release", function)
         return function
