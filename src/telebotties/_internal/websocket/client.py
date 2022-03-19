@@ -11,9 +11,9 @@ logger = get_logger()
 
 
 class Client:
-    def __init__(self, port, receive_callback):
-        self.port = port
-        self.receive_callback = receive_callback
+    def __init__(self, address, process_event):
+        self.address = address
+        self.process_event = process_event
         self.websocket = None
 
     async def receive(self):
@@ -29,7 +29,7 @@ class Client:
 
             event = parse_event(data)
             if event is not None:
-                self.receive_callback(event)
+                self.process_event(event)
 
     async def send(self, event):
         assert (
@@ -41,17 +41,17 @@ class Client:
         except websockets.exceptions.ConnectionClosedError as e:
             logger.debug(f"Client.send connection closed error: {e}")
             event = SystemEvent("client_disconnect", None, text=str(e))
-            self.receive_callback(event)
+            self.process_event(event)
         except websockets.exceptions.ConnectionClosedOK as e:
             logger.debug(f"Client.send connection closed: {e}")
             event = SystemEvent("client_disconnect", None, text=str(e))
-            self.receive_callback(event)
+            self.process_event(event)
         except Exception as e:
             logger.debug(
                 f"Unexpected Client.send error:\n{error_to_string(e)}"
             )
             event = SystemEvent("client_disconnect", None, text=str(e))
-            self.receive_callback(event)
+            self.process_event(event)
         return False
 
     async def stop(self):
@@ -60,10 +60,8 @@ class Client:
             return
         await self.websocket.close()
 
-    async def connect(self, connect_as):
-        self.websocket = await websockets.connect(
-            f"ws://localhost:{self.port}"
-        )
+    async def connect(self):
+        self.websocket = await websockets.connect(f"ws://{self.address}")
 
         # Check first send, it does not raise errors
         # (they do not seem to work as expected)

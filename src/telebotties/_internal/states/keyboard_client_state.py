@@ -6,11 +6,14 @@ logger = get_logger()
 
 
 class KeyboardClientState:
-    def __init__(self, send_event):
-        self._send_event = send_event
-        self._player_connected = False
+    def __init__(self, send_event, end_callback):
+        self.send_event = send_event
+        self.end_callback = end_callback
+        self.player_connected = False
 
     def process_event(self, event):
+        """Return True if should stop"""
+
         # Update input events, required...
         if event._type == INPUT_EVENT:
             event._update(True, -1)
@@ -21,25 +24,31 @@ class KeyboardClientState:
             if event.name == "already_connected":
                 return
             elif event.name == "client_disconnect":
-                # Blocks forwarded messages
-                self._player_connected = False
-                # Write them yourself
-                logger.info("player disconnected")
-                logger.info("client disconnected")
+                if self.player_connected:
+                    # Blocks forwarded messages
+                    self.player_connected = False
+                    # Write them yourself
+                    logger.info("player disconnected")
+                    logger.info("client disconnected")
+                self.end_callback()
                 return
             elif event.name == "info":
-                if self._player_connected:
+                if self.player_connected:
                     logger.info(event.text)
                     return
+            elif event.name == "error":
+                logger.error(event.text)
+                self.end_callback()
+                return
 
         # Forward the event
-        self._send_event(event)
+        self.send_event(event)
 
         # And potentially send more
         if event._type == SYSTEM_EVENT:
             if event.name == "client_connect":
-                self._player_connected = True
+                self.player_connected = True
                 self._send("player_connect")
 
     def _send(self, name):
-        self._send_event(SystemEvent(name, "keyboard"))
+        self.send_event(SystemEvent(name, "keyboard"))

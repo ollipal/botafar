@@ -44,9 +44,10 @@ def _format_key(key):
 
 
 class KeyboardListener:
-    def __init__(self, process_event, suppress_keys):
+    def __init__(self, process_event, suppress_keys, prints_removed):
         self._process_event = process_event
         self._suppress_keys = suppress_keys
+        self.prints_removed = prints_removed
         self._running = False
         self._stop_event = None
 
@@ -76,7 +77,7 @@ class KeyboardListener:
         def on_release(key):
             try:
                 if key == keyboard.Key.esc:
-                    if not self._suppress_keys:
+                    if not self._suppress_keys and not self.prints_removed:
                         print()  # makes new line for easier reading (linux)
                     event = SystemEvent("client_disconnect", "keyboard")
                     self._process_event(event)
@@ -102,21 +103,20 @@ class KeyboardListener:
         )
         listener.start()
         listener.wait()
-        if local:
-            print(LISTEN_LOCAL_KEYBOARD_MESSAGE)
-        else:
-            print(LISTEN_REMOTE_KEYBOARD_MESSAGE)
-        print(input_list_string(input_datas))
+
+        if not self.prints_removed:
+            if local:
+                print(LISTEN_LOCAL_KEYBOARD_MESSAGE)
+            else:
+                print(LISTEN_REMOTE_KEYBOARD_MESSAGE)
+            print(input_list_string(input_datas))
 
         event = SystemEvent("client_connect", "keyboard")
         self._process_event(event)
         if local:
             event = SystemEvent("player_connect", "keyboard")
             self._process_event(event)
-        try:
-            await self._stop_event.wait()
-        finally:
-            print()
+        await self._stop_event.wait()
 
     def stop(self):
         if not self.running:

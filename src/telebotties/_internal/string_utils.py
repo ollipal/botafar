@@ -26,7 +26,9 @@ def function_name_to_sentence(string):
 
 
 def error_to_string(e):
-    return "".join(traceback.format_exception(type(e), e, e.__traceback__))
+    return "".join(
+        traceback.format_exception(type(e), e, e.__traceback__)
+    ).rstrip()
 
 
 def _get_padding_target(input_datas):

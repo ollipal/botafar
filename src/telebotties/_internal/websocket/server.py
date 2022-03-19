@@ -17,6 +17,7 @@ class Server:
         self.loop = None
         self._stop = None
         self._connections = set()
+        self._connected = False
 
     async def _server_start(self, websocket, path):
         assert self.server is not None
@@ -82,11 +83,22 @@ class Server:
         if self._stop is None:
             logger.debug("Server.stop skipped, serving not started?")
             return
-        self.loop.call_soon_threadsafe(self._stop.set)
+
+        try:
+            self.loop.call_soon_threadsafe(self._stop.set)
+        except RuntimeError:
+            logger.debug("call_soon_threadsafe errored")
+
+        self._connected = False
 
     async def serve(self, port):
         self._stop = asyncio.Event()
         self.loop = asyncio.get_running_loop()
         async with websockets.serve(self._server_start, port=port) as server:
             self.server = server
+            self._connected = True
             await self._stop.wait()
+
+    @property
+    def connected(self):
+        return self._connected

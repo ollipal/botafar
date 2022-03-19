@@ -1,5 +1,8 @@
 from ..callback_executor import CallbackExecutor
 from ..function_utils import takes_parameter
+from ..log_formatter import get_logger
+
+logger = get_logger()
 
 
 class CallbackBase:
@@ -32,7 +35,7 @@ class CallbackBase:
         else:
             CallbackBase._callbacks[name] = [function]
 
-        print(f"{name} registered")
+        logger.debug(f"{name} registered")
 
     @staticmethod
     def _takes_time(function):
