@@ -4,13 +4,14 @@ import click
 
 from telebotties._internal.events.system_event import SystemEvent
 from telebotties._internal.inputs.input_base import InputBase
+from telebotties._internal.ip_addr import get_ip
 
 from ..callback_executor import CallbackExecutor
-from ..constants import LISTEN_MESSAGE, LISTEN_WEB_MESSAGE, SIGINT_MESSAGE
+from ..constants import LISTEN_WEB_MESSAGE, SIGINT_MESSAGE
 from ..listeners import EnterListener
 from ..log_formatter import get_logger, setup_logging
 from ..states import ServerState
-from ..string_utils import error_to_string
+from ..string_utils import error_to_string, get_welcome_message
 from ..websocket import Server
 from .telebotties_base import TelebottiesBase
 
@@ -55,8 +56,9 @@ class Main(TelebottiesBase):
 
     async def main(self):
         try:
+            ip = get_ip()  # TODO save
             if not self.prints_removed:
-                print(LISTEN_MESSAGE, end="")
+                print(get_welcome_message(ip, self.port), end="")
 
             await asyncio.gather(
                 self.enter_listener.run_until_finished(self.server.stop),
@@ -155,13 +157,13 @@ def _main(log_level, port, suppress_keys, prints_removed):
     default="info",
 )  # level 'critical' is not in use currently
 @click.option(
-    "-p",
-    "--prints-removed",
+    "-n",
+    "--no-help",
     is_flag=True,
-    help="Removes all printed guide messages.from standard out",
+    help="Removes help messages from standard out.",
 )
-def _cli(port, suppress_keys, log_level, prints_removed):
-    _main(log_level.upper(), port, suppress_keys, prints_removed)
+def _cli(port, suppress_keys, log_level, no_help):
+    _main(log_level.upper(), port, suppress_keys, no_help)
 
 
 def listen(cli_enabled=True):

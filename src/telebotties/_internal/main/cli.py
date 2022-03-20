@@ -120,15 +120,15 @@ class Cli(TelebottiesBase):
     default="info",
 )  # level 'critical' is not in use currently
 @click.option(
-    "-p",
-    "--prints-removed",
+    "-n",
+    "--no-help",
     is_flag=True,
-    help="Removes all printed guide messages.from standard out",
+    help="Removes help messages from standard out.",
 )
 @click.option(
     "-v", "--version", is_flag=True, help="Prints telebotties version."
 )
-def _cli(connect, suppress_keys, log_level, prints_removed, version):
+def _cli(connect, suppress_keys, log_level, no_help, version):
     # Show help if no args empty
     if len(sys.argv) == 1:
         ctx = click.get_current_context()
@@ -140,4 +140,4 @@ def _cli(connect, suppress_keys, log_level, prints_removed, version):
         return
 
     setup_logging(log_level.upper())
-    Cli(connect, suppress_keys, prints_removed).run()
+    Cli(connect, suppress_keys, no_help).run()

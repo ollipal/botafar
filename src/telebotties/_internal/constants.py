@@ -40,12 +40,6 @@ ORIGINS = {"keyboard", "screen"}
 INPUT_EVENT = "INPUT_EVENT"
 SYSTEM_EVENT = "SYSTEM_EVENT"
 
-LISTEN_MESSAGE = f"""Listening to web connections at 192.168.1.123:1996
-
-Go to {bold("http://localhost:3000/new?address=192-168-1-123-1996")} to connect
-  or
-Press {key("ENTER")} to start listening to local keyboard events: """
-
 LISTEN_LOCAL_KEYBOARD_MESSAGE = f"""
 
 {bold("Listening to local keyboard events")} {dim("(web connection listening stopped)")}

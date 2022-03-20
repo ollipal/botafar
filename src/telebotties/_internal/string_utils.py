@@ -76,3 +76,13 @@ def input_list_string(input_datas):
 
     # TODO add link to input documentation if no inputs have been created
     return ret + "\n" if ret != "" else dim("(no inputs created)\n")
+
+
+def get_welcome_message(ip, port):
+    ip_url = "-".join(ip.split(".") + [port])
+
+    return f"""Listening to web connections at {ip}:{port}
+
+Go to {bold("http://localhost:3000/new?address=" + ip_url)} to connect
+  or
+Press {key("ENTER")} to start listening to local keyboard events: """
