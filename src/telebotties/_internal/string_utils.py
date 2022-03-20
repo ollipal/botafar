@@ -78,11 +78,20 @@ def input_list_string(input_datas):
     return ret + "\n" if ret != "" else dim("(no inputs created)\n")
 
 
-def get_welcome_message(ip, port):
+def get_welcome_message(ip, port, pynput_supported):
     ip_url = "-".join(ip.split(".") + [port])
+
+    second_connection_help = (
+        f"Press {key('ENTER')} to start listening to local keyboard events: "
+        if pynput_supported
+        else (
+            f'Run "{bold(f"telebotties --connect {ip}:{port}")}" '
+            "from an another machine"
+        )
+    )
 
     return f"""Listening to web connections at {ip}:{port}
 
 Go to {bold("http://localhost:3000/new?address=" + ip_url)} to connect
   or
-Press {key("ENTER")} to start listening to local keyboard events: """
+{second_connection_help}"""

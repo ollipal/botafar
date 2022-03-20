@@ -53,8 +53,13 @@ Press {key("Esc")} to exit, {key("Enter")} to reconnect player.
 
 {underlined("Custom inputs")}:"""
 
-LISTEN_WEB_MESSAGE = (
-    f"\n\n\n{bold('Connected to a remote keyboard')} {dim('(will not listen to local keyboard events)')}\n"
+LISTEN_WEB_MESSAGE_PYNPUT = (
+    f"\n\n\n{bold('A remote keyboard connected')} {dim('(will not listen to local keyboard events)')}\n"
+    f"Press {key('Ctrl')} + {key('C')} to exit.\n"
+)
+
+LISTEN_WEB_MESSAGE_NO_PYNPUT = (
+    f"\n\n\n{bold('A remote keyboard connected')}\n"
     f"Press {key('Ctrl')} + {key('C')} to exit.\n"
 )
 

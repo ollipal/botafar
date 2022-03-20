@@ -139,5 +139,9 @@ def _cli(connect, suppress_keys, log_level, no_help, version):
         click.echo(__version__)
         return
 
+    # Keep this import here, required for Cli, but errors silenced
+    # in keyboard_listener.py, because normal bots can be used without
+    from pynput import keyboard  # noqa: F401
+
     setup_logging(log_level.upper())
     Cli(connect, suppress_keys, no_help).run()

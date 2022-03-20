@@ -7,8 +7,12 @@ from telebotties._internal.inputs.input_base import InputBase
 from telebotties._internal.ip_addr import get_ip
 
 from ..callback_executor import CallbackExecutor
-from ..constants import LISTEN_WEB_MESSAGE, SIGINT_MESSAGE
-from ..listeners import EnterListener
+from ..constants import (
+    LISTEN_WEB_MESSAGE_NO_PYNPUT,
+    LISTEN_WEB_MESSAGE_PYNPUT,
+    SIGINT_MESSAGE,
+)
+from ..listeners import EnterListener, pynput_supported
 from ..log_formatter import get_logger, setup_logging
 from ..states import ServerState
 from ..string_utils import error_to_string, get_welcome_message
@@ -35,6 +39,7 @@ class Main(TelebottiesBase):
         self.enter_listener = EnterListener()
         self.server = Server(self.state.process_event)
         self.callback_executor.add_to_takes_event(self._send_event_async)
+        self.non_pynput_help_printed = False
 
     def send_event(self, event):
         if self.server.connected:
@@ -51,21 +56,34 @@ class Main(TelebottiesBase):
         if self.enter_listener.running:
             self.enter_listener.stop()
             if not self.prints_removed:
-                print(LISTEN_WEB_MESSAGE)
-            self.should_connect_keyboard = False
+                print(LISTEN_WEB_MESSAGE_PYNPUT)
+
+        if not pynput_supported and not self.non_pynput_help_printed:
+            if not self.prints_removed:
+                print(LISTEN_WEB_MESSAGE_NO_PYNPUT)
+                self.non_pynput_help_printed = True
+
+        self.should_connect_keyboard = False
 
     async def main(self):
         try:
+
             ip = get_ip()  # TODO save
             if not self.prints_removed:
-                print(get_welcome_message(ip, self.port), end="")
+                print(
+                    get_welcome_message(ip, self.port, pynput_supported),
+                    end="",
+                )
 
-            await asyncio.gather(
-                self.enter_listener.run_until_finished(self.server.stop),
-                self.server.serve(self.port),
-            )
+            if pynput_supported:
+                await asyncio.gather(
+                    self.enter_listener.run_until_finished(self.server.stop),
+                    self.server.serve(self.port),
+                )
+            else:
+                await self.server.serve(self.port)
 
-            if self.should_connect_keyboard:
+            if pynput_supported and self.should_connect_keyboard:
                 await self.keyboard_listener.run_until_finished(
                     InputBase._get_input_datas(), True
                 )

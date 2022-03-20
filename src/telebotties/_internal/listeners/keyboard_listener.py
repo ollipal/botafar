@@ -22,7 +22,8 @@ try:
         keyboard.Key.right: "RIGHT",
     }
     pynput_supported = True
-except ImportError:
+except Exception:
+    logger.debug("pynput not supported")
     pynput_supported = False
 
 is_pressed = {key: False for key in KEYS}
