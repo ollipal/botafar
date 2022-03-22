@@ -9,6 +9,16 @@ b = tb.Button("A")
 b2 = tb.Button("Z", alternative="Y")
 
 
+@tb.on_init
+def init():
+    print("init")
+
+
+@tb.on_exit
+def exit():
+    print("exit")
+
+
 @b.on_press
 def press_callback():  # Access event: `def press_callback('event')`
     print("Button pressed")

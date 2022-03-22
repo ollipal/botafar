@@ -21,7 +21,15 @@ class CallbackBase:
         )
 
     @staticmethod
+    def get_by_name(name):
+        if name not in CallbackBase._callbacks:
+            return []
+
+        return CallbackBase._callbacks[name]
+
+    @staticmethod
     def register_callback(name, function):
+        # TODO should not check takes time every time...
         if CallbackBase._takes_time(
             function
         ):  # Also validates other parameters

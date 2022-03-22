@@ -33,6 +33,7 @@ class CallbackExecutor:
         CallbackExecutor.takes_time.add(function)
 
     def execute_callbacks(self, callbacks, event=None, time=None):
+        futures = []
         for callback in callbacks:
             if event is not None and callback in self.takes_event:
                 params = [event]
@@ -50,8 +51,9 @@ class CallbackExecutor:
 
             self.futures.add(future)
             future.add_done_callback(self._done)
+            futures.append(future)
 
-        # TODO return "all finished" awaitable
+        return futures
 
     def _done(self, future):
         self.futures.remove(future)

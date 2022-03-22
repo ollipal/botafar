@@ -2,6 +2,7 @@ import asyncio
 
 import click
 
+from telebotties._internal.callbacks.callback_base import CallbackBase
 from telebotties._internal.events.system_event import SystemEvent
 from telebotties._internal.inputs.input_base import InputBase
 from telebotties._internal.ip_addr import get_ip
@@ -65,8 +66,15 @@ class Main(TelebottiesBase):
 
         self.should_connect_keyboard = False
 
+    async def run_callbacks(self, name):
+        futures = self.callback_executor.execute_callbacks(
+            CallbackBase.get_by_name(name)
+        )
+        await asyncio.gather(*[asyncio.wrap_future(f) for f in futures])
+
     async def main(self):
         try:
+            await self.run_callbacks("on_init")
 
             ip = get_ip()  # TODO save
             if not self.prints_removed:
@@ -91,6 +99,8 @@ class Main(TelebottiesBase):
             logger.error(f"Unexpected internal error: {error_to_string(e)}")
             self.server.stop()
             self.enter_listener.stop()
+        finally:
+            await self.run_callbacks("on_exit")
 
     def error_callback(self, e, sigint=False):
         if e is not None:
