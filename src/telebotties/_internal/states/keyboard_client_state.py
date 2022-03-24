@@ -32,6 +32,9 @@ class KeyboardClientState:
                     logger.info("client disconnected")
                 self.end_callback()
                 return
+            elif event.name == "print":
+                print(event.value)
+                return
             elif event.name == "info":
                 if self.player_connected:
                     logger.info(event.text)

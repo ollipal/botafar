@@ -11,22 +11,22 @@ b2 = tb.Button("Z", alternative="Y")
 
 @tb.on_init
 def init():
-    print("init")
+    tb.print("init")
 
 
 @tb.on_exit
 def exit():
-    print("exit")
+    tb.print("exit")
 
 
 @b.on_press
 def press_callback():  # Access event: `def press_callback('event')`
-    print("Button pressed")
+    tb.print("Button pressed")
 
 
 @b.on_release
 def release_callback():  # Access event: `def release_callback('event')`
-    print("Button released")
+    tb.print("Button released")
 
 
 tb.listen()

@@ -21,6 +21,7 @@ from ..websocket import Server
 from .telebotties_base import TelebottiesBase
 
 logger = get_logger()
+main = None
 
 
 class Main(TelebottiesBase):
@@ -52,6 +53,19 @@ class Main(TelebottiesBase):
 
     async def _send_event_async(self, event):
         await self.server.send(event)
+
+    def print(self, string, print_locally=True):
+        if print_locally:
+            print(string)
+        if self.server.connected:
+            self.send_event(
+                SystemEvent(
+                    "print",
+                    string,
+                )
+            )
+        else:
+            logger.debug("Server not connected, print not sent")
 
     def on_remote_client_connect(self):
         if self.enter_listener.running:
@@ -150,9 +164,19 @@ class Main(TelebottiesBase):
         self.error_callback(None, sigint=True)
 
 
+def _print(string):
+    global main
+    if main is not None:
+        main.print(string)
+    else:
+        raise RuntimeError("tb.print() cannot be called before tb.listen()")
+
+
 def _main(log_level, port, suppress_keys, prints_removed):
+    global main
     setup_logging(log_level)
-    Main(port, suppress_keys, prints_removed).run()
+    main = Main(port, suppress_keys, prints_removed)
+    main.run()
 
 
 @click.command(
