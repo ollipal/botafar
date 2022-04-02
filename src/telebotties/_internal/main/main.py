@@ -32,7 +32,7 @@ class Main(TelebottiesBase):
         )
         self.event_prosessor = ServerEventProsessor(
             self.send_event,
-            self.callback_executor.execute_callbacks,
+            self.callback_executor,
             self.on_remote_host_connect,
         )
         super().__init__(suppress_keys, prints_removed)
@@ -46,7 +46,7 @@ class Main(TelebottiesBase):
     def send_event(self, event):
         if self.server.connected:
             self.callback_executor.execute_callbacks(
-                [self._send_event_async], event=event
+                [self._send_event_async], "_send_event", None, event=event
             )
         else:
             logger.debug("server was not connected, not sending")
@@ -80,17 +80,15 @@ class Main(TelebottiesBase):
 
         self.should_connect_keyboard = False
 
-    async def run_callbacks(self, name):
-        futures = self.callback_executor.execute_callbacks(
-            CallbackBase.get_by_name(name)
+    async def run_callbacks(self, name, callback):
+        self.callback_executor.execute_callbacks(
+            CallbackBase.get_by_name(name), name, callback
         )
-        await asyncio.gather(*[asyncio.wrap_future(f) for f in futures])
+        await self.callback_executor.wait_until_finished(name)
 
     async def main(self):
         try:
-            state_machine.init()
-            await self.run_callbacks("on_init")
-            state_machine.wait_host()
+            await self.run_callbacks("on_init", state_machine.wait_host)
 
             ip = get_ip()  # TODO save
             if not self.prints_removed:
@@ -117,9 +115,8 @@ class Main(TelebottiesBase):
             self.enter_listener.stop()
         finally:
             state_machine.exit_immediate()
-            await self.run_callbacks("on_exit_immediate")
-            state_machine.exit()
-            await self.run_callbacks("on_exit")
+            await self.run_callbacks("on_exit_immediate", state_machine.exit)
+            await self.run_callbacks("on_exit", None)
 
     def error_callback(self, e, sigint=False):
         if e is not None:

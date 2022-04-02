@@ -1,14 +1,12 @@
 from dataclasses import dataclass
 
-from transitions import Machine
+from transitions import Machine, State
 
-from ..events import SystemEvent
-from ..inputs import InputBase
+from ..callbacks import CallbackBase
 from ..log_formatter import get_logger
 
 logger = get_logger()
 
-PRE_INIT = "pre_init"
 INIT = "init"
 WAITING_HOST = "waiting_host"
 PREPARE = "prepare"
@@ -22,7 +20,6 @@ EXIT_IMMEDIATE = "exit_immediate"
 EXIT = "exit"
 
 SIMPLIFIED_STATES = {
-    PRE_INIT: "init",
     START_BEFORE_CONTROLS: "start",
     STOP_IMMEDIATE: "stop",
     EXIT_IMMEDIATE: "exit",
@@ -54,31 +51,23 @@ class ServerStateMachine:
         START_BEFORE_CONTROLS,
         START,
         WAITING_STOP,
-        STOP_IMMEDIATE,
+        State(STOP_IMMEDIATE, ignore_invalid_triggers=True),
         STOP,
-        EXIT_IMMEDIATE,
+        State(EXIT_IMMEDIATE, ignore_invalid_triggers=True),
         EXIT,
     ]
 
     def __init__(self):
         self.host = Host()
         self.player = Player()
-        self.machine = Machine(
-            model=self, states=self.states, initial=PRE_INIT
-        )
+        self.machine = Machine(model=self, states=self.states, initial=INIT)
 
         # add_transition params: trigger, source, destination
         self.machine.add_transition(
-            "init",
-            PRE_INIT,
-            INIT,
-            after="after_init",
-        )
-        self.machine.add_transition(
             "wait_host",
-            INIT,
+            [INIT, STOP],
             WAITING_HOST,
-            conditions="on_init_finished",
+            conditions="all_finished",
             after="after_waiting_host",
         )
         self.machine.add_transition(
@@ -92,37 +81,44 @@ class ServerStateMachine:
             "wait_player",
             PREPARE,
             WAITING_PLAYER,
-            conditions="on_prepare_finished",
+            after="after_waiting_player",
         )
         self.machine.add_transition(
-            "start_before_contorls",
+            "start_before_controls",
             WAITING_PLAYER,
             START_BEFORE_CONTROLS,
             conditions="player_connected",
-            after="after_start_before_contorls",
+            after="after_start_before_controls",
         )
         self.machine.add_transition(
             "start",
             START_BEFORE_CONTROLS,
             START,
-            conditions="on_start_bofore_controls_finished",
+            # conditions="on_start_before_controls_finished",
             after="after_start",
         )
         self.machine.add_transition(
-            "wait_stop", START, WAITING_STOP, conditions="on_start_finished"
+            "wait_stop",
+            START,
+            WAITING_STOP,
+            # conditions="on_start_finished",
+            after="after_waiting_stop",
         )
         self.machine.add_transition(
-            "stop_immediate", [START, WAITING_STOP], STOP_IMMEDIATE
-        )  # when: stop() or player_disconnected
+            "stop_immediate",
+            [START_BEFORE_CONTROLS, START, WAITING_STOP],
+            STOP_IMMEDIATE,
+            after="after_stop_immediate",
+        )  # when: stop() or player.disconnected
         self.machine.add_transition(
             "stop",
             STOP_IMMEDIATE,
             STOP,
-            conditions=["on_start_finished", "on_input_finished"],
+            conditions="all_finished",
             after="after_stop",
         )
         self.machine.add_transition(
-            "exit_immediate", "*", EXIT_IMMEDIATE
+            "exit_immediate", "*", EXIT_IMMEDIATE, after="after_exit_immediate"
         )  # when: exit() or error
         self.machine.add_transition(
             "exit",
@@ -133,10 +129,9 @@ class ServerStateMachine:
         )
 
     # TODO maybe something smarter someday...
-    def reinit(self, send_event, execute_callbacks, on_remote_host_connect):
-        self._send_event = send_event
-        self._execute_callbacks = execute_callbacks
-        self._on_remote_host_connect = on_remote_host_connect
+    def reinit(self, inform, callback_executor):
+        self.inform = inform
+        self.callback_executor = callback_executor
 
     # transition conditions requires this
     def host_connected(self):
@@ -147,132 +142,94 @@ class ServerStateMachine:
         return self.player.connected
 
     def on_host_connect(self):
-        if self.host.connected:
-            logger.debug("Host already connected")
-            self._send_event(SystemEvent("already_connected", None))
-            return
-
-        self.host.connected = True
-        self._on_remote_host_connect()
-        self._send_event(
-            SystemEvent("connect_ok", None, data=InputBase._get_input_datas())
-        )
-        message = "host connected"
-        logger.info(message)
-        self._send_event(SystemEvent("info", None, message))
-
-    def on_host_disconnect(self):
-        if not self.host.connected:
-            logger.debug("Host already disconnected")
-            return
-
-        self.host.connected = False
-        if self.player.connected:
-            self.on_player_disconnect()
-        message = "host disconnected"
-        logger.info(message)
-        self._send_event(SystemEvent("info", None, message))
-
-    def on_player_connect(self):
-        if self.player.connected:
-            logger.debug("Player already connected")
-            return
-
-        self.player.connected = True
-        message = "player connected"
-        logger.info(message)
-        self._send_event(SystemEvent("info", None, message))
-
-    def on_player_disconnect(self):
-        if not self.player.connected:
-            logger.debug("Player already disconnected")
-            return
-
-        self.player.connected = False
-        message = "player disconnected"
-        logger.info(message)
-        self._send_event(SystemEvent("info", None, message))
-
-    def on_init_finished(self):
-        return True
-
-    def on_prepare_finished(self):
-        return True
-
-    def on_start_bofore_controls_finished(self):
-        return True
-
-    def on_start_finished(self):
-        return True
-
-    def on_input_finished(self):
-        return True
-
-    def all_finished(self):
-        return True
-
-    ##
-    """def on_host_connect(self):
         self.host.connected = True
         if self.state == WAITING_HOST:
             self.prepare()
-        if self.state == WAITING_PLAYER:
-            self.start()
+        elif self.state == WAITING_PLAYER:
+            self.start_before_controls()
 
     def on_host_disconnect(self):
         self.host.connected = False
-        if self.state in [START, WAITING_STOP]:
+        if self.state in [START_BEFORE_CONTROLS, START, WAITING_STOP]:
             self.stop_immediate()
 
     def on_player_connect(self):
         self.player.connected = True
-        self.prepare()
+        if self.state == WAITING_PLAYER:
+            self.start_before_controls()
 
     def on_player_disconnect(self):
         self.player.connected = False
-        if self.state in [START, WAITING_STOP]:
+        if self.state in [START_BEFORE_CONTROLS, START, WAITING_STOP]:
             self.stop_immediate()
-    """
 
-    def after_init(self):
-        logger.info("after init!")
-        # run: on_init, after: wait_host
+    def all_finished(self):
+        return len(self.callback_executor.running_names) == 0
+
+    def execute(self, name, callback):
+        self.callback_executor.execute_callbacks(
+            CallbackBase.get_by_name(name), name, callback
+        )
 
     def after_waiting_host(self):
-        logger.info("after waiting_host!")
-        # if host.connected: prepare()
+        logger.debug("STATE: waiting_host")
+        if self.host.connected:
+            self.prepare()
 
     def after_prepare(self):
-        logger.info("after prepare!")
-        # run: on_prepare, after: wait_player()
+        logger.debug("STATE: prepare")
+        self.execute("on_prepare", self.wait_player)
 
     def after_waiting_player(self):
-        logger.info("after waiting_host!")
-        # if player.connected: start_immediate()
+        logger.debug("STATE: waiting_player")
+        if self.player.connected:
+            self.start_before_controls()
 
     def after_start_before_controls(self):
-        logger.info("after start before controls!")
-        # run: on_start_immediate, after: on_start()
+        logger.debug("STATE: start_before_controls")
+        self.execute("on_start_before_controls", self.start)
 
     def after_start(self):
-        logger.info("after start!")
-        # run: on_start, after: wait_stop()
+        logger.debug("STATE: start")
+        self.enable_controls()
+        self.execute("on_start", self.wait_stop)
 
-    # after on_stop not needed?
-    # MAKE SURE ON_START DOES NOT GET SKIPPED
+    def after_waiting_stop(self):
+        logger.debug("STATE: waiting_stop")
+        # .stop_immediate() will be triggered from outside
+
+    def after_stop_immediate(self):
+        logger.debug("STATE: stop_immediate")
+        self.disable_controls()
+        self.execute("on_stop_immediate", self.stop)
 
     def after_stop(self):
-        logger.info("after stop!")
-        # run: on_stop, after: wait_host()
+        logger.debug("STATE: stop")
+        self.execute("on_stop", self.wait_host)
+
+    def after_exit_immediate(self):
+        logger.debug("STATE: exit_immediate")
+        # "on_exit_immediate" executed from main
 
     def after_exit(self):
-        logger.info("after exit!")
+        logger.debug("STATE: exit")
+        # "on_exit" executed from main
 
-    def enable_inputs(self):
-        logger.info("enabling inputs")
+    def on_input_finished_callback(self):
+        if self.state == STOP_IMMEDIATE and self.all_finished:
+            self.stop()
+        elif self.state == EXIT_IMMEDIATE and self.all_finished:
+            self.exit()
 
-    def disable_inputs(self):
-        logger.info("disabling inputs")
+    def enable_controls(self):
+        if not self.player.controlling:
+            self.player.controlling = True
+            self.inform("controls enabled")
+
+    def disable_controls(self):
+        if self.player.controlling:
+            self.player.controlling = False
+            self.inform("controls disabled")
 
     @property
     def _state(self):  # name 'state' is reserved by transitions
@@ -280,20 +237,3 @@ class ServerStateMachine:
 
 
 state_machine = ServerStateMachine()
-
-if __name__ == "__main__":
-    s = state_machine
-    print(s._state)
-    s.init()
-    print(s._state)
-    s.wait_host()
-    print(s._state)
-    s.prepare()
-    print(s._state)
-    s.host_connected = True
-    s.prepare()
-    print(s._state)
-    s.exit_immediate()
-    print(s._state)
-    s.exit()
-    print(s._state)

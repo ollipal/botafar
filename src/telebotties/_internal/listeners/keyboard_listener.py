@@ -80,8 +80,11 @@ class KeyboardListener:
                 if key == keyboard.Key.esc:
                     if not self._suppress_keys and not self.prints_removed:
                         print()  # makes new line for easier reading (linux)
-                    event = SystemEvent("host_disconnect", "keyboard")
-                    self._process_event(event)
+
+                    # Remove these? Old behaviour
+                    # event = SystemEvent("host_disconnect", "keyboard")
+                    # self._process_event(event)
+
                     self.stop()
                     return False
 

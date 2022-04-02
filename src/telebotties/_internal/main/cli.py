@@ -33,7 +33,7 @@ class Cli(TelebottiesBase):
 
     def send_event(self, event):
         self.callback_executor.execute_callbacks(
-            [self._send_event_async], event=event
+            [self._send_event_async], "_send_event", None, event=event
         )
 
     async def _send_event_async(self, event):
