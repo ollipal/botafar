@@ -80,7 +80,7 @@ class KeyboardListener:
                 if key == keyboard.Key.esc:
                     if not self._suppress_keys and not self.prints_removed:
                         print()  # makes new line for easier reading (linux)
-                    event = SystemEvent("client_disconnect", "keyboard")
+                    event = SystemEvent("host_disconnect", "keyboard")
                     self._process_event(event)
                     self.stop()
                     return False
@@ -112,7 +112,7 @@ class KeyboardListener:
                 print(LISTEN_REMOTE_KEYBOARD_MESSAGE)
             print(input_list_string(input_datas))
 
-        event = SystemEvent("client_connect", "keyboard")
+        event = SystemEvent("host_connect", "keyboard")
         self._process_event(event)
         if local:
             event = SystemEvent("player_connect", "keyboard")

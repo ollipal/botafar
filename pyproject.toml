@@ -24,6 +24,7 @@ dependencies = [
     "click==8.0.3",
     "colorlog==6.6.0",
     "pynput==1.7.6",
+    "transitions==0.8.11",
     "varname==0.8.2",
     "websockets==10.1",
 ]

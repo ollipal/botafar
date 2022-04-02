@@ -15,7 +15,7 @@ from ..constants import (
 )
 from ..listeners import EnterListener, pynput_supported
 from ..log_formatter import get_logger, setup_logging
-from ..states import ServerState
+from ..states import ServerEventProsessor, state_machine
 from ..string_utils import error_to_string, get_welcome_message
 from ..websocket import Server
 from .telebotties_base import TelebottiesBase
@@ -30,16 +30,16 @@ class Main(TelebottiesBase):
         self.callback_executor = CallbackExecutor(
             self.done_callback, self._error_callback
         )
-        self.state = ServerState(
+        self.event_prosessor = ServerEventProsessor(
             self.send_event,
             self.callback_executor.execute_callbacks,
-            self.on_remote_client_connect,
+            self.on_remote_host_connect,
         )
         super().__init__(suppress_keys, prints_removed)
         self.port = port
         self.should_connect_keyboard = True
         self.enter_listener = EnterListener()
-        self.server = Server(self.state.process_event)
+        self.server = Server(self.event_prosessor.process_event)
         self.callback_executor.add_to_takes_event(self._send_event_async)
         self.non_pynput_help_printed = False
 
@@ -67,7 +67,7 @@ class Main(TelebottiesBase):
         else:
             logger.debug("Server not connected, print not sent")
 
-    def on_remote_client_connect(self):
+    def on_remote_host_connect(self):
         if self.enter_listener.running:
             self.enter_listener.stop()
             if not self.prints_removed:
@@ -88,7 +88,9 @@ class Main(TelebottiesBase):
 
     async def main(self):
         try:
+            state_machine.init()
             await self.run_callbacks("on_init")
+            state_machine.wait_host()
 
             ip = get_ip()  # TODO save
             if not self.prints_removed:
@@ -114,6 +116,9 @@ class Main(TelebottiesBase):
             self.server.stop()
             self.enter_listener.stop()
         finally:
+            state_machine.exit_immediate()
+            await self.run_callbacks("on_exit_immediate")
+            state_machine.exit()
             await self.run_callbacks("on_exit")
 
     def error_callback(self, e, sigint=False):
@@ -137,14 +142,14 @@ class Main(TelebottiesBase):
         if self.server.connected:
             self.send_event(
                 SystemEvent(
-                    "client_disconnect",
+                    "host_disconnect",
                     "server",
                 )
             )
         else:
-            self.state.process_event(
+            self.event_prosessor.process_event(
                 SystemEvent(
-                    "client_disconnect",
+                    "host_disconnect",
                     "server",
                 )
             )

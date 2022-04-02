@@ -11,11 +11,11 @@ logger = get_logger()
 class TelebottiesBase(ABC):
     def __init__(self, suppress_keys, prints_removed):
         assert self.callback_executor is not None
-        assert self.state is not None
-        assert self.state.process_event is not None
+        assert self.event_prosessor is not None
+        assert self.event_prosessor.process_event is not None
 
         self.keyboard_listener = KeyboardListener(
-            self.state.process_event, suppress_keys, prints_removed
+            self.event_prosessor.process_event, suppress_keys, prints_removed
         )
         self.register_sigint_handler()
         self.loop = None

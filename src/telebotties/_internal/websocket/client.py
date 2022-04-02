@@ -40,17 +40,17 @@ class Client:
             return True
         except websockets.exceptions.ConnectionClosedError as e:
             logger.debug(f"Client.send connection closed error: {e}")
-            event = SystemEvent("client_disconnect", None, text=str(e))
+            event = SystemEvent("host_disconnect", None, text=str(e))
             self.process_event(event)
         except websockets.exceptions.ConnectionClosedOK as e:
             logger.debug(f"Client.send connection closed: {e}")
-            event = SystemEvent("client_disconnect", None, text=str(e))
+            event = SystemEvent("host_disconnect", None, text=str(e))
             self.process_event(event)
         except Exception as e:
             logger.debug(
                 f"Unexpected Client.send error:\n{error_to_string(e)}"
             )
-            event = SystemEvent("client_disconnect", None, text=str(e))
+            event = SystemEvent("host_disconnect", None, text=str(e))
             self.process_event(event)
         return False
 
@@ -65,7 +65,7 @@ class Client:
 
         # Check first send, it does not raise errors
         # (they do not seem to work as expected)
-        connect_event = SystemEvent("client_connect", "keyboard")
+        connect_event = SystemEvent("host_connect", "keyboard")
         success = await self.send(connect_event)
         if not success:
             await self.stop()

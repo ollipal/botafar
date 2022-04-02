@@ -30,7 +30,7 @@ class Server:
                 except websockets.exceptions.ConnectionClosedError as e:
                     if len(self._connections) == 1:
                         event = SystemEvent(
-                            "client_disconnect", "server", text=str(e)
+                            "host_disconnect", "server", text=str(e)
                         )
                         self.process_event(event)
                     logger.debug(f"Server disconnected error: {e}")
@@ -38,7 +38,7 @@ class Server:
                 except websockets.exceptions.ConnectionClosedOK as e:
                     if len(self._connections) == 1:
                         event = SystemEvent(
-                            "client_disconnect", "server", text=str(e)
+                            "host_disconnect", "server", text=str(e)
                         )
                         self.process_event(event)
                     logger.debug(f"Server disconnected ok: {e}")
@@ -46,7 +46,7 @@ class Server:
                 except Exception as e:
                     if len(self._connections) == 1:
                         event = SystemEvent(
-                            "client_disconnect", "server", text=str(e)
+                            "host_disconnect", "server", text=str(e)
                         )
                         self.process_event(event)
                     logger.error(

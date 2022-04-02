@@ -24,9 +24,11 @@ class Cli(TelebottiesBase):
         self.callback_executor = CallbackExecutor(
             self.done_callback, self._error_callback
         )
-        self.state = KeyboardClientState(self.send_event, self.end_callback)
+        self.event_prosessor = KeyboardClientState(
+            self.send_event, self.end_callback
+        )
         super().__init__(suppress_keys, prints_removed)
-        self.client = Client(address, self.state.process_event)
+        self.client = Client(address, self.event_prosessor.process_event)
         self.callback_executor.add_to_takes_event(self._send_event_async)
 
     def send_event(self, event):
@@ -37,12 +39,9 @@ class Cli(TelebottiesBase):
     async def _send_event_async(self, event):
         send_success = await self.client.send(event)
         if not send_success or (
-            event._type == SYSTEM_EVENT and event.name == "client_disconnect"
+            event._type == SYSTEM_EVENT and event.name == "host_disconnect"
         ):
-            if (
-                event._type == SYSTEM_EVENT
-                and event.name == "client_disconnect"
-            ):
+            if event._type == SYSTEM_EVENT and event.name == "host_disconnect":
                 logger.debug("client_disconnect detected")
             return False
 
@@ -61,7 +60,7 @@ class Cli(TelebottiesBase):
                 if not self.prints_removed:
                     print(
                         f"Connection refused to {self.client.address}, "
-                        "other client already connected"
+                        "other host already connected"
                     )
                 return
 
