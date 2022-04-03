@@ -65,7 +65,8 @@ class Main(TelebottiesBase):
                 )
             )
         else:
-            logger.debug("Server not connected, print not sent")
+            # logger.debug("Server not connected, print not sent")
+            pass
 
     def on_remote_host_connect(self):
         if self.enter_listener.running:
@@ -85,6 +86,8 @@ class Main(TelebottiesBase):
             CallbackBase.get_by_name(name), name, callback
         )
         await self.callback_executor.wait_until_finished(name)
+        # Await also all internal callbacks, such as _send
+        await self.callback_executor.wait_until_all_finished()
 
     async def main(self):
         try:
@@ -115,10 +118,10 @@ class Main(TelebottiesBase):
             self.enter_listener.stop()
         finally:
             state_machine.exit_immediate()
-            await self.run_callbacks("on_exit_immediate", state_machine.exit)
+            await self.run_callbacks(
+                "on_exit_immediate", state_machine.synced_exit
+            )
             await self.run_callbacks("on_exit", None)
-            # also everything starting with underscore, such as "_send"
-            await self.callback_executor.wait_until_all_finished()
 
     def error_callback(self, e, sigint=False):
         if e is not None:

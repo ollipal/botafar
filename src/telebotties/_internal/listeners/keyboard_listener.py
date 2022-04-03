@@ -70,7 +70,7 @@ class KeyboardListener:
 
                 key = _format_key(key)
                 if key is not None and not is_pressed[key]:
-                    event = Event("press", "player", "keyboard", key)
+                    event = Event("on_press", "player", "keyboard", key)
                     self._process_event(event)
                     is_pressed[key] = True
             except Exception as e:
@@ -94,7 +94,7 @@ class KeyboardListener:
 
                 key = _format_key(key)
                 if key is not None and is_pressed[key]:
-                    event = Event("release", "player", "keyboard", key)
+                    event = Event("on_release", "player", "keyboard", key)
                     self._process_event(event)
                     is_pressed[key] = False
             except Exception as e:

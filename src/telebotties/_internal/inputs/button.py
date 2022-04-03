@@ -13,7 +13,7 @@ class Button(InputBase):
         keyboard_only=False,
         screen_only=False,
     ):
-        start_event = Event("release", "host", "keyboard", "A")
+        start_event = Event("on_release", "host", "keyboard", "A")
         start_event._update(False, -1)
         # TODO why self._keys[0] was undefined inside 'on_release'
         # and this was needed?...
@@ -32,13 +32,13 @@ class Button(InputBase):
     def on_press(self, function):
         title = get_function_name(function)
         self._add_key_to_has_callbacks(self._key, title, 3)
-        self._add_state_callback("press", function)
+        self._add_state_callback("on_press", function)
         return function
 
     def on_release(self, function):
         title = get_function_name(function)
         self._add_key_to_has_callbacks(self._key, f"{title} (release)", 1)
-        self._add_state_callback("release", function)
+        self._add_state_callback("on_release", function)
         return function
 
     def on_any(self, function):
@@ -50,17 +50,17 @@ class Button(InputBase):
 
         title = get_function_name(function)
         self._add_key_to_has_callbacks(self._key, title, 2)
-        self._add_state_callback("press", function)
-        self._add_state_callback("release", function)
+        self._add_state_callback("on_press", function)
+        self._add_state_callback("on_release", function)
         return function
 
     @property
     def is_pressed(self):
-        return self._state == "press"
+        return self._state == "on_press"
 
     @property
     def is_release(self):
-        return self._state == "release"
+        return self._state == "on_release"
 
     @property
     def state(self):

@@ -1,6 +1,7 @@
 from dataclasses import dataclass
+from threading import RLock
 
-from transitions import Machine, State
+from transitions import Machine, State, core
 
 from ..callbacks import CallbackBase
 from ..log_formatter import get_logger
@@ -61,6 +62,7 @@ class ServerStateMachine:
         self.host = Host()
         self.player = Player()
         self.machine = Machine(model=self, states=self.states, initial=INIT)
+        self.rlock = RLock()
 
         # add_transition params: trigger, source, destination
         self.machine.add_transition(
@@ -87,21 +89,20 @@ class ServerStateMachine:
             "start_before_controls",
             WAITING_PLAYER,
             START_BEFORE_CONTROLS,
-            conditions="player_connected",
+            conditions=["host_connected", "player_connected"],
             after="after_start_before_controls",
         )
         self.machine.add_transition(
             "start",
             START_BEFORE_CONTROLS,
             START,
-            # conditions="on_start_before_controls_finished",
+            conditions=["host_connected", "player_connected"],
             after="after_start",
         )
         self.machine.add_transition(
             "wait_stop",
             START,
             WAITING_STOP,
-            # conditions="on_start_finished",
             after="after_waiting_stop",
         )
         self.machine.add_transition(
@@ -134,12 +135,40 @@ class ServerStateMachine:
         self.callback_executor = callback_executor
 
     def all_finished(self):
-        return len(self.callback_executor.running_names) == 0
+        running_names = self.callback_executor.running_names
+        if len(running_names) != 0:
+            logger.debug(f"Running: {running_names}")
+        return len(running_names) == 0
 
-    def execute(self, name, callback):
+    def execute(self, name, callback, callback_name):
+        def safe_callback():
+            self.safe_state_change(callback, callback_name)
+
         self.callback_executor.execute_callbacks(
-            CallbackBase.get_by_name(name), name, callback
+            CallbackBase.get_by_name(name), name, safe_callback
         )
+
+    def safe_state_change(self, function, name):
+        try:
+            function()
+        except core.MachineError:
+            logger.debug(f"Transition '{name}' skipped")
+
+    def synced_stop(self):
+        # This hopefully addresses the theoritcally possible
+        # chance that someone calls .stop() or .exit() between
+        # the if state check
+        with self.rlock:
+            if self.state == STOP_IMMEDIATE:
+                self.stop()
+
+    def synced_exit(self):
+        # This hopefully addresses the theoritcally possible
+        # chance that someone calls .stop() or .exit() between
+        # the if state check
+        with self.rlock:
+            if self.state == EXIT_IMMEDIATE:
+                self.exit()
 
     # transition conditions requires this
     def host_connected(self):
@@ -151,48 +180,57 @@ class ServerStateMachine:
 
     def on_host_connect(self):
         self.host.connected = True
-        if self.state == WAITING_HOST:
-            self.prepare()
-        elif self.state == WAITING_PLAYER:
-            self.start_before_controls()
+        # if self.state == WAITING_HOST:
+        self.safe_state_change(self.prepare, "prepare")
+        # elif self.state == WAITING_PLAYER:
+        self.safe_state_change(
+            self.start_before_controls, "start_before_controls"
+        )
 
     def on_host_disconnect(self):
         self.host.connected = False
-        if self.state in [START_BEFORE_CONTROLS, START, WAITING_STOP]:
-            self.stop_immediate()
+        # if self.state in [START_BEFORE_CONTROLS, START, WAITING_STOP]:
+        self.safe_state_change(self.stop_immediate, "stop_immediate")
 
     def on_player_connect(self):
         self.player.connected = True
-        if self.state == WAITING_PLAYER:
-            self.start_before_controls()
+        # if self.state == WAITING_PLAYER:
+        self.safe_state_change(
+            self.start_before_controls, "start_before_controls"
+        )
 
     def on_player_disconnect(self):
         self.player.connected = False
-        if self.state in [START_BEFORE_CONTROLS, START, WAITING_STOP]:
-            self.stop_immediate()
+        # if self.state in [START_BEFORE_CONTROLS, START, WAITING_STOP]:
+        self.safe_state_change(self.stop_immediate, "stop_immediate")
 
     def after_waiting_host(self):
         logger.debug("STATE: waiting_host")
-        if self.host.connected:
-            self.prepare()
+        # if self.host.connected:
+        self.prepare()
 
     def after_prepare(self):
         logger.debug("STATE: prepare")
-        self.execute("on_prepare", self.wait_player)
+        self.execute("on_prepare", self.wait_player, "wait_player")
 
     def after_waiting_player(self):
         logger.debug("STATE: waiting_player")
-        if self.player.connected:
-            self.start_before_controls()
+        # if self.player.connected:
+        self.start_before_controls()
 
     def after_start_before_controls(self):
         logger.debug("STATE: start_before_controls")
-        self.execute("on_start_before_controls", self.start)
+        self.execute("on_start_before_controls", self.start, "start")
 
     def after_start(self):
         logger.debug("STATE: start")
         self.enable_controls()
-        self.execute("on_start", self.wait_stop)
+
+        def on_start_callback():
+            self.wait_stop()
+            self.synced_stop()
+
+        self.execute("on_start", on_start_callback, "on_start_callback")
 
     def after_waiting_stop(self):
         logger.debug("STATE: waiting_stop")
@@ -201,11 +239,11 @@ class ServerStateMachine:
     def after_stop_immediate(self):
         logger.debug("STATE: stop_immediate")
         self.disable_controls()
-        self.execute("on_stop_immediate", self.stop)
+        self.execute("on_stop_immediate", self.synced_stop, "synced_stop")
 
     def after_stop(self):
         logger.debug("STATE: stop")
-        self.execute("on_stop", self.wait_host)
+        self.execute("on_stop", self.wait_host, "wait_host")
 
     def after_exit_immediate(self):
         logger.debug("STATE: exit_immediate")
@@ -217,9 +255,8 @@ class ServerStateMachine:
 
     def on_input_finished_callback(self):
         if self.state == STOP_IMMEDIATE and self.all_finished:
-            self.stop()
-        elif self.state == EXIT_IMMEDIATE and self.all_finished:
-            self.exit()
+            self.safe_state_change(self.synced_stop, "synced_stop")
+        # "synced_exit" executed from main
 
     def enable_controls(self):
         if not self.player.controlling:
