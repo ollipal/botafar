@@ -90,6 +90,14 @@ class ServerEventProsessor:
             logger.debug("Player already connected")
             return
 
+        if not state_machine.host.connected:
+            self.on_player_connect()
+            state_machine.on_player_connect()
+            logger.debug(
+                "Player connected while host disconnected... "
+                "Should not happen"
+            )
+
         self.inform("player connected")
 
     def on_player_disconnect(self):

@@ -133,6 +133,14 @@ class ServerStateMachine:
         self.inform = inform
         self.callback_executor = callback_executor
 
+    def all_finished(self):
+        return len(self.callback_executor.running_names) == 0
+
+    def execute(self, name, callback):
+        self.callback_executor.execute_callbacks(
+            CallbackBase.get_by_name(name), name, callback
+        )
+
     # transition conditions requires this
     def host_connected(self):
         return self.host.connected
@@ -162,14 +170,6 @@ class ServerStateMachine:
         self.player.connected = False
         if self.state in [START_BEFORE_CONTROLS, START, WAITING_STOP]:
             self.stop_immediate()
-
-    def all_finished(self):
-        return len(self.callback_executor.running_names) == 0
-
-    def execute(self, name, callback):
-        self.callback_executor.execute_callbacks(
-            CallbackBase.get_by_name(name), name, callback
-        )
 
     def after_waiting_host(self):
         logger.debug("STATE: waiting_host")
@@ -229,7 +229,8 @@ class ServerStateMachine:
     def disable_controls(self):
         if self.player.controlling:
             self.player.controlling = False
-            self.inform("controls disabled")
+            if self.player.connected:
+                self.inform("controls disabled")
 
     @property
     def _state(self):  # name 'state' is reserved by transitions

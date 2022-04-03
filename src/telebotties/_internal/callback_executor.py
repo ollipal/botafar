@@ -1,5 +1,6 @@
 import asyncio
 import concurrent.futures
+from threading import RLock
 
 from .log_formatter import get_logger
 
@@ -22,6 +23,7 @@ class CallbackExecutor:
         self.future_to_name = {}
         self.running_futures = {}
         self.finished_callbacks = {}  # bad name... callback when finished
+        self.rlock = RLock()  # Make sure future tracking stays in sync
 
     def set_loop(self, loop):
         self.loop = loop
@@ -49,10 +51,6 @@ class CallbackExecutor:
             finished_callback()
             return
 
-        if finished_callback is not None:
-            # NOTE this will override previous, which is ok currently
-            self.finished_callbacks[name] = finished_callback
-
         for callback in callbacks:
             if event is not None and callback in self.takes_event:
                 params = [event]
@@ -69,10 +67,14 @@ class CallbackExecutor:
                 future = self.executor.submit(callback, *params)
 
             # TODO can future finish before done callback is added?
-            self.future_to_name[future] = name
-            if name not in self.running_futures:
-                self.running_futures[name] = set()
-            self.running_futures[name].add(future)
+            with self.rlock:
+                if finished_callback is not None:
+                    # NOTE this can override existing, which should be ok
+                    self.finished_callbacks[name] = finished_callback
+                self.future_to_name[future] = name
+                if name not in self.running_futures:
+                    self.running_futures[name] = set()
+                self.running_futures[name].add(future)
             future.add_done_callback(self._done)
 
     async def wait_until_finished(self, name):
@@ -80,23 +82,17 @@ class CallbackExecutor:
         await asyncio.gather(*[asyncio.wrap_future(f) for f in futures])
 
     def _done(self, future):
-        name = self.future_to_name.pop(future, None)
-        self.running_futures[name].remove(future)
-        if len(self.running_futures[name]) == 0:
-            removed = self.running_futures.pop(name, None)
-            if removed is None:
-                # TODO warn non-inputs only?
-                logger.warning("None retuned, should not happen!")
-            elif (
-                len(removed) != 0
-            ):  # This triggers, if added between if and pop
-                # TODO warn non-inputs only?
-                logger.warning("Running callbacks removed, trying fix!")
-                self.running_futures[name] = removed
+        with self.rlock:
+            name = self.future_to_name[future]
+            del self.future_to_name[future]
 
-            callback = self.finished_callbacks.pop(name, None)
-            if callback is not None:
-                callback()
+            self.running_futures[name].remove(future)
+            if len(self.running_futures[name]) == 0:
+                del self.running_futures[name]
+
+                callback = self.finished_callbacks.pop(name, None)
+                if callback is not None:
+                    callback()
 
         if not future.cancelled() and future.exception() is not None:
             self.error_callback(future.exception())
