@@ -266,11 +266,15 @@ class ServerStateMachine:
         logger.debug("STATE: start")
         self.enable_controls()
 
-        def on_start_callback():
-            self.wait_stop()
-            self.synced_stop()
+        def safe_on_start_callback():
+            self.safe_state_change(self.wait_stop, "wait_stop")
+            self.safe_state_change(self.synced_stop, "synced_stop")
 
-        self.execute("on_start", on_start_callback, "on_start_callback")
+        self.callback_executor.execute_callbacks(
+            CallbackBase.get_by_name("on_start"),
+            "on_start",
+            safe_on_start_callback,
+        )
 
     def after_waiting_stop(self):
         logger.debug("STATE: waiting_stop")
