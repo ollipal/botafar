@@ -22,19 +22,21 @@ class ServerEventProsessor:
     def process_event(self, event):
         if event._type == SYSTEM_EVENT:
             if event.name == "host_connect":
-                if not state_machine.host.connected:
-                    self.on_host_connect()
-                    state_machine.on_host_connect()
+                if not state_machine.host.is_connected:
+                    name = event.value
+                    self.on_host_connect(name)
+                    state_machine.on_host_connect(name)
             elif event.name == "host_disconnect":
-                if state_machine.host.connected:
+                if state_machine.host.is_connected:
                     self.on_host_disconnect()
                     state_machine.on_host_disconnect()
             elif event.name == "player_connect":
-                if not state_machine.player.connected:
-                    self.on_player_connect()
-                    state_machine.on_player_connect()
+                if not state_machine.player.is_connected:
+                    name = event.value
+                    self.on_player_connect(name)
+                    state_machine.on_player_connect(name)
             elif event.name == "player_disconnect":
-                if state_machine.player.connected:
+                if state_machine.player.is_connected:
                     self.on_player_disconnect()
                     state_machine.on_player_disconnect()
             else:
@@ -45,7 +47,7 @@ class ServerEventProsessor:
 
             if (
                 event.sender == "player"
-                and not state_machine.player.controlling
+                and not state_machine.player.is_controlling
             ):
                 logger.debug("Player controls disabled, skipping")
                 return
@@ -62,8 +64,8 @@ class ServerEventProsessor:
         logger.info(message)
         self.send_event(SystemEvent("info", None, message))
 
-    def on_host_connect(self):
-        if state_machine.host.connected:
+    def on_host_connect(self, name):
+        if state_machine.host.is_connected:
             logger.debug("Host already connected")
             self.send_event(SystemEvent("already_connected", None))
             return
@@ -72,36 +74,36 @@ class ServerEventProsessor:
         self.send_event(
             SystemEvent("connect_ok", None, data=InputBase._get_input_datas())
         )
-        self.inform("host connected")
+        self.inform(f"{name} connected")
 
     def on_host_disconnect(self):
-        if not state_machine.host.connected:
+        if not state_machine.host.is_connected:
             logger.debug("Host already disconnected")
             return
 
-        if state_machine.player.connected:
+        if state_machine.player.is_connected:
             self.on_player_disconnect()
             state_machine.on_player_disconnect()
 
         self.inform("host disconnected")
 
-    def on_player_connect(self):
-        if state_machine.player.connected:
+    def on_player_connect(self, name):
+        if state_machine.player.is_connected:
             logger.debug("Player already connected")
             return
 
-        if not state_machine.host.connected:
-            self.on_player_connect()
-            state_machine.on_player_connect()
-            logger.debug(
+        if not state_machine.host.is_connected:
+            self.on_host_connect("host")
+            state_machine.on_host_connect("host")
+            logger.warning(
                 "Player connected while host disconnected... "
-                "Should not happen"
+                "Should not happen, defaulting to host name 'host'"
             )
 
-        self.inform("player connected")
+        self.inform(f"{name} connected")
 
     def on_player_disconnect(self):
-        if not state_machine.player.connected:
+        if not state_machine.player.is_connected:
             logger.debug("Player already disconnected")
             return
 

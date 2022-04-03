@@ -88,7 +88,7 @@ class KeyboardListener:
                     self.stop()
                     return False
                 elif key == keyboard.Key.backspace:
-                    event = SystemEvent("player_connect", "keyboard")
+                    event = SystemEvent("player_connect", "player")
                     self._process_event(event)
                     return
 
@@ -119,10 +119,10 @@ class KeyboardListener:
                 print(LISTEN_REMOTE_KEYBOARD_MESSAGE)
             print(input_list_string(input_datas))
 
-        event = SystemEvent("host_connect", "keyboard")
+        event = SystemEvent("host_connect", "host")
         self._process_event(event)
         if local:
-            event = SystemEvent("player_connect", "keyboard")
+            event = SystemEvent("player_connect", "player")
             self._process_event(event)
         await self._stop_event.wait()
 

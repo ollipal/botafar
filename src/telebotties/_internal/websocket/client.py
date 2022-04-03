@@ -65,7 +65,7 @@ class Client:
 
         # Check first send, it does not raise errors
         # (they do not seem to work as expected)
-        connect_event = SystemEvent("host_connect", "keyboard")
+        connect_event = SystemEvent("host_connect", "host")
         success = await self.send(connect_event)
         if not success:
             await self.stop()

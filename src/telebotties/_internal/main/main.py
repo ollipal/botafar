@@ -54,9 +54,7 @@ class Main(TelebottiesBase):
     async def _send_event_async(self, event):
         await self.server.send(event)
 
-    def print(self, string, print_locally=True):
-        if print_locally:
-            print(string)
+    def print(self, string):
         if self.server.connected:
             self.send_event(
                 SystemEvent(
@@ -180,12 +178,14 @@ class Main(TelebottiesBase):
         self.error_callback(None, sigint=True)
 
 
-def _print(string):
+def _print(string, print_locally=True):
     global main
+    string = str(string)
     if main is not None:
         main.print(string)
-    else:
-        raise RuntimeError("tb.print() cannot be called before tb.listen()")
+    if print_locally:
+        print(string)
+
 
 def exit():
     global main

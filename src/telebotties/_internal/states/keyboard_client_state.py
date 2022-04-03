@@ -51,7 +51,4 @@ class KeyboardClientState:
         if event._type == SYSTEM_EVENT:
             if event.name == "host_connect":
                 self.player_connected = True
-                self._send("player_connect")
-
-    def _send(self, name):
-        self.send_event(SystemEvent(name, "keyboard"))
+                self.send_event(SystemEvent("player_connect", "player"))

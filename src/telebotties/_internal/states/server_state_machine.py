@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from threading import RLock
 
 from transitions import Machine, State, core
@@ -27,20 +26,54 @@ SIMPLIFIED_STATES = {
 }
 
 
-# TODO block writing values
-@dataclass
 class Host:
-    connected: bool = False
-    controlling: bool = False
-    name: str = ""
+    def __init__(self):
+        self._is_connected = False
+        self._is_controlling = False
+        self._name = ""
+
+    @property
+    def is_connected(self):
+        return self._is_connected
+
+    @property
+    def is_controlling(self):
+        return self._is_controlling
+
+    @property
+    def name(self):
+        return self._name
+
+    def __repr__(self):
+        return (
+            f"Host(name='{self.name}', is_connected={self.is_connected}, "
+            f"is_controlling={self.is_controlling})"
+        )
 
 
-# TODO block writing values
-@dataclass
 class Player:
-    connected: bool = False
-    controlling: bool = False
-    name: str = ""
+    def __init__(self):
+        self._is_connected = False
+        self._is_controlling = False
+        self._name = ""
+
+    @property
+    def is_connected(self):
+        return self._is_connected
+
+    @property
+    def is_controlling(self):
+        return self._is_controlling
+
+    @property
+    def name(self):
+        return self._name
+
+    def __repr__(self):
+        return (
+            f"Player(name='{self.name}', is_connected={self.is_connected}, "
+            f"is_controlling={self.is_controlling})"
+        )
 
 
 class ServerStateMachine:
@@ -172,14 +205,15 @@ class ServerStateMachine:
 
     # transition conditions requires this
     def host_connected(self):
-        return self.host.connected
+        return self.host.is_connected
 
     # transition conditions requires this
     def player_connected(self):
-        return self.player.connected
+        return self.player.is_connected
 
-    def on_host_connect(self):
-        self.host.connected = True
+    def on_host_connect(self, name):
+        self.host._name = name
+        self.host._is_connected = True
         # if self.state == WAITING_HOST:
         self.safe_state_change(self.prepare, "prepare")
         # elif self.state == WAITING_PLAYER:
@@ -188,19 +222,22 @@ class ServerStateMachine:
         )
 
     def on_host_disconnect(self):
-        self.host.connected = False
+        self.host._name = ""
+        self.host._is_connected = False
         # if self.state in [START_BEFORE_CONTROLS, START, WAITING_STOP]:
         self.safe_state_change(self.stop_immediate, "stop_immediate")
 
-    def on_player_connect(self):
-        self.player.connected = True
+    def on_player_connect(self, name):
+        self.player._name = name
+        self.player._is_connected = True
         # if self.state == WAITING_PLAYER:
         self.safe_state_change(
             self.start_before_controls, "start_before_controls"
         )
 
     def on_player_disconnect(self):
-        self.player.connected = False
+        self.player._name = ""
+        self.player._is_connected = False
         # if self.state in [START_BEFORE_CONTROLS, START, WAITING_STOP]:
         self.safe_state_change(self.stop_immediate, "stop_immediate")
 
@@ -259,14 +296,14 @@ class ServerStateMachine:
         # "synced_exit" executed from main
 
     def enable_controls(self):
-        if not self.player.controlling:
-            self.player.controlling = True
+        if not self.player.is_controlling:
+            self.player._is_controlling = True
             self.inform("controls enabled")
 
     def disable_controls(self):
-        if self.player.controlling:
-            self.player.controlling = False
-            if self.player.connected:
+        if self.player.is_controlling:
+            self.player._is_controlling = False
+            if self.player.is_connected:
                 self.inform("controls disabled")
 
     @property
@@ -276,12 +313,14 @@ class ServerStateMachine:
 
 state_machine = ServerStateMachine()
 
+
 def enable_controls():
     state_machine.enable_controls()
+
 
 def disable_controls():
     state_machine.disable_controls()
 
+
 def stop():
     state_machine.stop_immediate()
-

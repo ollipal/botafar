@@ -13,7 +13,7 @@ class Button(InputBase):
         keyboard_only=False,
         screen_only=False,
     ):
-        start_event = Event("on_release", "host", "keyboard", "A")
+        start_event = Event("on_release", "host", "keyboard", key)
         start_event._update(False, -1)
         # TODO why self._keys[0] was undefined inside 'on_release'
         # and this was needed?...
@@ -59,7 +59,7 @@ class Button(InputBase):
         return self._state == "on_press"
 
     @property
-    def is_release(self):
+    def is_released(self):
         return self._state == "on_release"
 
     @property
