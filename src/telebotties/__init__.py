@@ -20,6 +20,7 @@ from ._internal.states import (
     player,
     state,
     stop,
+    time,
 )
 
 version = __version__

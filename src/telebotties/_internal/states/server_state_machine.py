@@ -1,4 +1,5 @@
 from threading import RLock
+from time import time as _time
 
 from transitions import Machine, State, core
 
@@ -94,6 +95,7 @@ class ServerStateMachine:
     def __init__(self):
         self.host = Host()
         self.player = Player()
+        self.start_time = -1
         self.machine = Machine(model=self, states=self.states, initial=INIT)
         self.rlock = RLock()
 
@@ -257,6 +259,8 @@ class ServerStateMachine:
 
     def after_start_before_controls(self):
         logger.debug("STATE: start_before_controls")
+        self.start_time = _time()
+        logger.debug(self.start_time)
         self.execute("on_start_before_controls", self.start, "start")
 
     def after_start(self):
@@ -280,6 +284,7 @@ class ServerStateMachine:
 
     def after_stop(self):
         logger.debug("STATE: stop")
+        self.start_time = -1
         self.execute("on_stop", self.wait_host, "wait_host")
 
     def after_exit_immediate(self):
@@ -288,6 +293,7 @@ class ServerStateMachine:
 
     def after_exit(self):
         logger.debug("STATE: exit")
+        self.start_time = -1
         # "on_exit" executed from main
 
     def on_input_finished_callback(self):
@@ -306,21 +312,22 @@ class ServerStateMachine:
             if self.player.is_connected:
                 self.inform("controls disabled")
 
-    @property
     def _state(self):  # name 'state' is reserved by transitions
         return SIMPLIFIED_STATES.get(self.state, self.state)
+
+    def time(self):
+        if self.start_time == -1:
+            return -1
+        else:
+            return round(_time() - self.start_time, 2)
 
 
 state_machine = ServerStateMachine()
 
-
-def enable_controls():
-    state_machine.enable_controls()
-
-
-def disable_controls():
-    state_machine.disable_controls()
-
-
-def stop():
-    state_machine.stop_immediate()
+state = state_machine._state
+time = state_machine.time
+host = state_machine.host
+player = state_machine.player
+enable_controls = state_machine.enable_controls
+disable_controls = state_machine.disable_controls
+stop = state_machine.stop_immediate
