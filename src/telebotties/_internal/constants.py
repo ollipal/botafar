@@ -43,13 +43,13 @@ SYSTEM_EVENT = "SYSTEM_EVENT"
 LISTEN_LOCAL_KEYBOARD_MESSAGE = f"""
 
 {bold("Listening to local keyboard events")} {dim("(web connection listening stopped)")}
-Press {key("Esc")} to exit, {key("Enter")} to reconnect player.
+Press {key("Esc")} to exit, {key("Backspace")} to reconnect player.
 
 {underlined("Custom inputs")}:"""
 
 LISTEN_REMOTE_KEYBOARD_MESSAGE = f"""
-{bold("Remote keyboard connected successfully")}
-Press {key("Esc")} to exit, {key("Enter")} to reconnect player.
+{bold("A remote keyboard connected successfully")}
+Press {key("Esc")} to exit, {key("Backspace")} to reconnect player.
 
 {underlined("Custom inputs")}:"""
 

@@ -63,6 +63,11 @@ class KeyboardListener:
 
         def on_press(key):
             try:
+                if key == keyboard.Key.backspace:
+                    event = SystemEvent("player_disconnect", "keyboard")
+                    self._process_event(event)
+                    return
+
                 key = _format_key(key)
                 if key is not None and not is_pressed[key]:
                     event = Event("press", "player", "keyboard", key)
@@ -80,13 +85,12 @@ class KeyboardListener:
                 if key == keyboard.Key.esc:
                     if not self._suppress_keys and not self.prints_removed:
                         print()  # makes new line for easier reading (linux)
-
-                    # Remove these? Old behaviour
-                    # event = SystemEvent("host_disconnect", "keyboard")
-                    # self._process_event(event)
-
                     self.stop()
                     return False
+                elif key == keyboard.Key.backspace:
+                    event = SystemEvent("player_connect", "keyboard")
+                    self._process_event(event)
+                    return
 
                 key = _format_key(key)
                 if key is not None and is_pressed[key]:
