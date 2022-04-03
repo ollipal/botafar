@@ -260,8 +260,7 @@ class ServerStateMachine:
     def after_start_before_controls(self):
         logger.debug("STATE: start_before_controls")
         self.start_time = _time()
-        logger.debug(self.start_time)
-        self.execute("on_start_before_controls", self.start, "start")
+        self.execute("on_start(before_controls=True)", self.start, "start")
 
     def after_start(self):
         logger.debug("STATE: start")
@@ -280,7 +279,9 @@ class ServerStateMachine:
     def after_stop_immediate(self):
         logger.debug("STATE: stop_immediate")
         self.disable_controls()
-        self.execute("on_stop_immediate", self.synced_stop, "synced_stop")
+        self.execute(
+            "on_stop(immediate=True)", self.synced_stop, "synced_stop"
+        )
 
     def after_stop(self):
         logger.debug("STATE: stop")

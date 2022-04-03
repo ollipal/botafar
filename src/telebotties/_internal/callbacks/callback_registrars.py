@@ -9,9 +9,26 @@ def on_init(function):
     return function
 
 
-def on_exit(function):
-    CallbackBase.register_callback("on_exit", function)
-    return function
+def on_exit(*args, immediate=False):
+    def _on_exit(function):
+        if immediate:
+            CallbackBase.register_callback("on_exit(immediate=True)", function)
+        else:
+            CallbackBase.register_callback("on_exit", function)
+        return function
+
+    if len(args) == 1 and callable(args[0]):  # Regular
+        return _on_exit(args[0])
+    elif len(args) == 0:  # With empty parenthesis
+        return _on_exit
+    elif len(args) == 1 and isinstance(
+        args[0], bool
+    ):  # No keyword or with keyword
+        raise RuntimeError(
+            f"'immediate' requires a keyword, use on_exit(immediate={args[0]})"
+        )
+    else:
+        raise RuntimeError("Unknown parameters for on_exit")  # TODO url
 
 
 def on_prepare(function):
@@ -19,11 +36,44 @@ def on_prepare(function):
     return function
 
 
-def on_start(function):
-    CallbackBase.register_callback("on_start", function)
-    return function
+def on_start(*args, before_controls=False):
+    def _on_start(function):
+        if before_controls:
+            CallbackBase.register_callback(
+                "on_start(before_controls=True)", function
+            )
+        else:
+            CallbackBase.register_callback("on_start", function)
+        return function
+
+    if len(args) == 1 and callable(args[0]):  # Regular
+        return _on_start(args[0])
+    elif len(args) == 0:  # With empty parenthesis or with keyword
+        return _on_start
+    elif len(args) == 1 and isinstance(args[0], bool):  # No keyword
+        raise RuntimeError(
+            "'before_controls' requires a keyword, "
+            f"use on_start(before_controls={args[0]})"
+        )
+    else:
+        raise RuntimeError("Unknown parameters for on_start")  # TODO url
 
 
-def on_stop(function):
-    CallbackBase.register_callback("on_stop", function)
-    return function
+def on_stop(*args, immediate=False):
+    def _on_stop(function):
+        if immediate:
+            CallbackBase.register_callback("on_stop(immediate=True)", function)
+        else:
+            CallbackBase.register_callback("on_stop", function)
+        return function
+
+    if len(args) == 1 and callable(args[0]):  # Regular
+        return _on_stop(args[0])
+    elif len(args) == 0:  # With empty parenthesis or with keyword
+        return _on_stop
+    elif len(args) == 1 and isinstance(args[0], bool):  # No keyword
+        raise RuntimeError(
+            f"'immediate' requires a keyword, use on_stop(immediate={args[0]})"
+        )
+    else:  # With keyword
+        raise RuntimeError("Unknown parameters for on_stop")  # TODO url

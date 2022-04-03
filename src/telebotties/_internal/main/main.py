@@ -117,7 +117,7 @@ class Main(TelebottiesBase):
         finally:
             state_machine.exit_immediate()
             await self.run_callbacks(
-                "on_exit_immediate", state_machine.synced_exit
+                "on_exit(immediate=True)", state_machine.synced_exit
             )
             await self.run_callbacks("on_exit", None)
 
