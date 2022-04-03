@@ -275,3 +275,13 @@ class ServerStateMachine:
 
 
 state_machine = ServerStateMachine()
+
+def enable_controls():
+    state_machine.enable_controls()
+
+def disable_controls():
+    state_machine.disable_controls()
+
+def stop():
+    state_machine.stop_immediate()
+

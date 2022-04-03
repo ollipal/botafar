@@ -12,7 +12,7 @@ from ._internal.callbacks import (
 )
 from ._internal.inputs import Button
 from ._internal.main import _cli  # This enables `telebotties` from cli
-from ._internal.main import listen, print
-from ._internal.states import state
+from ._internal.main import listen, print, exit
+from ._internal.states import state, enable_controls, disable_controls, stop
 
 version = __version__

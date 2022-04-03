@@ -123,7 +123,7 @@ class Main(TelebottiesBase):
             )
             await self.run_callbacks("on_exit", None)
 
-    def error_callback(self, e, sigint=False):
+    def error_callback(self, e, sigint=False, exit=False):
         if e is not None:
             logger.error(error_to_string(e))
 
@@ -139,6 +139,11 @@ class Main(TelebottiesBase):
         if sigint and self.server.connected:
             self.send_event(
                 SystemEvent("info", None, text="bot received Ctrl + C")
+            )
+
+        if exit and self.server.connected:
+            self.send_event(
+                SystemEvent("info", None, text="bot .exit() called")
             )
 
         if self.server.connected:
@@ -162,6 +167,10 @@ class Main(TelebottiesBase):
         self.server.stop()
         self.enter_listener.stop()
 
+    def exit(self):
+        self.error_callback(None, exit=True)
+        self.keyboard_listener.stop()
+
     def done_callback(self, future):
         pass
 
@@ -177,6 +186,13 @@ def _print(string):
         main.print(string)
     else:
         raise RuntimeError("tb.print() cannot be called before tb.listen()")
+
+def exit():
+    global main
+    if main is not None:
+        main.exit()
+    else:
+        raise RuntimeError("tb.exit() cannot be called before tb.listen()")
 
 
 def _main(log_level, port, suppress_keys, prints_removed):

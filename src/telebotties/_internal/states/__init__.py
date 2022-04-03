@@ -1,6 +1,6 @@
 from .keyboard_client_state import KeyboardClientState
 from .server_event_prosessor import ServerEventProsessor
-from .server_state_machine import state_machine
+from .server_state_machine import state_machine, enable_controls, disable_controls, stop
 
 
 # This allows .state directly
