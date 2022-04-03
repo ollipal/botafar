@@ -66,7 +66,6 @@ class CallbackExecutor:
             else:
                 future = self.executor.submit(callback, *params)
 
-            # TODO can future finish before done callback is added?
             with self.rlock:
                 if finished_callback is not None:
                     # NOTE this can override existing, which should be ok
@@ -75,10 +74,17 @@ class CallbackExecutor:
                 if name not in self.running_futures:
                     self.running_futures[name] = set()
                 self.running_futures[name].add(future)
+
+            # TODO can future finish before done callback is added?
+            # Probably just then triggers immediately
             future.add_done_callback(self._done)
 
     async def wait_until_finished(self, name):
         futures = self.running_futures.get(name, [])
+        await asyncio.gather(*[asyncio.wrap_future(f) for f in futures])
+
+    async def wait_until_all_finished(self):
+        futures = set().union(*self.running_futures.values())
         await asyncio.gather(*[asyncio.wrap_future(f) for f in futures])
 
     def _done(self, future):

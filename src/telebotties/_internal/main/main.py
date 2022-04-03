@@ -117,6 +117,8 @@ class Main(TelebottiesBase):
             state_machine.exit_immediate()
             await self.run_callbacks("on_exit_immediate", state_machine.exit)
             await self.run_callbacks("on_exit", None)
+            # also everything starting with underscore, such as "_send"
+            await self.callback_executor.wait_until_all_finished()
 
     def error_callback(self, e, sigint=False):
         if e is not None:
