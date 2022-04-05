@@ -2,6 +2,7 @@ import asyncio
 import concurrent.futures
 from threading import RLock
 
+from .exceptions import SleepCancelledError
 from .log_formatter import get_logger
 
 logger = get_logger()
@@ -60,11 +61,25 @@ class CallbackExecutor:
                 params = []
 
             if asyncio.iscoroutinefunction(callback):
+
+                async def supressed(*args):
+                    try:
+                        await callback(*args)
+                    except SleepCancelledError:
+                        logger.debug("SleepCancelledError suppressed")
+
                 future = asyncio.run_coroutine_threadsafe(
-                    callback(*params), self.loop
+                    supressed(*params), self.loop
                 )
             else:
-                future = self.executor.submit(callback, *params)
+
+                def supressed(*args):
+                    try:
+                        callback(*args)
+                    except SleepCancelledError:
+                        logger.debug("SleepCancelledError suppressed")
+
+                future = self.executor.submit(supressed, *params)
 
             with self.rlock:
                 if finished_callback is not None:
@@ -85,6 +100,7 @@ class CallbackExecutor:
 
     async def wait_until_all_finished(self):
         futures = set().union(*self.running_futures.values())
+        # TODO skip SleepCancelledErrors
         await asyncio.gather(*[asyncio.wrap_future(f) for f in futures])
 
     def _done(self, future):
@@ -100,6 +116,10 @@ class CallbackExecutor:
                 if callback is not None:
                     callback()
 
-        if not future.cancelled() and future.exception() is not None:
+        if (
+            not future.cancelled()
+            and future.exception() is not None
+            and not isinstance(future.exception(), SleepCancelledError)
+        ):
             self.error_callback(future.exception())
         self.done_callback(future)

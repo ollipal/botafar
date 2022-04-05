@@ -88,6 +88,7 @@ class Main(TelebottiesBase):
         await self.callback_executor.wait_until_all_finished()
 
     async def main(self):
+        state_machine.set_loop(self.loop)
         try:
             await self.run_callbacks("on_init", state_machine.wait_host)
 

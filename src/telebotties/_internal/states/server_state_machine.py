@@ -1,29 +1,34 @@
-from threading import RLock
+import asyncio
+import threading
 from time import time as _time
 
 from transitions import Machine, State, core
 
 from ..callbacks import CallbackBase
+from ..exceptions import SleepCancelledError
 from ..log_formatter import get_logger
 
 logger = get_logger()
 
-INIT = "init"
+INIT = "on_init"
 WAITING_HOST = "waiting_host"
-PREPARE = "prepare"
+PREPARE = "on_prepare"
 WAITING_PLAYER = "waiting_player"
 START_BEFORE_CONTROLS = "start_before_controls"
-START = "start"
+START = "on_start"
 WAITING_STOP = "waiting_stop"
 STOP_IMMEDIATE = "stop_immediate"
-STOP = "stop"
+STOP = "on_stop"
 EXIT_IMMEDIATE = "exit_immediate"
-EXIT = "exit"
+EXIT = "on_exit"
 
 SIMPLIFIED_STATES = {
-    START_BEFORE_CONTROLS: "start",
-    STOP_IMMEDIATE: "stop",
-    EXIT_IMMEDIATE: "exit",
+    WAITING_HOST: "on_prepare",
+    WAITING_PLAYER: "on_prepare",
+    WAITING_STOP: "on_start",
+    START_BEFORE_CONTROLS: "on_start",
+    STOP_IMMEDIATE: "on_stop",
+    EXIT_IMMEDIATE: "on_exit",
 }
 
 
@@ -97,7 +102,9 @@ class ServerStateMachine:
         self.player = Player()
         self.start_time = -1
         self.machine = Machine(model=self, states=self.states, initial=INIT)
-        self.rlock = RLock()
+        self.rlock = threading.RLock()
+        self.sleep_event_sync = threading.Event()
+        self.sleep_event_async = None  # Added later when the loop starts
 
         # add_transition params: trigger, source, destination
         self.machine.add_transition(
@@ -250,7 +257,19 @@ class ServerStateMachine:
 
     def after_prepare(self):
         logger.debug("STATE: prepare")
-        self.execute("on_prepare", self.wait_player, "wait_player")
+        self.sleep_event_sync.clear()
+        self.sleep_event_async.clear()
+
+        def safe_on_prepare_callback():
+            self.safe_state_change(self.wait_player, "wait_player")
+            self.safe_state_change(self.synced_stop, "synced_stop")
+            self.safe_state_change(self.synced_exit, "synced_exit")
+
+        self.callback_executor.execute_callbacks(
+            CallbackBase.get_by_name("on_prepare"),
+            "on_prepare",
+            safe_on_prepare_callback,
+        )
 
     def after_waiting_player(self):
         logger.debug("STATE: waiting_player")
@@ -260,7 +279,17 @@ class ServerStateMachine:
     def after_start_before_controls(self):
         logger.debug("STATE: start_before_controls")
         self.start_time = _time()
-        self.execute("on_start(before_controls=True)", self.start, "start")
+
+        def safe_start_before_controls_callback():
+            self.safe_state_change(self.start, "start")
+            self.safe_state_change(self.synced_stop, "synced_stop")
+            self.safe_state_change(self.synced_exit, "synced_exit")
+
+        self.callback_executor.execute_callbacks(
+            CallbackBase.get_by_name("on_start(before_controls=True)"),
+            "on_start(before_controls=True)",
+            safe_start_before_controls_callback,
+        )
 
     def after_start(self):
         logger.debug("STATE: start")
@@ -269,6 +298,7 @@ class ServerStateMachine:
         def safe_on_start_callback():
             self.safe_state_change(self.wait_stop, "wait_stop")
             self.safe_state_change(self.synced_stop, "synced_stop")
+            self.safe_state_change(self.synced_exit, "synced_exit")
 
         self.callback_executor.execute_callbacks(
             CallbackBase.get_by_name("on_start"),
@@ -283,6 +313,8 @@ class ServerStateMachine:
     def after_stop_immediate(self):
         logger.debug("STATE: stop_immediate")
         self.disable_controls()
+        self.sleep_event_sync.set()
+        self.sleep_event_async.set()
         self.execute(
             "on_stop(immediate=True)", self.synced_stop, "synced_stop"
         )
@@ -294,6 +326,8 @@ class ServerStateMachine:
 
     def after_exit_immediate(self):
         logger.debug("STATE: exit_immediate")
+        self.sleep_event_sync.set()
+        self.sleep_event_async.set()
         # "on_exit_immediate" executed from main
 
     def after_exit(self):
@@ -326,6 +360,32 @@ class ServerStateMachine:
         else:
             return round(_time() - self.start_time, 2)
 
+    def set_loop(self, loop):
+        self.loop = loop
+        self.sleep_event_async = asyncio.Event()
+
+    def sleep(self, secs):
+        if self.sleep_event_sync.wait(timeout=secs):
+            raise SleepCancelledError()
+
+    async def sleep_async(self, secs):
+        assert (
+            self.sleep_event_async is not None
+        ), "listen() must be called before sleep_async()"
+
+        try:
+            await asyncio.wait_for(
+                asyncio.wrap_future(
+                    asyncio.run_coroutine_threadsafe(
+                        self.sleep_event_async.wait(), self.loop
+                    )
+                ),
+                timeout=secs,
+            )
+            raise SleepCancelledError()
+        except asyncio.TimeoutError:
+            pass
+
 
 state_machine = ServerStateMachine()
 
@@ -335,4 +395,12 @@ host = state_machine.host
 player = state_machine.player
 enable_controls = state_machine.enable_controls
 disable_controls = state_machine.disable_controls
-stop = state_machine.stop_immediate
+sleep = state_machine.sleep
+sleep_async = state_machine.sleep_async
+
+
+def stop():
+    try:
+        state_machine.stop_immediate()
+    except core.MachineError:
+        logger.warning(f"Cannot stop() during {state()}")
