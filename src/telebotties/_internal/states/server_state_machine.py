@@ -252,6 +252,7 @@ class ServerStateMachine:
 
     def after_waiting_host(self):
         logger.debug("STATE: waiting_host")
+        self.start_time = -1
         # if self.host.connected:
         self.prepare()
 
@@ -279,6 +280,17 @@ class ServerStateMachine:
     def after_start_before_controls(self):
         logger.debug("STATE: start_before_controls")
         self.start_time = _time()
+
+        self.callback_executor.execute_callbacks(
+            CallbackBase.get_by_name("on_time"),
+            "on_time",
+            None,
+        )
+        self.callback_executor.execute_callbacks(
+            CallbackBase.get_by_name("on_repeat"),
+            "on_repeat",
+            None,
+        )
 
         def safe_start_before_controls_callback():
             self.safe_state_change(self.start, "start")
@@ -321,7 +333,6 @@ class ServerStateMachine:
 
     def after_stop(self):
         logger.debug("STATE: stop")
-        self.start_time = -1
         self.execute("on_stop", self.wait_host, "wait_host")
 
     def after_exit_immediate(self):

@@ -7,8 +7,10 @@ from ._internal.callbacks import (
     on_exit,
     on_init,
     on_prepare,
+    on_repeat,
     on_start,
     on_stop,
+    on_time,
 )
 from ._internal.exceptions import SleepCancelledError
 from ._internal.inputs import Button

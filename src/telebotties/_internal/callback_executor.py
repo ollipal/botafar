@@ -10,11 +10,7 @@ logger = get_logger()
 
 class CallbackExecutor:
     system_callbacks = {}
-    takes_time = set()
     takes_event = set()
-    # takes_time and takes_event needs to be different, otherwise
-    # time can be passed as event, if it is optional, registered to
-    # both kinds of callbacks
 
     def __init__(self, done_callback, error_callback):
         self.loop = None
@@ -33,10 +29,6 @@ class CallbackExecutor:
     def add_to_takes_event(function):
         CallbackExecutor.takes_event.add(function)
 
-    @staticmethod
-    def add_to_takes_time(function):
-        CallbackExecutor.takes_time.add(function)
-
     @property
     def running_names(self):
         return [
@@ -46,17 +38,16 @@ class CallbackExecutor:
         ]
 
     def execute_callbacks(
-        self, callbacks, name, finished_callback, event=None, time=None
+        self, callbacks, name, finished_callback, event=None
     ):
         if len(callbacks) == 0:
-            finished_callback()
+            if finished_callback is not None:
+                finished_callback()
             return
 
         for callback in callbacks:
             if event is not None and callback in self.takes_event:
                 params = [event]
-            elif time is not None and callback in self.takes_time:
-                params = [time]
             else:
                 params = []
 

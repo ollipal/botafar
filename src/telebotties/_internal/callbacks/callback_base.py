@@ -1,4 +1,3 @@
-from ..callback_executor import CallbackExecutor
 from ..function_utils import takes_parameter
 from ..log_formatter import get_logger
 
@@ -29,14 +28,9 @@ class CallbackBase:
 
     @staticmethod
     def register_callback(name, function):
-        # TODO should not check takes time every time...
-        if CallbackBase._takes_time(
-            function
-        ):  # Also validates other parameters
-            # NOTE: can be added here even if not time event
-            # This dies not matter as long as time is not passed to
-            # CallbackExecutor
-            CallbackExecutor.add_to_takes_time(function)
+        # NOTE # Also validates other parameters
+        if CallbackBase._takes_time(function):
+            pass  # The result does not matter, as time is already wrapped in
 
         if name in CallbackBase._callbacks:
             CallbackBase._callbacks[name].append(function)
