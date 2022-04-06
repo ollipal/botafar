@@ -4,10 +4,9 @@ from ..constants import INPUT_EVENT
 
 
 class Event:
-    def __init__(self, name, sender, origin, key):
+    def __init__(self, name, sender, key):
         self._name = name
         self._sender = sender
-        self._origin = origin
         # Initial values
         self._time = None
         self._is_active = None
@@ -39,24 +38,19 @@ class Event:
         return self._sender
 
     @property
-    def origin(self):
-        return self._origin
-
-    @property
     def time(self):
         assert self._time is not None
         return self._time
 
     @property
     def _callback_key(self):
-        return (self._key, self.sender, self.origin)
+        return (self._key, self.sender)
 
     def _to_json(self):
         return json.dumps(
             {
                 "key": self._key,
                 "sender": self.sender,
-                "origin": self.origin,
                 "name": self.name,
                 "type": self._type,
             }
@@ -65,5 +59,5 @@ class Event:
     def __repr__(self):
         return (
             f"Event(name='{self.name}', is_active={self.is_active}, sender='"
-            f"{self.sender}', origin='{self.origin}', time={self.time})"
+            f"{self.sender}', time={self.time})"
         )

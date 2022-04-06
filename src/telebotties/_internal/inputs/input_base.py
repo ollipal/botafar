@@ -11,23 +11,10 @@ SENDER_MAP = {
     (False, True): "player",
 }
 
-# (host_only, player_only)
-ORIGIN_MAP = {
-    (False, False): "any",
-    (True, False): "keyboard",
-    (False, True): "screen",
-}
-
 SENDER_REPR = {
     "any": "",
-    "host": "host_only=True",
-    "player": "player_only=True",
-}
-
-ORIGIN_REPR = {
-    "any": "",
-    "keyboard": "keyboard_only=True",
-    "screen": "screen_only=True",
+    "host": ", host_only=True",
+    "player": ", player_only=True",
 }
 
 
@@ -41,23 +28,18 @@ class InputBase(ABC):
         keys,
         host_only,
         player_only,
-        keyboard_only,
-        screen_only,
         start_event,
         alternatives,
+        amount,
     ):
         # TODO makey assertions key makes sense, others type boolean
         # Make sure makes sense
         assert not (
             host_only and player_only
         ), "Input cannot be host_only and player_only at the same time"
-        assert not (
-            keyboard_only and screen_only
-        ), "Input cannot be keyboard_only and screen_only at the same time"
 
         self._keys = keys
         self._sender = SENDER_MAP[(host_only, player_only)]
-        self._origin = ORIGIN_MAP[(keyboard_only, screen_only)]
         self._state = start_event.name
         self._latest_event = start_event
         self._alternative_map = {}
@@ -77,6 +59,7 @@ class InputBase(ABC):
             "titles": {},
             "has_callbacks": [],
             "without_callbacks": keys,
+            "amount": amount,
         }
         InputBase._inputs.append(self)
 
@@ -129,7 +112,7 @@ class InputBase(ABC):
                 )  # TODO link to allowed keys
 
         new_event_callback_keys = self._get_event_callback_keys(
-            key, self._sender, self._origin
+            key, self._sender
         )
         for callback_key in new_event_callback_keys:
             if callback_key in self._event_callbacks:
@@ -187,59 +170,21 @@ class InputBase(ABC):
         self._callbacks_added = True
 
     def _sender_origin_repr(self):
-        sender_repr = SENDER_REPR[self._sender]
-        origin_repr = ORIGIN_REPR[self._origin]
+        return SENDER_REPR[self._sender]
 
-        if sender_repr == "" and origin_repr == "":
-            return ""
-        elif sender_repr != "" and origin_repr != "":  # Space required
-            return f", {sender_repr}, {origin_repr}"
-        else:
-            return f", {sender_repr}{origin_repr}"
-
-    def _get_event_callback_keys(self, key, sender, origin):
-        if sender == "any" and origin == "any":
+    def _get_event_callback_keys(self, key, sender):
+        if sender == "any":
             return [
-                (key, "host", "keyboard"),
-                (key, "player", "keyboard"),
-                (key, "host", "screen"),
-                (key, "player", "screen"),
+                (key, "host"),
+                (key, "player"),
             ]
-        elif sender == "host" and origin == "any":
+        elif sender == "host":
             return [
-                (key, "host", "keyboard"),
-                (key, "host", "screen"),
+                (key, "host"),
             ]
-        elif sender == "player" and origin == "any":
+        elif sender == "player":
             return [
-                (key, "player", "keyboard"),
-                (key, "player", "screen"),
-            ]
-        elif sender == "any" and origin == "keyboard":
-            return [
-                (key, "host", "keyboard"),
-                (key, "player", "keyboard"),
-            ]
-        elif sender == "host" and origin == "keyboard":
-            return [
-                (key, "host", "keyboard"),
-            ]
-        elif sender == "player" and origin == "keyboard":
-            return [
-                (key, "player", "keyboard"),
-            ]
-        elif sender == "any" and origin == "screen":
-            return [
-                (key, "host", "screen"),
-                (key, "player", "screen"),
-            ]
-        elif sender == "host" and origin == "screen":
-            return [
-                (key, "host", "screen"),
-            ]
-        elif sender == "player" and origin == "screen":
-            return [
-                (key, "player", "screen"),
+                (key, "player"),
             ]
         else:
             RuntimeError("This should not happen")

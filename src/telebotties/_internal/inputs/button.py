@@ -10,10 +10,9 @@ class Button(InputBase):
         alternative=None,
         host_only=False,
         player_only=False,
-        keyboard_only=False,
-        screen_only=False,
+        amount=1,
     ):
-        start_event = Event("on_release", "host", "keyboard", key)
+        start_event = Event("on_release", "host", key)
         start_event._set_time(-1)
         start_event._set_active_method(lambda: False)
 
@@ -25,10 +24,9 @@ class Button(InputBase):
             [key],
             host_only,
             player_only,
-            keyboard_only,
-            screen_only,
             start_event,
             alternative,
+            amount,
         )
 
     def on_press(self, function):
