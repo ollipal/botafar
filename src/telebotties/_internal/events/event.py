@@ -21,7 +21,7 @@ class Event:
         self._is_active = is_active
 
     def _change_name(self, name):
-        """Some inputs change the name"""
+        """Some controls change the name"""
         self._name = name
 
     @property

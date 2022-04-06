@@ -48,7 +48,7 @@ class Cli(TelebottiesBase):
     async def main(self):
         try:
             try:
-                input_datas = await self.client.connect()
+                control_datas = await self.client.connect()
             except ConnectionRefusedError:
                 if not self.prints_removed:
                     print(
@@ -65,7 +65,9 @@ class Cli(TelebottiesBase):
                 return
 
             task = asyncio.create_task(self.client.receive())
-            await self.keyboard_listener.run_until_finished(input_datas, False)
+            await self.keyboard_listener.run_until_finished(
+                control_datas, False
+            )
             await self.client.stop()
             await task
         except Exception as e:

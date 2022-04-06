@@ -3,8 +3,8 @@ import asyncio
 import click
 
 from telebotties._internal.callbacks.callback_base import CallbackBase
+from telebotties._internal.controls.control_base import ControlBase
 from telebotties._internal.events.system_event import SystemEvent
-from telebotties._internal.inputs.input_base import InputBase
 from telebotties._internal.ip_addr import get_ip
 
 from ..callback_executor import CallbackExecutor
@@ -109,7 +109,7 @@ class Main(TelebottiesBase):
 
             if pynput_supported and self.should_connect_keyboard:
                 await self.keyboard_listener.run_until_finished(
-                    InputBase._get_input_datas(), True
+                    ControlBase._get_control_datas(), True
                 )
         except Exception as e:
             logger.error(f"Unexpected internal error: {error_to_string(e)}")

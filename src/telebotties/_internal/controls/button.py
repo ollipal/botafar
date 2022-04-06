@@ -1,9 +1,9 @@
 from ..events import Event
 from ..function_utils import get_function_name
-from .input_base import InputBase
+from .control_base import ControlBase
 
 
-class Button(InputBase):
+class Button(ControlBase):
     def __init__(
         self,
         key,

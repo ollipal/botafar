@@ -12,7 +12,7 @@ def takes_parameter(function, param_name):
                 takes_param = True
             elif param.kind == Parameter.POSITIONAL_ONLY:
                 raise RuntimeError(
-                    f"The first input callback argument must be called "
+                    f"The first control callback argument must be called "
                     f"'{param_name}', or it needs to be optional. Currently "
                     f"it is '{param.name}' and it is required."
                 )

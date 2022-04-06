@@ -17,7 +17,7 @@ else:
 logger = get_logger()
 
 
-# Nonblocking input check, inspiration from:
+# Nonblocking control check, inspiration from:
 # http://ballingt.com/_nonblocking-stdin-in-python-3/
 @contextmanager
 def _nonblocking(stream):

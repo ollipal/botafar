@@ -1,6 +1,6 @@
 from ..constants import SYSTEM_EVENT
+from ..controls import ControlBase
 from ..events import SystemEvent
-from ..inputs import InputBase
 from ..log_formatter import get_logger
 from .server_state_machine import state_machine
 
@@ -50,12 +50,12 @@ class ServerEventProsessor:
                 return
 
             event._set_time(state_machine.time())
-            callbacks = InputBase._get_callbacks(event)
+            callbacks = ControlBase._get_callbacks(event)
 
             self.callback_executor.execute_callbacks(
                 callbacks,
                 event.name,
-                state_machine.on_input_finished_callback,
+                state_machine.on_control_finished_callback,
                 event=event,
             )
 
@@ -71,7 +71,9 @@ class ServerEventProsessor:
 
         self.on_remote_host_connect()
         self.send_event(
-            SystemEvent("connect_ok", None, data=InputBase._get_input_datas())
+            SystemEvent(
+                "connect_ok", None, data=ControlBase._get_control_datas()
+            )
         )
         self.inform(f"{name} connected")
 

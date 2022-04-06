@@ -45,13 +45,13 @@ LISTEN_LOCAL_KEYBOARD_MESSAGE = f"""
 {bold("Listening to local keyboard events")} {dim("(web connection listening stopped)")}
 Press {key("Esc")} to exit, {key("Backspace")} to reconnect player.
 
-{underlined("Custom inputs")}:"""
+{underlined("Custom controls")}:"""
 
 LISTEN_REMOTE_KEYBOARD_MESSAGE = f"""
 {bold("A remote keyboard connected successfully")}
 Press {key("Esc")} to exit, {key("Backspace")} to reconnect player.
 
-{underlined("Custom inputs")}:"""
+{underlined("Custom controls")}:"""
 
 LISTEN_WEB_MESSAGE_PYNPUT = (
     f"\n\n\n{bold('A remote keyboard connected')} {dim('(will not listen to local keyboard events)')}\n"

@@ -280,7 +280,6 @@ class ServerStateMachine:
     def after_start_before_controls(self):
         logger.debug("STATE: start_before_controls")
         self.start_time = _time()
-
         self.callback_executor.execute_callbacks(
             CallbackBase.get_by_name("on_time"),
             "on_time",
@@ -346,7 +345,7 @@ class ServerStateMachine:
         self.start_time = -1
         # "on_exit" executed from main
 
-    def on_input_finished_callback(self):
+    def on_control_finished_callback(self):
         if self.state == STOP_IMMEDIATE and self.all_finished:
             self.safe_state_change(self.synced_stop, "synced_stop")
         # "synced_exit" executed from main

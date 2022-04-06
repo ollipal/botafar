@@ -18,9 +18,9 @@ SENDER_REPR = {
 }
 
 
-class InputBase(ABC):
+class ControlBase(ABC):
     _event_callbacks = {}
-    _inputs = []
+    _controls = []
 
     def __init__(
         self,
@@ -36,7 +36,7 @@ class InputBase(ABC):
         # Make sure makes sense
         assert not (
             host_only and player_only
-        ), "Input cannot be host_only and player_only at the same time"
+        ), "Control cannot be host_only and player_only at the same time"
 
         self._keys = keys
         self._sender = SENDER_MAP[(host_only, player_only)]
@@ -51,7 +51,7 @@ class InputBase(ABC):
             self._register_key(key)
         assert len(keys) == len(
             set(keys)
-        ), "Input cannot have multiple same keys"
+        ), "Control cannot have multiple same keys"
 
         self._data = {
             "type": type,
@@ -61,14 +61,14 @@ class InputBase(ABC):
             "without_callbacks": keys,
             "amount": amount,
         }
-        InputBase._inputs.append(self)
+        ControlBase._controls.append(self)
 
         if alternatives is not None:
             self._register_alternative_keys(alternatives)
 
     @staticmethod
-    def _get_input_datas():
-        return [input_._data for input_ in InputBase._inputs]
+    def _get_control_datas():
+        return [control_._data for control_ in ControlBase._controls]
 
     def _add_key_to_has_callbacks(self, key, title, tier):
         if title is None:
@@ -86,10 +86,10 @@ class InputBase(ABC):
 
     @staticmethod
     def _get_callbacks(event):
-        if event._callback_key not in InputBase._event_callbacks:
+        if event._callback_key not in ControlBase._event_callbacks:
             return []
 
-        return InputBase._event_callbacks[
+        return ControlBase._event_callbacks[
             event._callback_key
         ]._get_instance_callbacks(event)
 
@@ -119,7 +119,7 @@ class InputBase(ABC):
                 raise RuntimeError(
                     f"Cannot create {self}. "
                     f"{self._event_callbacks[callback_key]} already handles "
-                    "some of the same input events. Only one input can "
+                    "some of the same control events. Only one control can "
                     "handle each Event."
                 )
             self._event_callbacks[callback_key] = self
@@ -128,7 +128,7 @@ class InputBase(ABC):
     def latest_event(self):
         return self._latest_event
 
-    @abstractmethod  # Each input needs unique docstring
+    @abstractmethod  # Each control needs unique docstring
     def state(self):
         pass
 

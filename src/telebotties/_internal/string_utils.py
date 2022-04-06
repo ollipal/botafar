@@ -31,10 +31,10 @@ def error_to_string(e):
     ).rstrip()
 
 
-def _get_padding_target(input_datas):
+def _get_padding_target(control_datas):
     """The actual target value makes no sense but it seems to work..."""
     target = 0
-    for data in input_datas:
+    for data in control_datas:
         keys_map = data["keys"]
         for key in data["has_callbacks"] + data["without_callbacks"]:
             keys = keys_map[key]
@@ -56,10 +56,10 @@ def _color_keys(keys, color, target):
     return ret[:-3] + padding
 
 
-def input_list_string(input_datas):
+def control_list_string(control_datas):
     ret = ""
-    target = _get_padding_target(input_datas)
-    for data in input_datas:
+    target = _get_padding_target(control_datas)
+    for data in control_datas:
         keys_map = data["keys"]
         for key in data["has_callbacks"]:
             description = data["titles"].get(key, ("Unknown action", 0))[0]
@@ -74,8 +74,8 @@ def input_list_string(input_datas):
                 "- No callbacks added\n"  # TODO add link to add cbs
             )
 
-    # TODO add link to input documentation if no inputs have been created
-    return ret + "\n" if ret != "" else dim("(no inputs created)\n")
+    # TODO add link to control documentation if no controls have been created
+    return ret + "\n" if ret != "" else dim("(no controls created)\n")
 
 
 def get_welcome_message(ip, port, pynput_supported):

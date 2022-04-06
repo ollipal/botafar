@@ -12,8 +12,8 @@ from ._internal.callbacks import (
     on_stop,
     on_time,
 )
+from ._internal.controls import Button
 from ._internal.exceptions import SleepCancelledError
-from ._internal.inputs import Button
 from ._internal.main import _cli  # This enables `telebotties` from cli
 from ._internal.main import exit, listen, print
 from ._internal.states import (
