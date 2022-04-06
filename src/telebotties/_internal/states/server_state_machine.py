@@ -380,6 +380,11 @@ class ServerStateMachine:
         self.sleep_event_async = asyncio.Event()
 
     def sleep(self, secs):
+        # Triggers even when secs=0
+        # (not sure if required here, but at least on sleep_async it is)
+        if self.sleep_event_sync.is_set():
+            raise SleepCancelledError()
+
         if self.sleep_event_sync.wait(timeout=secs):
             raise SleepCancelledError()
 
@@ -387,6 +392,10 @@ class ServerStateMachine:
         assert (
             self.sleep_event_async is not None
         ), "listen() must be called before sleep_async()"
+
+        # Triggers even when secs=0
+        if self.sleep_event_async.is_set():
+            raise SleepCancelledError()
 
         try:
             await asyncio.wait_for(
