@@ -92,6 +92,10 @@ class Main(TelebottiesBase):
         try:
             await self.run_callbacks("on_init", state_machine.wait_host)
 
+            print("STATE" + state_machine._state())
+            if state_machine._state() == "on_exit":
+                return  # triggers 'finally:'
+
             ip = get_ip()  # TODO save
             if not self.prints_removed:
                 print(
@@ -166,6 +170,7 @@ class Main(TelebottiesBase):
         self.enter_listener.stop()
 
     def exit(self):
+        state_machine.exit_immediate()
         self.error_callback(None, exit=True)
         self.keyboard_listener.stop()
 
