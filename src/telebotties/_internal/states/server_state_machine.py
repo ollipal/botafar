@@ -399,11 +399,7 @@ class ServerStateMachine:
 
         try:
             await asyncio.wait_for(
-                asyncio.wrap_future(
-                    asyncio.run_coroutine_threadsafe(
-                        self.sleep_event_async.wait(), self.loop
-                    )
-                ),
+                self.sleep_event_async.wait(),
                 timeout=secs,
             )
             raise SleepCancelledError()
