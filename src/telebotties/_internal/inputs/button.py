@@ -14,7 +14,9 @@ class Button(InputBase):
         screen_only=False,
     ):
         start_event = Event("on_release", "host", "keyboard", key)
-        start_event._update(False, -1)
+        start_event._set_time(-1)
+        start_event._set_active_method(lambda: False)
+
         # TODO why self._keys[0] was undefined inside 'on_release'
         # and this was needed?...
         self._key = key

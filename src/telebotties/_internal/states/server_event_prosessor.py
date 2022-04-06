@@ -42,9 +42,6 @@ class ServerEventProsessor:
             else:
                 logger.warning(f"Unknown system event? {event.name}")
         else:  # INPUT_EVENT
-            # Update input events, required...
-            event._update(True, -1)
-
             if (
                 event.sender == "player"
                 and not state_machine.player.is_controlling
@@ -52,7 +49,9 @@ class ServerEventProsessor:
                 logger.debug("Player controls disabled, skipping")
                 return
 
+            event._set_time(state_machine.time())
             callbacks = InputBase._get_callbacks(event)
+
             self.callback_executor.execute_callbacks(
                 callbacks,
                 event.name,

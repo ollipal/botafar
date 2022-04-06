@@ -103,8 +103,6 @@ class InputBase(ABC):
 
     @staticmethod
     def _get_callbacks(event):
-        event._update(True, -1)  # TODO properly
-
         if event._callback_key not in InputBase._event_callbacks:
             return []
 
@@ -169,6 +167,8 @@ class InputBase(ABC):
             return []
 
         self._latest_event = event
+        event._set_active_method(lambda: self.latest_event == event)
+
         return self._state_callbacks[event.name]
 
     @staticmethod

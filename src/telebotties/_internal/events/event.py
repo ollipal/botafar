@@ -9,44 +9,42 @@ class Event:
         self._sender = sender
         self._origin = origin
         # Initial values
-        self._updated = False
+        self._time = None
+        self._is_active = None
         # Internal values
         self._key = key
         self._type = INPUT_EVENT
 
-    def _update(self, is_active, time):
-        self._updated = True
-        self._is_active = is_active
+    def _set_time(self, time):
         self._time = time
+
+    def _set_active_method(self, is_active):
+        self._is_active = is_active
 
     def _change_name(self, name):
         """Some inputs change the name"""
-        assert self._updated
         self._name = name
 
     @property
     def name(self):
-        assert self._updated
         return self._name
 
     @property
     def is_active(self):
-        assert self._updated
-        return self._is_active
+        assert self._is_active is not None
+        return self._is_active()
 
     @property
     def sender(self):
-        assert self._updated
         return self._sender
 
     @property
     def origin(self):
-        assert self._updated
         return self._origin
 
     @property
     def time(self):
-        assert self._updated
+        assert self._time is not None
         return self._time
 
     @property
@@ -54,7 +52,6 @@ class Event:
         return (self._key, self.sender, self.origin)
 
     def _to_json(self):
-        assert self._updated
         return json.dumps(
             {
                 "key": self._key,

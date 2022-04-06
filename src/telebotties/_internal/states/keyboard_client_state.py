@@ -1,4 +1,4 @@
-from ..constants import INPUT_EVENT, SYSTEM_EVENT
+from ..constants import SYSTEM_EVENT
 from ..events import SystemEvent
 from ..log_formatter import get_logger
 
@@ -13,10 +13,6 @@ class KeyboardClientState:
 
     def process_event(self, event):
         """Return True if should stop"""
-
-        # Update input events, required...
-        if event._type == INPUT_EVENT:
-            event._update(True, -1)
 
         # Potentially send event before forwarding, modify
         # or block forwarding
