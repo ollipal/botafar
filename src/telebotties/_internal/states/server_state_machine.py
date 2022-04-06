@@ -258,8 +258,6 @@ class ServerStateMachine:
 
     def after_prepare(self):
         logger.debug("STATE: prepare")
-        self.sleep_event_sync.clear()
-        self.sleep_event_async.clear()
 
         def safe_on_prepare_callback():
             self.safe_state_change(self.wait_player, "wait_player")
@@ -283,12 +281,12 @@ class ServerStateMachine:
         self.callback_executor.execute_callbacks(
             CallbackBase.get_by_name("on_time"),
             "on_time",
-            None,
+            self.on_repeat_or_time_finished_callback,
         )
         self.callback_executor.execute_callbacks(
             CallbackBase.get_by_name("on_repeat"),
             "on_repeat",
-            None,
+            self.on_repeat_or_time_finished_callback,
         )
 
         def safe_start_before_controls_callback():
@@ -331,6 +329,8 @@ class ServerStateMachine:
         )
 
     def after_stop(self):
+        self.sleep_event_sync.clear()
+        self.sleep_event_async.clear()
         logger.debug("STATE: stop")
         self.execute("on_stop", self.wait_host, "wait_host")
 
@@ -341,6 +341,8 @@ class ServerStateMachine:
         # "on_exit_immediate" executed from main
 
     def after_exit(self):
+        self.sleep_event_sync.clear()
+        self.sleep_event_async.clear()
         logger.debug("STATE: exit")
         self.start_time = -1
         # "on_exit" executed from main
@@ -349,6 +351,9 @@ class ServerStateMachine:
         if self.state == STOP_IMMEDIATE and self.all_finished:
             self.safe_state_change(self.synced_stop, "synced_stop")
         # "synced_exit" executed from main
+
+    def on_repeat_or_time_finished_callback(self):
+        self.on_control_finished_callback()
 
     def enable_controls(self):
         if not self.player.is_controlling:

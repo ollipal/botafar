@@ -106,10 +106,11 @@ def on_time(*time):
         return _wrapper_sync
 
     def _on_time(function):
-        # Weird errors with _wrapper_async with same time always...
-        if asyncio.iscoroutinefunction(function) and len(time) > 1:
+        # Weird errors with _wrapper_async when
+        # multiple times or @ on same callback...
+        if asyncio.iscoroutinefunction(function):
             raise RuntimeError(
-                "Asyncronous on_time currently supports only one time"
+                "on_time does not currently support asyncronous callbacks"
             )
 
         for t in time:
