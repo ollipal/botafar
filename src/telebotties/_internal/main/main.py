@@ -117,9 +117,8 @@ class Main(TelebottiesBase):
             self.enter_listener.stop()
         finally:
             state_machine.exit_immediate()
-            await self.run_callbacks(
-                "on_exit(immediate=True)", state_machine.synced_exit
-            )
+            await self.run_callbacks("on_exit(immediate=True)", None)
+            state_machine.synced_exit()
             await self.run_callbacks("on_exit", None)
 
     def error_callback(self, e, sigint=False, exit=False):

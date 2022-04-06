@@ -15,6 +15,7 @@ def on_init(function):
 
 
 def on_exit(*args, immediate=False):
+    # NOTE: sleep and sleep_async do not work when immediate=True
     def _on_exit(function):
         if immediate:
             CallbackBase.register_callback("on_exit(immediate=True)", function)
@@ -65,6 +66,7 @@ def on_start(*args, before_controls=False):
 
 
 def on_stop(*args, immediate=False):
+    # NOTE: sleep and sleep_async do not work when immediate=True
     def _on_stop(function):
         if immediate:
             CallbackBase.register_callback("on_stop(immediate=True)", function)
