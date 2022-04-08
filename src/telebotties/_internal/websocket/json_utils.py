@@ -1,6 +1,6 @@
 import json
 
-from ..constants import INPUT_EVENT, KEYS, ORIGINS, SENDERS, SYSTEM_EVENT
+from ..constants import INPUT_EVENT, KEYS, SENDERS, SYSTEM_EVENT
 from ..events import Event, SystemEvent
 from ..log_formatter import get_logger
 
@@ -20,16 +20,13 @@ def parse_event(data):
 
     if data["type"] == INPUT_EVENT:
         if (
-            all(key in data for key in ("key", "sender", "origin", "name"))
+            all(key in data for key in ("key", "sender", "name"))
             and data["key"] in KEYS
             and data["sender"] in SENDERS
-            and data["origin"] in ORIGINS
             and isinstance(data["name"], str)
         ):
             # TODO proper name validation
-            return Event(
-                data["name"], data["sender"], data["origin"], data["key"]
-            )
+            return Event(data["name"], data["sender"], data["key"])
         else:
             logger.warning(f"Malformed Event received: {data}")
             return None
