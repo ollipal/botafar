@@ -9,9 +9,9 @@ from . import CallbackBase
 logger = get_logger()
 
 
-def on_init(function):
-    CallbackBase.register_callback("on_init", function)
-    return function
+# def on_init(function):
+#    CallbackBase.register_callback("on_init", function)
+#    return function
 
 
 def on_exit(*args, immediate=False):

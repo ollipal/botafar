@@ -46,17 +46,6 @@ def test_class_decorator_errors():
             pass
 
 
-def test_classmethod_decorator_errors():
-    reset()
-    with pytest.raises(AssertionError):
-
-        class Class:
-            @dec
-            @classmethod
-            def example(cls):
-                pass
-
-
 def test_decorator_empty_parenthesis_errors():
     reset()
     with pytest.raises(AssertionError):
@@ -64,21 +53,6 @@ def test_decorator_empty_parenthesis_errors():
         @dec()
         def example():
             return 3
-
-
-def test_classmethod_instance():
-    reset()
-
-    class Class:
-        @classmethod
-        def example(cls):
-            return 3
-
-    # TODO THIS SHOULD PROBABLY ERROR? TEST WITH MORE PARAMS
-    dec(Class.example)
-    DecoratorBase._wrap_ones_without_wrapping()
-    assert Class.example() == 3
-    assert get_cb()() == 3
 
 
 def test_function():
@@ -116,8 +90,11 @@ def test_class_instance():
     reset()
 
     class Class:
+        def __init__(self):
+            self.val = 1
+
         def example(self):
-            return 3
+            return self.val + 2
 
     c = Class()
 
@@ -132,8 +109,11 @@ def test_class_instance_async():
     reset()
 
     class Class:
+        def __init__(self):
+            self.val = 1
+
         async def example(self):
-            return 3
+            return self.val + 2
 
     c = Class()
 
@@ -178,30 +158,205 @@ def test_class_instance_static_async():
     assert get_async_result(get_cb()()) == 3
 
 
+def test_class_instance_classmethod():
+    reset()
+
+    class Class:
+        @classmethod
+        def example(cls):
+            return 3
+
+    dec(Class.example)
+    DecoratorBase._wrap_ones_without_wrapping()
+    assert Class.example() == 3
+    assert get_cb()() == 3
+
+
+def test_class_instance_classmethod_async():
+    reset()
+
+    class Class:
+        @classmethod
+        async def example(cls):
+            return 3
+
+    dec(Class.example)
+    DecoratorBase._wrap_ones_without_wrapping()
+    assert get_async_result(Class.example()) == 3
+    assert get_async_result(get_cb()()) == 3
+
+
 def test_class_method():
     reset()
 
     class Class:
+        def __init__(self):
+            self.val = 1
+
         @dec
         def example(self):
-            return 3
+            return self.val + 2
 
     DecoratorBase._init_ones_without_instance()
     DecoratorBase._wrap_ones_without_wrapping()
     assert get_cb()() == 3
+    assert Class().example() == 3
 
 
 def test_class_method_async():
     reset()
 
     class Class:
+        def __init__(self):
+            self.val = 1
+
         @dec
         async def example(self):
-            return 3
+            return self.val + 2
 
     DecoratorBase._init_ones_without_instance()
     DecoratorBase._wrap_ones_without_wrapping()
     assert get_async_result(get_cb()()) == 3
+    assert get_async_result(Class().example()) == 3
+
+
+def test_class_staticmethod():
+    reset()
+
+    class Class:
+        @dec
+        @staticmethod
+        def example():
+            return 3
+
+    DecoratorBase._init_ones_without_instance()
+    DecoratorBase._wrap_ones_without_wrapping()
+    assert Class.example() == 3
+    assert get_cb()() == 3
+
+
+def test_class_staticmethod_mixed():
+    reset()
+
+    class Class:
+        @staticmethod
+        @dec
+        def example():
+            return 3
+
+    DecoratorBase._init_ones_without_instance()
+    DecoratorBase._wrap_ones_without_wrapping()
+    assert Class.example() == 3
+    assert get_cb()() == 3
+
+
+def test_class_staticmethod_async():
+    reset()
+
+    class Class:
+        @dec
+        @staticmethod
+        async def example():
+            return 3
+
+    DecoratorBase._init_ones_without_instance()
+    DecoratorBase._wrap_ones_without_wrapping()
+    assert get_async_result(Class.example()) == 3
+    assert get_async_result(get_cb()()) == 3
+
+
+def test_class_classmethod():
+    reset()
+
+    class Class:
+        @dec
+        @classmethod
+        def example(cls):
+            return 3
+
+    DecoratorBase._init_ones_without_instance()
+    DecoratorBase._wrap_ones_without_wrapping()
+    assert Class.example() == 3
+    assert get_cb()() == 3
+
+
+# def test_class_classmethod_mixed():
+# ERRORS! but is ok
+
+
+def test_class_classmethod_async():
+    reset()
+
+    class Class:
+        @dec
+        @classmethod
+        async def example(cls):
+            return 3
+
+    DecoratorBase._init_ones_without_instance()
+    DecoratorBase._wrap_ones_without_wrapping()
+    assert get_async_result(Class.example()) == 3
+    assert get_async_result(get_cb()()) == 3
+
+
+def test_multiple_function():
+    reset()
+
+    @dec
+    def example():
+        return 2
+
+    @dec
+    def example2():
+        return 3
+
+    DecoratorBase._init_ones_without_instance()
+    DecoratorBase._wrap_ones_without_wrapping()
+    assert (
+        CallbackBase.get_by_name("dec")[0]()
+        + CallbackBase.get_by_name("dec")[1]()
+        == 5
+    )
+
+
+def test_multiple_class_method():
+    reset()
+
+    class Class:
+        def __init__(self):
+            self.val = 1
+
+        @dec
+        def example(self):
+            return self.val + 2
+
+        @dec
+        def example2(self):
+            return self.val + 3
+
+    DecoratorBase._init_ones_without_instance()
+    DecoratorBase._wrap_ones_without_wrapping()
+    assert (
+        CallbackBase.get_by_name("dec")[0]()
+        + CallbackBase.get_by_name("dec")[1]()
+        == 7
+    )
+
+
+def test_class_custom_init_works():
+    reset()
+
+    class Class:
+        def __init__(self, other=5):
+            self.val = other
+
+        @dec
+        def example(self):
+            return self.val + 2
+
+    DecoratorBase._init_ones_without_instance()
+    DecoratorBase._wrap_ones_without_wrapping()
+    assert get_cb()() == 7
 
 
 """

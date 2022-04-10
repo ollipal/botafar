@@ -13,6 +13,7 @@ from ..constants import (
     LISTEN_WEB_MESSAGE_PYNPUT,
     SIGINT_MESSAGE,
 )
+from ..decorators import DecoratorBase
 from ..listeners import EnterListener, pynput_supported
 from ..log_formatter import get_logger, setup_logging
 from ..states import ServerEventProsessor, state_machine
@@ -88,11 +89,13 @@ class Main(TelebottiesBase):
         await self.callback_executor.wait_until_all_finished()
 
     async def main(self):
+        DecoratorBase._init_ones_without_instance()
+        DecoratorBase._wrap_ones_without_wrapping()
         state_machine.set_loop(self.loop)
         try:
+            state_machine.init()
             await self.run_callbacks("on_init", state_machine.wait_host)
 
-            print("STATE" + state_machine._state())
             if state_machine._state() == "on_exit":
                 return  # triggers 'finally:'
 

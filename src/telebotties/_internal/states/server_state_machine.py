@@ -10,6 +10,7 @@ from ..log_formatter import get_logger
 
 logger = get_logger()
 
+PRE_INIT = "pre_init"
 INIT = "on_init"
 WAITING_HOST = "waiting_host"
 PREPARE = "on_prepare"
@@ -23,12 +24,13 @@ EXIT_IMMEDIATE = "exit_immediate"
 EXIT = "on_exit"
 
 SIMPLIFIED_STATES = {
-    WAITING_HOST: "on_prepare",
-    WAITING_PLAYER: "on_prepare",
-    WAITING_STOP: "on_start",
-    START_BEFORE_CONTROLS: "on_start",
-    STOP_IMMEDIATE: "on_stop",
-    EXIT_IMMEDIATE: "on_exit",
+    PRE_INIT: INIT,
+    WAITING_HOST: PREPARE,
+    WAITING_PLAYER: PREPARE,
+    WAITING_STOP: START,
+    START_BEFORE_CONTROLS: START,
+    STOP_IMMEDIATE: STOP,
+    EXIT_IMMEDIATE: EXIT,
 }
 
 
@@ -84,6 +86,7 @@ class Player:
 
 class ServerStateMachine:
     states = [
+        PRE_INIT,
         INIT,
         WAITING_HOST,
         PREPARE,
@@ -101,12 +104,20 @@ class ServerStateMachine:
         self.host = Host()
         self.player = Player()
         self.start_time = -1
-        self.machine = Machine(model=self, states=self.states, initial=INIT)
+        self.machine = Machine(
+            model=self, states=self.states, initial=PRE_INIT
+        )
         self.rlock = threading.RLock()
         self.sleep_event_sync = threading.Event()
         self.sleep_event_async = None  # Added later when the loop starts
 
         # add_transition params: trigger, source, destination
+        self.machine.add_transition(
+            "init",
+            PRE_INIT,
+            INIT,
+            after="after_init",
+        )
         self.machine.add_transition(
             "wait_host",
             [INIT, STOP],
@@ -249,6 +260,10 @@ class ServerStateMachine:
         self.player._is_connected = False
         # if self.state in [START_BEFORE_CONTROLS, START, WAITING_STOP]:
         self.safe_state_change(self.stop_immediate, "stop_immediate")
+
+    def after_init(self):
+        logger.debug("STATE: init")
+        # "on_init" executed from main
 
     def after_waiting_host(self):
         logger.debug("STATE: waiting_host")
