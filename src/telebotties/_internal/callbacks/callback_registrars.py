@@ -5,6 +5,7 @@ from ..log_formatter import get_logger
 from ..states import sleep as sleep_
 from ..states import sleep_async
 from . import CallbackBase
+from .. states import time as time_
 
 logger = get_logger()
 
@@ -86,50 +87,41 @@ def on_stop(*args, immediate=False):
         raise RuntimeError("Unknown parameters for on_stop")  # TODO url
 
 
+# NOTE: does not allow at the same time, will fire too late if takes too much time
 def on_time(*time):
-    def wrapper_async(t, function):
-        async def _wrapper_async():
-            await sleep_async(t)
-            if CallbackBase._takes_time(function):
-                await function(t)
-            else:
-                await function()
-
-        return copy.deepcopy(_wrapper_async)
-
-    def wrapper_sync(t, function):
-        def _wrapper_sync():
-            sleep_(t)
-            if CallbackBase._takes_time(function):
-                function(t)
-            else:
-                function()
-
-        return _wrapper_sync
-
     def _on_time(function):
-        # Weird errors with _wrapper_async when
-        # multiple times or @ on same callback...
+        sorted_times = sorted(time)
+    
         if asyncio.iscoroutinefunction(function):
-            raise RuntimeError(
-                "on_time does not currently support asyncronous callbacks"
-            )
 
-        for t in time:
-            assert isinstance(
-                t, (int, float)
-            ), "Times must be of type int or float"
-            assert t >= 0, "Times must be positive"
+            async def wrapper():
+                for t in sorted_times:
+                    now = time_()
+                    if now == -1:
+                        logger.warning("on_time: -1")
+                        break
 
-            if asyncio.iscoroutinefunction(function):
-                CallbackBase.register_callback(
-                    "on_time", copy.deepcopy(wrapper_async(t, function))
-                )
-            else:
-                CallbackBase.register_callback(
-                    "on_time", copy.deepcopy(wrapper_sync(t, function))
-                )
+                    await sleep_async(max(0, t - now))
+                    if CallbackBase._takes_time(function):
+                        await function(t)
+                    else:
+                        await function()
+        else:
 
+            def wrapper():
+                for t in sorted_times:
+                    now = time_()
+                    if now == -1:
+                        logger.warning("on_time: -1")
+                        break
+
+                    sleep_(max(0, t - now))
+                    if CallbackBase._takes_time(function):
+                        function(t)
+                    else:
+                        function()
+
+        CallbackBase.register_callback("on_time", wrapper)
         return function
 
     if len(time) == 1 and callable(time[0]):  # Regular

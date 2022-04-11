@@ -76,7 +76,7 @@ class DecoratorBase(ABC):
                 assert state_machine.state == "pre_init", (
                     f"{self.__class__.__name__} callbacks cannot be added "
                     "after listen()"
-                ) # Should this be warning instead?
+                )  # Should this be warning instead?
 
                 if isinstance(self.func, (classmethod, staticmethod)):
                     params = []
