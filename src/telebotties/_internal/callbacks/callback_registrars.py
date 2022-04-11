@@ -4,8 +4,8 @@ import copy
 from ..log_formatter import get_logger
 from ..states import sleep as sleep_
 from ..states import sleep_async
+from ..states import time as time_
 from . import CallbackBase
-from .. states import time as time_
 
 logger = get_logger()
 
@@ -91,7 +91,7 @@ def on_stop(*args, immediate=False):
 def on_time(*time):
     def _on_time(function):
         sorted_times = sorted(time)
-    
+
         if asyncio.iscoroutinefunction(function):
 
             async def wrapper():
@@ -101,11 +101,18 @@ def on_time(*time):
                         logger.warning("on_time: -1")
                         break
 
-                    await sleep_async(max(0, t - now))
+                    sleep_time = max(0, t - now)
+                    await sleep_async(sleep_time)
+                    if sleep_time == 0:
+                        logger.warning(
+                            f"on_time({t}) callback start was delayed, "
+                            "previous callback took too much time"
+                        )
                     if CallbackBase._takes_time(function):
                         await function(t)
                     else:
                         await function()
+
         else:
 
             def wrapper():
@@ -115,7 +122,13 @@ def on_time(*time):
                         logger.warning("on_time: -1")
                         break
 
-                    sleep_(max(0, t - now))
+                    sleep_time = max(0, t - now)
+                    sleep_(sleep_time)
+                    if sleep_time == 0:
+                        logger.warning(
+                            f"on_time({t}) callback start was delayed, "
+                            "previous callback took too much time"
+                        )
                     if CallbackBase._takes_time(function):
                         function(t)
                     else:
