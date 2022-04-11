@@ -11,9 +11,8 @@ from ._internal.callbacks import (  # on_init,
     on_stop,
     on_time,
 )
-
-from ._internal.decorators import on_init
 from ._internal.controls import Button
+from ._internal.decorators import on_init
 from ._internal.exceptions import SleepCancelledError
 from ._internal.main import _cli  # This enables `telebotties` from cli
 from ._internal.main import exit, listen, print

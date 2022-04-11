@@ -213,7 +213,7 @@ class ServerStateMachine:
         # the if state check
         with self.rlock:
             if self.state == STOP_IMMEDIATE:
-                self.stop()
+                self.stop()  # Attempt going forward
 
     def synced_exit(self):
         # This hopefully addresses the theoritcally possible
@@ -221,7 +221,7 @@ class ServerStateMachine:
         # the if state check
         with self.rlock:
             if self.state == EXIT_IMMEDIATE:
-                self.exit()
+                self.exit()  # Attempt going forward
 
     # transition conditions requires this
     def host_connected(self):

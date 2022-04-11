@@ -18,12 +18,14 @@ class DecoratorBase(ABC):
     _instance_callbacks = {}
 
     def __init__(self, *args, **kwargs):
-        assert (
-            state_machine.state == "pre_init"
-        ), f"{self.__class__.__name__} callbacks cannot be added after listen()"
-        assert (
-            len(args) != 0
-        ), f"Remove empty parentheses '()' from @tb.{self.__class__.__name__}()"
+        assert state_machine.state == "pre_init", (
+            f"{self.__class__.__name__} callbacks cannot be added "
+            "after listen()"
+        )
+        assert len(args) != 0, (
+            "Remove empty parentheses '()' from "
+            f"@tb.{self.__class__.__name__}()"
+        )
         assert (
             not hasattr(args[0], "__name__") or args[0].__name__ != "__init__"
         ), f"Cannot add {self.__class__.__name__} callback to __init__ method"
@@ -71,27 +73,25 @@ class DecoratorBase(ABC):
         ):
 
             def init_callback(self_):
+                assert state_machine.state == "pre_init", (
+                    f"{self.__class__.__name__} callbacks cannot be added "
+                    "after listen()"
+                ) # Should this be warning instead?
+
+                if isinstance(self.func, (classmethod, staticmethod)):
+                    params = []
+                else:
+                    params = [self_]
+
                 if asyncio.iscoroutinefunction(self.func):
-                    if isinstance(self.func, (classmethod, staticmethod)):
 
-                        async def new_func():
-                            return await getattr(owner, name)()
-
-                    else:
-
-                        async def new_func():
-                            return await getattr(owner, name)(self_)
+                    async def new_func():
+                        return await getattr(owner, name)(*params)
 
                 else:
-                    if isinstance(self.func, (classmethod, staticmethod)):
 
-                        def new_func():
-                            return getattr(owner, name)()
-
-                    else:
-
-                        def new_func():
-                            return getattr(owner, name)(self_)
+                    def new_func():
+                        return getattr(owner, name)(*params)
 
                 self.wrap(new_func)
 
@@ -139,19 +139,30 @@ class DecoratorBase(ABC):
             logger.debug("Second __set_name__ ignored")
 
     @staticmethod
-    def _init_ones_without_instance():
+    def post_listen():
+        DecoratorBase._warn_ones_without_instance()
+        DecoratorBase._wrap_ones_without_wrapping()
+
+    @staticmethod
+    def _warn_ones_without_instance():
+        join_str = "', '"
         for cls in list(DecoratorBase._wihtout_instance):
             if DecoratorBase.requires_only_self(
                 cls.__telebotties_original_init__
             ):
-                logger.info(
-                    f"Automatically creating one '{cls.__name__}' instance to enable callbacks"
-                )
-                cls()
-            else:
-                join_str = "', '"
                 logger.warning(
-                    f"No '{cls.__name__}' instances and one cannot be automatically created. Callbacks '{join_str.join(DecoratorBase._instance_callbacks[cls])}' will not trigger. Create a '{cls.__name__}' instance to enable callbacks."
+                    f"No {cls.__name__} instances created. Callbacks '"
+                    f"{join_str.join(DecoratorBase._instance_callbacks[cls])}"
+                    "' will not trigger. Create a instance with '"
+                    f"{cls.__name__}()' before 'listen()' to enable "
+                    "callbacks."
+                )
+            else:
+                logger.warning(
+                    f"No {cls.__name__} instances created. Callbacks '"
+                    f"{join_str.join(DecoratorBase._instance_callbacks[cls])}"
+                    f"' will not trigger. Create a {cls.__name__} instance "
+                    "before 'listen()' to enable callbacks."
                 )
 
     @staticmethod

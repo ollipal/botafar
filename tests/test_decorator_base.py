@@ -8,7 +8,7 @@ from telebotties._internal.decorators import DecoratorBase
 # HELPERS
 
 
-class dec(DecoratorBase):
+class dec(DecoratorBase):  # noqa: N801
     def wrap(self, func):
         CallbackBase.register_callback("dec", func)
 
@@ -62,7 +62,7 @@ def test_function():
     def example():
         return 3
 
-    DecoratorBase._wrap_ones_without_wrapping()
+    DecoratorBase.post_listen()
     assert example() == 3
     assert get_cb()() == 3
 
@@ -74,7 +74,7 @@ def test_function_async():
     async def example():
         return 3
 
-    DecoratorBase._wrap_ones_without_wrapping()
+    DecoratorBase.post_listen()
     assert get_async_result(example()) == 3
     assert get_async_result(get_cb()()) == 3
 
@@ -82,7 +82,7 @@ def test_function_async():
 def test_lambda():
     reset()
     dec(lambda: 3)
-    DecoratorBase._wrap_ones_without_wrapping()
+    DecoratorBase.post_listen()
     assert get_cb()() == 3
 
 
@@ -100,7 +100,7 @@ def test_class_instance():
 
     dec(c.example)
 
-    DecoratorBase._wrap_ones_without_wrapping()
+    DecoratorBase.post_listen()
     assert c.example() == 3
     assert get_cb()() == 3
 
@@ -119,7 +119,7 @@ def test_class_instance_async():
 
     dec(c.example)
 
-    DecoratorBase._wrap_ones_without_wrapping()
+    DecoratorBase.post_listen()
     assert get_async_result(c.example()) == 3
     assert get_async_result(get_cb()()) == 3
 
@@ -136,7 +136,7 @@ def test_class_instance_static():
 
     dec(c.example)
 
-    DecoratorBase._wrap_ones_without_wrapping()
+    DecoratorBase.post_listen()
     assert c.example() == 3
     assert get_cb()() == 3
 
@@ -153,7 +153,7 @@ def test_class_instance_static_async():
 
     dec(c.example)
 
-    DecoratorBase._wrap_ones_without_wrapping()
+    DecoratorBase.post_listen()
     assert get_async_result(c.example()) == 3
     assert get_async_result(get_cb()()) == 3
 
@@ -162,12 +162,17 @@ def test_class_instance_classmethod():
     reset()
 
     class Class:
+        value = 3
+
         @classmethod
         def example(cls):
-            return 3
+            assert cls.__name__ == "Class"
+            return cls.value
+
+    Class()
 
     dec(Class.example)
-    DecoratorBase._wrap_ones_without_wrapping()
+    DecoratorBase.post_listen()
     assert Class.example() == 3
     assert get_cb()() == 3
 
@@ -176,12 +181,17 @@ def test_class_instance_classmethod_async():
     reset()
 
     class Class:
+        value = 3
+
         @classmethod
         async def example(cls):
-            return 3
+            assert cls.__name__ == "Class"
+            return cls.value
+
+    Class()
 
     dec(Class.example)
-    DecoratorBase._wrap_ones_without_wrapping()
+    DecoratorBase.post_listen()
     assert get_async_result(Class.example()) == 3
     assert get_async_result(get_cb()()) == 3
 
@@ -197,8 +207,9 @@ def test_class_method():
         def example(self):
             return self.val + 2
 
-    DecoratorBase._init_ones_without_instance()
-    DecoratorBase._wrap_ones_without_wrapping()
+    Class()
+
+    DecoratorBase.post_listen()
     assert get_cb()() == 3
     assert Class().example() == 3
 
@@ -214,8 +225,9 @@ def test_class_method_async():
         async def example(self):
             return self.val + 2
 
-    DecoratorBase._init_ones_without_instance()
-    DecoratorBase._wrap_ones_without_wrapping()
+    Class()
+
+    DecoratorBase.post_listen()
     assert get_async_result(get_cb()()) == 3
     assert get_async_result(Class().example()) == 3
 
@@ -229,8 +241,9 @@ def test_class_staticmethod():
         def example():
             return 3
 
-    DecoratorBase._init_ones_without_instance()
-    DecoratorBase._wrap_ones_without_wrapping()
+    Class()
+
+    DecoratorBase.post_listen()
     assert Class.example() == 3
     assert get_cb()() == 3
 
@@ -244,8 +257,9 @@ def test_class_staticmethod_mixed():
         def example():
             return 3
 
-    DecoratorBase._init_ones_without_instance()
-    DecoratorBase._wrap_ones_without_wrapping()
+    Class()
+
+    DecoratorBase.post_listen()
     assert Class.example() == 3
     assert get_cb()() == 3
 
@@ -259,8 +273,9 @@ def test_class_staticmethod_async():
         async def example():
             return 3
 
-    DecoratorBase._init_ones_without_instance()
-    DecoratorBase._wrap_ones_without_wrapping()
+    Class()
+
+    DecoratorBase.post_listen()
     assert get_async_result(Class.example()) == 3
     assert get_async_result(get_cb()()) == 3
 
@@ -269,32 +284,40 @@ def test_class_classmethod():
     reset()
 
     class Class:
+        value = 3
+
         @dec
         @classmethod
         def example(cls):
-            return 3
+            assert cls.__name__ == "Class"
+            return cls.value
 
-    DecoratorBase._init_ones_without_instance()
-    DecoratorBase._wrap_ones_without_wrapping()
+    Class()
+
+    DecoratorBase.post_listen()
     assert Class.example() == 3
     assert get_cb()() == 3
 
 
 # def test_class_classmethod_mixed():
-# ERRORS! but is ok
+# ERRORS! but is ok, cannot fix
 
 
 def test_class_classmethod_async():
     reset()
 
     class Class:
+        value = 3
+
         @dec
         @classmethod
         async def example(cls):
-            return 3
+            assert cls.__name__ == "Class"
+            return cls.value
 
-    DecoratorBase._init_ones_without_instance()
-    DecoratorBase._wrap_ones_without_wrapping()
+    Class()
+
+    DecoratorBase.post_listen()
     assert get_async_result(Class.example()) == 3
     assert get_async_result(get_cb()()) == 3
 
@@ -310,8 +333,7 @@ def test_multiple_function():
     def example2():
         return 3
 
-    DecoratorBase._init_ones_without_instance()
-    DecoratorBase._wrap_ones_without_wrapping()
+    DecoratorBase.post_listen()
     assert (
         CallbackBase.get_by_name("dec")[0]()
         + CallbackBase.get_by_name("dec")[1]()
@@ -334,8 +356,9 @@ def test_multiple_class_method():
         def example2(self):
             return self.val + 3
 
-    DecoratorBase._init_ones_without_instance()
-    DecoratorBase._wrap_ones_without_wrapping()
+    Class()
+
+    DecoratorBase.post_listen()
     assert (
         CallbackBase.get_by_name("dec")[0]()
         + CallbackBase.get_by_name("dec")[1]()
@@ -343,20 +366,34 @@ def test_multiple_class_method():
     )
 
 
-def test_class_custom_init_works():
+def test_multiple_classes():
     reset()
 
-    class Class:
-        def __init__(self, other=5):
-            self.val = other
+    class Class1:
+        def __init__(self):
+            self.val = 1
 
         @dec
         def example(self):
             return self.val + 2
 
-    DecoratorBase._init_ones_without_instance()
-    DecoratorBase._wrap_ones_without_wrapping()
-    assert get_cb()() == 7
+    class Class2:
+        def __init__(self):
+            self.val = 3
+
+        @dec
+        def example(self):
+            return self.val + 4
+
+    Class1()
+    Class2()
+
+    DecoratorBase.post_listen()
+    assert (
+        CallbackBase.get_by_name("dec")[0]()
+        + CallbackBase.get_by_name("dec")[1]()
+        == 10
+    )
 
 
 """

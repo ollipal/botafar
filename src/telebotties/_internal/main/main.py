@@ -89,8 +89,7 @@ class Main(TelebottiesBase):
         await self.callback_executor.wait_until_all_finished()
 
     async def main(self):
-        DecoratorBase._init_ones_without_instance()
-        DecoratorBase._wrap_ones_without_wrapping()
+        DecoratorBase.post_listen()
         state_machine.set_loop(self.loop)
         try:
             state_machine.init()

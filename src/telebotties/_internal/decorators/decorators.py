@@ -2,11 +2,12 @@ from ..callbacks import CallbackBase
 from .decorator_base import DecoratorBase
 
 
-class on_init(DecoratorBase):
+class on_init(DecoratorBase):  # noqa: N801
     def __init__(self, *args, **kwargs):
-        assert (
-            kwargs == {}
-        ), f"{self.__class__.__name__} takes no keyword parameters, now got: {kwargs}"
+        assert kwargs == {}, (
+            f"{self.__class__.__name__} takes no keyword parameters, "
+            f"now got: {kwargs}"
+        )
         assert (
             len(args) <= 1
         ), f"{self.__class__.__name__} got too many arguments: {args}"

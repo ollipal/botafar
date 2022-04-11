@@ -61,7 +61,7 @@ def test_function():
     def example():
         return 3
 
-    DecoratorBase._wrap_ones_without_wrapping()
+    DecoratorBase.post_listen()
     assert example() == 3
     assert get_cb()() == 3
 
@@ -73,7 +73,7 @@ def test_function_async():
     async def example():
         return 3
 
-    DecoratorBase._wrap_ones_without_wrapping()
+    DecoratorBase.post_listen()
     assert get_async_result(example()) == 3
     assert get_async_result(get_cb()()) == 3
 
@@ -81,7 +81,7 @@ def test_function_async():
 def test_lambda():
     reset()
     on_init(lambda: 3)
-    DecoratorBase._wrap_ones_without_wrapping()
+    DecoratorBase.post_listen()
     assert get_cb()() == 3
 
 
@@ -99,7 +99,7 @@ def test_class_instance():
 
     on_init(c.example)
 
-    DecoratorBase._wrap_ones_without_wrapping()
+    DecoratorBase.post_listen()
     assert c.example() == 3
     assert get_cb()() == 3
 
@@ -118,7 +118,7 @@ def test_class_instance_async():
 
     on_init(c.example)
 
-    DecoratorBase._wrap_ones_without_wrapping()
+    DecoratorBase.post_listen()
     assert get_async_result(c.example()) == 3
     assert get_async_result(get_cb()()) == 3
 
@@ -135,7 +135,7 @@ def test_class_instance_static():
 
     on_init(c.example)
 
-    DecoratorBase._wrap_ones_without_wrapping()
+    DecoratorBase.post_listen()
     assert c.example() == 3
     assert get_cb()() == 3
 
@@ -152,7 +152,7 @@ def test_class_instance_static_async():
 
     on_init(c.example)
 
-    DecoratorBase._wrap_ones_without_wrapping()
+    DecoratorBase.post_listen()
     assert get_async_result(c.example()) == 3
     assert get_async_result(get_cb()()) == 3
 
@@ -168,8 +168,9 @@ def test_class_method():
         def example(self):
             return self.val + 2
 
-    DecoratorBase._init_ones_without_instance()
-    DecoratorBase._wrap_ones_without_wrapping()
+    Class()
+
+    DecoratorBase.post_listen()
     assert get_cb()() == 3
 
 
@@ -184,6 +185,7 @@ def test_class_method_async():
         async def example(self):
             return self.val + 2
 
-    DecoratorBase._init_ones_without_instance()
-    DecoratorBase._wrap_ones_without_wrapping()
+    Class()
+
+    DecoratorBase.post_listen()
     assert get_async_result(get_cb()()) == 3
