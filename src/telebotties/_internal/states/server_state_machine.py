@@ -468,6 +468,14 @@ class ServerStateMachine:
         except asyncio.TimeoutError:
             pass
 
+    def execute_on_time_from_outside(self, callback):
+        self.callback_executor.execute_callbacks(
+            [callback],
+            "on_time",
+            self.on_repeat_or_time_finished_callback,
+        )
+
+
 
 state_machine = ServerStateMachine()
 
