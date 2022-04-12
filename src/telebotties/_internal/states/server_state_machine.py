@@ -2,7 +2,9 @@ import asyncio
 import threading
 from time import time as _time
 
-from transitions import Machine, State as State_, core
+from transitions import Machine
+from transitions import State as State_
+from transitions import core
 
 from ..callbacks import CallbackBase
 from ..exceptions import SleepCancelledError
@@ -37,7 +39,8 @@ SIMPLIFIED_STATES = {
 class Host:
     def __init__(self):
         self._is_connected = False
-        self._is_controlling = False
+        self._is_controlling_player = False
+        self._is_controlling_host_only = False
         self._name = ""
 
     @property
@@ -45,8 +48,12 @@ class Host:
         return self._is_connected
 
     @property
-    def is_controlling(self):
-        return self._is_controlling
+    def is_controlling_player(self):
+        return self._is_controlling_player
+
+    @property
+    def is_controlling_host_only(self):
+        return self._is_controlling_host_only
 
     @property
     def name(self):
@@ -55,7 +62,8 @@ class Host:
     def __repr__(self):
         return (
             f"Host(name='{self.name}', is_connected={self.is_connected}, "
-            f"is_controlling={self.is_controlling})"
+            f"is_controlling_player={self.is_controlling_player}, "
+            f"is_controlling_host_only={self.is_controlling_host_only})"
         )
 
 
@@ -82,6 +90,7 @@ class Player:
             f"Player(name='{self.name}', is_connected={self.is_connected}, "
             f"is_controlling={self.is_controlling})"
         )
+
 
 class State:
     def __init__(self, state_machine):
