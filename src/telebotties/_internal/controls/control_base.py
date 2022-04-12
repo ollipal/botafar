@@ -4,17 +4,9 @@ from ..callback_executor import CallbackExecutor
 from ..constants import KEYS
 from ..function_utils import takes_parameter
 
-# (host_only, player_only)
-SENDER_MAP = {
-    (False, False): "any",
-    (True, False): "host",
-    (False, True): "player",
-}
-
 SENDER_REPR = {
     "any": "",
     "host": ", host_only=True",
-    "player": ", player_only=True",
 }
 
 
@@ -27,19 +19,15 @@ class ControlBase(ABC):
         type,
         keys,
         host_only,
-        player_only,
         start_event,
         alternatives,
         amount,
     ):
         # TODO makey assertions key makes sense, others type boolean
         # Make sure makes sense
-        assert not (
-            host_only and player_only
-        ), "Control cannot be host_only and player_only at the same time"
 
         self._keys = keys
-        self._sender = SENDER_MAP[(host_only, player_only)]
+        self._sender = "host" if host_only else "any"
         self._state = start_event.name
         self._latest_event = start_event
         self._alternative_map = {}
@@ -128,10 +116,6 @@ class ControlBase(ABC):
     def latest_event(self):
         return self._latest_event
 
-    @abstractmethod  # Each control needs unique docstring
-    def state(self):
-        pass
-
     @abstractmethod
     def _process_event(self, event):
         pass
@@ -181,10 +165,6 @@ class ControlBase(ABC):
         elif sender == "host":
             return [
                 (key, "host"),
-            ]
-        elif sender == "player":
-            return [
-                (key, "player"),
             ]
         else:
             RuntimeError("This should not happen")

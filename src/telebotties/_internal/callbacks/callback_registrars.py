@@ -1,5 +1,4 @@
 import asyncio
-import copy
 
 from ..log_formatter import get_logger
 from ..states import sleep as sleep_
@@ -87,7 +86,8 @@ def on_stop(*args, immediate=False):
         raise RuntimeError("Unknown parameters for on_stop")  # TODO url
 
 
-# NOTE: does not allow at the same time, will fire too late if takes too much time
+# NOTE: does not allow at the same time,
+# will fire too late if takes too much time
 def on_time(*time):
     def _on_time(function):
         sorted_times = sorted(time)

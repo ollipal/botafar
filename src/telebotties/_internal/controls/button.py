@@ -9,7 +9,6 @@ class Button(ControlBase):
         key,
         alternative=None,
         host_only=False,
-        player_only=False,
         amount=1,
     ):
         start_event = Event("on_release", "host", key)
@@ -23,7 +22,6 @@ class Button(ControlBase):
             "Button",
             [key],
             host_only,
-            player_only,
             start_event,
             alternative,
             amount,
@@ -61,10 +59,6 @@ class Button(ControlBase):
     @property
     def is_released(self):
         return self._state == "on_release"
-
-    @property
-    def state(self):
-        return self._state
 
     def _process_event(self, event):
         """Returns: ignore, updated event"""
