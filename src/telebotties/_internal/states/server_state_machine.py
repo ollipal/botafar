@@ -2,7 +2,7 @@ import asyncio
 import threading
 from time import time as _time
 
-from transitions import Machine, State, core
+from transitions import Machine, State as State_, core
 
 from ..callbacks import CallbackBase
 from ..exceptions import SleepCancelledError
@@ -83,6 +83,44 @@ class Player:
             f"is_controlling={self.is_controlling})"
         )
 
+class State:
+    def __init__(self, state_machine):
+        self._state_machine = state_machine
+
+    @property
+    def is_initializing(self):
+        return self._state_machine._state() == INIT
+
+    @property
+    def is_preparing(self):
+        return self._state_machine._state() == PREPARE
+
+    @property
+    def is_starting(self):
+        return self._state_machine._state() == START
+
+    @property
+    def is_stopping(self):
+        return self._state_machine._state() == STOP
+
+    @property
+    def is_exiting(self):
+        return self._state_machine._state() == EXIT
+
+    def __repr__(self):
+        if self.is_initializing:
+            return "State(is_initializing=True)"
+        elif self.is_preparing:
+            return "State(is_preparing=True)"
+        elif self.is_starting:
+            return "State(is_starting=True)"
+        elif self.is_stopping:
+            return "State(is_stopping=True)"
+        elif self.is_exiting:
+            return "State(is_exiting=True)"
+        else:
+            raise RuntimeError("Unknown state, should not happen")
+
 
 class ServerStateMachine:
     states = [
@@ -94,9 +132,9 @@ class ServerStateMachine:
         START_BEFORE_CONTROLS,
         START,
         WAITING_STOP,
-        State(STOP_IMMEDIATE, ignore_invalid_triggers=True),
+        State_(STOP_IMMEDIATE, ignore_invalid_triggers=True),
         STOP,
-        State(EXIT_IMMEDIATE, ignore_invalid_triggers=True),
+        State_(EXIT_IMMEDIATE, ignore_invalid_triggers=True),
         EXIT,
     ]
 
@@ -424,7 +462,7 @@ class ServerStateMachine:
 
 state_machine = ServerStateMachine()
 
-state = state_machine._state
+state = State(state_machine)
 time = state_machine.time
 host = state_machine.host
 player = state_machine.player
@@ -438,4 +476,4 @@ def stop():
     try:
         state_machine.stop_immediate()
     except core.MachineError:
-        logger.warning(f"Cannot stop() during {state()}")
+        logger.warning(f"Cannot stop() during {state_machine._state()}")
