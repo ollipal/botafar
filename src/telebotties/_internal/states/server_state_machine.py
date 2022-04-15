@@ -476,7 +476,6 @@ class ServerStateMachine:
         )
 
 
-
 state_machine = ServerStateMachine()
 
 state = State(state_machine)

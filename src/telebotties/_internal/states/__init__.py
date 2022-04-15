@@ -1,6 +1,7 @@
 from .keyboard_client_state import KeyboardClientState
 from .server_event_prosessor import ServerEventProsessor
 from .server_state_machine import (
+    PRE_INIT,
     disable_controls,
     enable_controls,
     host,

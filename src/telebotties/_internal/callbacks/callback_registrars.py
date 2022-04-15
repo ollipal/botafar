@@ -2,8 +2,8 @@ import asyncio
 
 from ..log_formatter import get_logger
 from ..states import sleep as sleep_
-from ..states import sleep_async
-from ..states import time as time_, state_machine
+from ..states import sleep_async, state_machine
+from ..states import time as time_
 from . import CallbackBase
 
 logger = get_logger()
@@ -93,7 +93,7 @@ def on_time(*time):
         sorted_times = sorted(time)
 
         if asyncio.iscoroutinefunction(function):
-            """ NOT WORKING!!!
+            """NOT WORKING!!!
             import copy
                 async def wrapper():
                     for t in sorted_times:
@@ -138,8 +138,10 @@ def on_time(*time):
             def wrapper():
                 for t in sorted_times:
                     if CallbackBase._takes_time(function):
+
                         def func():
                             function(t)
+
                     else:
                         func = function
 

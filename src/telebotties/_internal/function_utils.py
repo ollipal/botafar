@@ -3,19 +3,34 @@ from inspect import Parameter, signature
 from varname import VarnameRetrievingError, nameof
 
 
-def takes_parameter(function, param_name):
-    parameters = signature(function).parameters.values()
+def get_params(function):
+    return signature(function).parameters.values()
+
+
+def takes_parameter(parameters, param_name):
     takes_param = False
     for i, param in enumerate(parameters):
         if i == 0:
             if param.name == param_name:
                 takes_param = True
-            elif param.kind == Parameter.POSITIONAL_ONLY:
+            elif (
+                (
+                    param.kind == Parameter.POSITIONAL_OR_KEYWORD
+                    and param.default == Parameter.empty
+                )
+                or param.kind  # Reguired positional or keyword argument
+                == Parameter.POSITIONAL_ONLY
+                or (  # Reguired positional argument
+                    param.kind == Parameter.KEYWORD_ONLY
+                    and param.default == Parameter.empty
+                )  # Required keyword only argument
+            ):
                 raise RuntimeError(
                     f"The first control callback argument must be called "
                     f"'{param_name}', or it needs to be optional. Currently "
                     f"it is '{param.name}' and it is required."
                 )
+            # else: is some optional param
         else:
             if (
                 (

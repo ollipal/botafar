@@ -1,4 +1,4 @@
-from ..function_utils import takes_parameter
+from ..function_utils import get_params, takes_parameter
 from ..log_formatter import get_logger
 
 logger = get_logger()
@@ -55,4 +55,4 @@ class CallbackBase:
 
     @staticmethod
     def _takes_time(function):
-        return takes_parameter(function, "time")
+        return takes_parameter(get_params(function), "time")

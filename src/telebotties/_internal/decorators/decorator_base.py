@@ -5,8 +5,9 @@ import types
 from abc import ABC, abstractmethod
 from inspect import Parameter, signature
 
+from ..function_utils import get_params
 from ..log_formatter import get_logger
-from ..states import state_machine
+from ..states import PRE_INIT, state_machine
 
 logger = get_logger()
 main = None
@@ -17,8 +18,8 @@ class DecoratorBase(ABC):
     _wihtout_instance = set()
     _instance_callbacks = {}
 
-    def __init__(self, *args, **kwargs):
-        assert state_machine.state == "pre_init", (
+    def __init__(self, *args):
+        assert state_machine.state == PRE_INIT, (
             f"{self.__class__.__name__} callbacks cannot be added "
             "after listen()"
         )
@@ -26,6 +27,9 @@ class DecoratorBase(ABC):
             "Remove empty parentheses '()' from "
             f"@tb.{self.__class__.__name__}()"
         )
+        assert (
+            len(args) == 1
+        ), f"{self.__class__.__name__} got too many arguments: {args}"
         assert (
             not hasattr(args[0], "__name__") or args[0].__name__ != "__init__"
         ), f"Cannot add {self.__class__.__name__} callback to __init__ method"
@@ -41,17 +45,22 @@ class DecoratorBase(ABC):
         )
 
         self.func = args[0]
-        self.args = args[1:]
-        self.kwargs = kwargs
-        DecoratorBase._needs_wrapping[self.func] = self.wrap
+        self.takes_event = (
+            False  # flag to set in 'verify_params_and_set_flags'
+        )
+
+        DecoratorBase._needs_wrapping[self.func] = (
+            self.wrap,
+            self.verify_params_and_set_flags,
+        )
 
         # NOTE: this is not as good as functools.wraps:
         # https://stackoverflow.com/a/25973438/7388328
         functools.update_wrapper(self, self.func)
 
-    # @abstractmethod
-    # def check_signature(self, func):
-    #    pass
+    @abstractmethod
+    def verify_params_and_set_flags(self, params):
+        pass
 
     @abstractmethod
     def wrap(self, func):
@@ -62,7 +71,7 @@ class DecoratorBase(ABC):
         return self.func(*args, **kwargs)
 
     # NOTE: this does not trigger for normal functions
-    def __set_name__(self, owner, name):
+    def __set_name__(self, owner, name):  # noqa: C901
         # Do the default __set_name__ action
         setattr(owner, name, self.func)
 
@@ -73,25 +82,42 @@ class DecoratorBase(ABC):
         ):
 
             def init_callback(self_):
-                assert state_machine.state == "pre_init", (
+                assert state_machine.state == PRE_INIT, (
                     f"{self.__class__.__name__} callbacks cannot be added "
                     "after listen()"
                 )  # Should this be warning instead?
 
+                params = get_params(self.func)
+
                 if isinstance(self.func, (classmethod, staticmethod)):
+                    self.verify_params_and_set_flags(params)
                     params = []
                 else:
+                    assert len(params) >= 1, "First param should be 'self'"
+                    self.verify_params_and_set_flags(list(params)[1:])
                     params = [self_]
 
                 if asyncio.iscoroutinefunction(self.func):
+                    if self.takes_event:
 
-                    async def new_func():
-                        return await getattr(owner, name)(*params)
+                        async def new_func(event):
+                            return await getattr(owner, name)(*params, event)
+
+                    else:
+
+                        async def new_func():
+                            return await getattr(owner, name)(*params)
 
                 else:
+                    if self.takes_event:
 
-                    def new_func():
-                        return getattr(owner, name)(*params)
+                        def new_func(event):
+                            return getattr(owner, name)(*params, event)
+
+                    else:
+
+                        def new_func():
+                            return getattr(owner, name)(*params)
 
                 self.wrap(new_func)
 
@@ -167,10 +193,11 @@ class DecoratorBase(ABC):
 
     @staticmethod
     def _wrap_ones_without_wrapping():
-        for func, wrap in DecoratorBase._needs_wrapping.items():
+        for func, (wrap, verify) in DecoratorBase._needs_wrapping.items():
             if isinstance(
                 func, (types.FunctionType, types.LambdaType, types.MethodType)
             ):
+                verify(get_params(func))
                 wrap(func)
             else:
                 raise RuntimeError(

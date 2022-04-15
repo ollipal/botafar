@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 from ..callback_executor import CallbackExecutor
 from ..constants import KEYS
-from ..function_utils import takes_parameter
+from ..function_utils import get_params, takes_parameter
 
 SENDER_REPR = {
     "any": "",
@@ -140,7 +140,7 @@ class ControlBase(ABC):
 
     @staticmethod
     def _takes_event(function):
-        return takes_parameter(function, "event")
+        return takes_parameter(get_params(function), "event")
 
     def _add_state_callback(self, name, function):
         if self._takes_event(function):  # Also validates other parameters
