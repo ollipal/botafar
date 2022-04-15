@@ -1,0 +1,30 @@
+# if versions changed, change also on pyproject.toml and .github/workflows/main.yaml
+repos:
+  - repo: https://github.com/pycqa/isort
+    rev: 5.9.3
+    hooks:
+      - id: isort
+        name: isort
+  - repo: https://github.com/ambv/black
+    rev: 22.3.0
+    hooks:
+      - id: black
+  - repo: https://gitlab.com/pycqa/flake8
+    rev: 4.0.1
+    hooks:
+      - id: flake8
+        additional_dependencies: [
+          'pyproject-flake8==0.0.1a2',
+          'pep8-naming==0.12.1',
+        ]
+  # Uncomment if locally installed
+  #- repo: https://github.com/markdownlint/markdownlint
+  #  rev: v0.11.0
+  #  hooks:
+  #    - id: markdownlint
+  #      entry: mdl --style '.mdl-style.rb'
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.1.0
+    hooks:
+      - id: codespell
+        entry: codespell

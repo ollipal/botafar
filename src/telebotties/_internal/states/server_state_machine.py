@@ -12,6 +12,7 @@ from ..log_formatter import get_logger
 
 logger = get_logger()
 
+
 PRE_INIT = "pre_init"
 INIT = "on_init"
 WAITING_HOST = "waiting_host"

@@ -2,6 +2,7 @@ name: Tests and linting
  
 on: [push, pull_request]
 
+# if versions changed, change also on .pre-commit-config.yaml and pyproject.toml
 jobs:
   tox:
     runs-on: ubuntu-latest
@@ -50,7 +51,7 @@ jobs:
 
       - name: Install and run black
         run: |
-          pip install black==22.1.0
+          pip install black==22.3.0
           black --check --diff --config=pyproject.toml ./src ./tests
 
   pflake8:
