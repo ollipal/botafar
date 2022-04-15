@@ -69,7 +69,7 @@ def test_on_init_empty_parenthesis_errors():
         b = Button("A")
 
         @b.on_release()  # noqa: F811
-        def example():
+        def example():  # noqa: F811
             return 3
 
     reset()
@@ -78,7 +78,7 @@ def test_on_init_empty_parenthesis_errors():
         b = Button("A")
 
         @b.on_any()  # noqa: F811
-        def example():
+        def example():  # noqa: F811
             return 3
 
 

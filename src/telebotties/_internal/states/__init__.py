@@ -1,7 +1,4 @@
-# isort: skip_file
-from .keyboard_client_state import KeyboardClientState  # noqa: F401
-from .server_event_prosessor import ServerEventProsessor  # noqa: F401
-from .server_state_machine import (  # noqa: F401
+from .server_state_machine import (  # noqa: F401 isort: skip
     PRE_INIT,
     disable_controls,
     enable_controls,
@@ -13,4 +10,10 @@ from .server_state_machine import (  # noqa: F401
     state_machine,
     stop,
     time,
+)
+from .keyboard_client_state import (  # noqa: F401 isort: skip
+    KeyboardClientState,
+)
+from .server_event_prosessor import (  # noqa: F401 isort: skip
+    ServerEventProsessor,
 )

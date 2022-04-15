@@ -53,24 +53,24 @@ class CallbackExecutor:
 
             if asyncio.iscoroutinefunction(callback):
 
-                async def supressed(*args):
+                async def suppressed(*args):
                     try:
                         await callback(*args)
                     except SleepCancelledError:
                         logger.debug("SleepCancelledError suppressed")
 
                 future = asyncio.run_coroutine_threadsafe(
-                    supressed(*params), self.loop
+                    suppressed(*params), self.loop
                 )
             else:
 
-                def supressed(*args):
+                def suppressed(*args):
                     try:
                         callback(*args)
                     except SleepCancelledError:
                         logger.debug("SleepCancelledError suppressed")
 
-                future = self.executor.submit(supressed, *params)
+                future = self.executor.submit(suppressed, *params)
 
             with self.rlock:
                 if finished_callback is not None:

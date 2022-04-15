@@ -28,3 +28,11 @@ repos:
     hooks:
       - id: codespell
         entry: codespell
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest
+        stages: [commit]
+        language: system
+        entry: pytest
+        types: [python]

@@ -9,6 +9,9 @@ from telebotties._internal.decorators import DecoratorBase
 
 
 class dec(DecoratorBase):  # noqa: N801
+    def verify_params_and_set_flags(self, params):
+        pass
+
     def wrap(self, func):
         CallbackBase.register_callback("dec", func)
 
