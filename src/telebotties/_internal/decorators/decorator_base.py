@@ -5,7 +5,7 @@ import types
 from abc import ABC, abstractmethod
 from inspect import Parameter, signature
 
-from ..function_utils import get_params
+from ..function_utils import get_function_name, get_params
 from ..log_formatter import get_logger
 from ..states import PRE_INIT, state_machine
 
@@ -54,8 +54,10 @@ class DecoratorBase(ABC):
             self.verify_params_and_set_flags,
         )
 
+        self.func_name = get_function_name(self.func)
         # NOTE: this is not as good as functools.wraps:
         # https://stackoverflow.com/a/25973438/7388328
+        # TODO: make sure this does something
         functools.update_wrapper(self, self.func)
 
     @abstractmethod

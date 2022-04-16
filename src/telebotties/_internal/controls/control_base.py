@@ -103,8 +103,6 @@ class ControlBase(ABC):
             key, self._sender
         )
         for callback_key in new_event_callback_keys:
-            print(key)
-            print(ControlBase._event_callbacks)
             if callback_key in ControlBase._event_callbacks:
                 raise RuntimeError(
                     f"Cannot create {self}. "
