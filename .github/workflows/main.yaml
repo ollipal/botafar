@@ -3,6 +3,7 @@ name: Tests and linting
 on: [push, pull_request]
 
 # if versions changed, change also on .pre-commit-config.yaml and pyproject.toml
+# TODO someday try to run pre-commit here + tox --parallel + markdownlint for easier maintainability
 jobs:
   tox:
     runs-on: ubuntu-latest

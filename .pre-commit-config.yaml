@@ -30,9 +30,9 @@ repos:
         entry: codespell
   - repo: local
     hooks:
-      - id: pytest
-        name: pytest
+      - id: tox
+        name: tox
         stages: [commit]
         language: system
-        entry: pytest
+        entry: tox -e py # NOTE: this only runs tests on the Python version tox is installed on to be fast, all Python version run in the Github Actions (command: 'tox --parallel')
         types: [python]

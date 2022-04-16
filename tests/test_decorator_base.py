@@ -3,6 +3,7 @@ import asyncio
 import pytest
 
 from telebotties._internal.callbacks import CallbackBase
+from telebotties._internal.controls import ControlBase
 from telebotties._internal.decorators import DecoratorBase
 
 # HELPERS
@@ -25,6 +26,8 @@ def reset():
     CallbackBase._callbacks = {}
     DecoratorBase._needs_wrapping = {}
     DecoratorBase._wihtout_instance = set()
+    ControlBase._event_callbacks = {}
+    ControlBase._controls = []
 
 
 def get_async_result(func):

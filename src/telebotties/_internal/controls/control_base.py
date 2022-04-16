@@ -103,14 +103,16 @@ class ControlBase(ABC):
             key, self._sender
         )
         for callback_key in new_event_callback_keys:
-            if callback_key in self._event_callbacks:
+            print(key)
+            print(ControlBase._event_callbacks)
+            if callback_key in ControlBase._event_callbacks:
                 raise RuntimeError(
                     f"Cannot create {self}. "
-                    f"{self._event_callbacks[callback_key]} already handles "
-                    "some of the same control events. Only one control can "
-                    "handle each Event."
+                    f"{ControlBase._event_callbacks[callback_key]} already "
+                    "handles some of the same control events. Only one "
+                    "control can handle each Event."
                 )
-            self._event_callbacks[callback_key] = self
+            ControlBase._event_callbacks[callback_key] = self
 
     @property
     def latest_event(self):

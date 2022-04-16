@@ -113,4 +113,4 @@ class Button(ControlBase):
         return self._state == event.name, event
 
     def __repr__(self):
-        return f'Button("{self._keys[0]}"{self._sender_origin_repr()})'
+        return f'Button("{self._key}"{self._sender_origin_repr()})'

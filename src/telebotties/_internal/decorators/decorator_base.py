@@ -87,12 +87,13 @@ class DecoratorBase(ABC):
                     "after listen()"
                 )  # Should this be warning instead?
 
-                params = get_params(self.func)
-
                 if isinstance(self.func, (classmethod, staticmethod)):
+                    self.func = self.func.__func__
+                    params = get_params(self.func)
                     self.verify_params_and_set_flags(params)
                     params = []
                 else:
+                    params = get_params(self.func)
                     assert len(params) >= 1, "First param should be 'self'"
                     self.verify_params_and_set_flags(list(params)[1:])
                     params = [self_]
