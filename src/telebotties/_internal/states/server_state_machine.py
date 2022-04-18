@@ -27,8 +27,6 @@ EXIT = "on_exit"
 
 SIMPLIFIED_STATES = {
     PRE_INIT: INIT,
-    WAITING_HOST: PREPARE,
-    WAITING_PLAYER: PREPARE,
     WAITING_STOP: START,
     STOP_IMMEDIATE: STOP,
     EXIT_IMMEDIATE: EXIT,
@@ -51,7 +49,7 @@ class Host:
         return self._name
 
     def __repr__(self):
-        return f"Host(name='{self.name}', is_connected={self.is_connected}, "
+        return f"Host(name='{self.name}', is_connected={self.is_connected})"
 
 
 class Player:
@@ -88,8 +86,16 @@ class State:
         return self._state_machine._state() == INIT
 
     @property
+    def is_waiting_host(self):
+        return self._state_machine._state() == WAITING_HOST
+
+    @property
     def is_preparing(self):
         return self._state_machine._state() == PREPARE
+
+    @property
+    def is_waiting_player(self):
+        return self._state_machine._state() == WAITING_PLAYER
 
     @property
     def is_starting(self):
@@ -106,8 +112,12 @@ class State:
     def __repr__(self):
         if self.is_initializing:
             return "State(is_initializing=True)"
+        elif self.is_waiting_host:
+            return "State(is_waiting_host=True)"
         elif self.is_preparing:
             return "State(is_preparing=True)"
+        elif self.is_waiting_player:
+            return "State(is_waiting_player=True)"
         elif self.is_starting:
             return "State(is_starting=True)"
         elif self.is_stopping:
