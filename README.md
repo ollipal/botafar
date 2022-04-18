@@ -2,7 +2,10 @@
 
 ## Use pre-commit hooks
 
-Run `pip install pre-commit` and then `pre-commit install`
+To enable local hooks:
+`pip install tox==3.24.4 flake8==4.0.1 pyproject-flake8==0.0.1a2 pep8-naming==0.12.1`
+
+Then run `pip install pre-commit` and then `pre-commit install`
 
 > **NOTE**: this process does not run `markdownlint` by default as it
 requires [Ruby](https://www.ruby-lang.org/en/) to be installed. If you want

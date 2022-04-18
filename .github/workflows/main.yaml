@@ -30,7 +30,7 @@ jobs:
 
       - name: Install tox and run tests
         run: |
-          pip install tox
+          pip install tox==3.24.4
           tox --parallel
 
   isort:
@@ -63,7 +63,7 @@ jobs:
 
       - name: Install and run pflake8, pep8-naming
         run: |
-          pip install pyproject-flake8==0.0.1a2 pep8-naming==0.12.1
+          pip install flake8==4.0.1 pyproject-flake8==0.0.1a2 pep8-naming==0.12.1
           pflake8 --config=pyproject.toml
 
   codespell:
