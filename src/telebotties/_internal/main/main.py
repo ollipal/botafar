@@ -123,7 +123,7 @@ class Main(TelebottiesBase):
             self.enter_listener.stop()
         finally:
             state_machine.exit_immediate()
-            await self.run_callbacks("on_exit(immediate=True)", None)
+            await self.run_callbacks("on_exit_immediate", None)
             state_machine.synced_exit()
             await self.run_callbacks("on_exit", None)
 

@@ -18,7 +18,6 @@ INIT = "on_init"
 WAITING_HOST = "waiting_host"
 PREPARE = "on_prepare"
 WAITING_PLAYER = "waiting_player"
-START_BEFORE_CONTROLS = "start_before_controls"
 START = "on_start"
 WAITING_STOP = "waiting_stop"
 STOP_IMMEDIATE = "stop_immediate"
@@ -31,7 +30,6 @@ SIMPLIFIED_STATES = {
     WAITING_HOST: PREPARE,
     WAITING_PLAYER: PREPARE,
     WAITING_STOP: START,
-    START_BEFORE_CONTROLS: START,
     STOP_IMMEDIATE: STOP,
     EXIT_IMMEDIATE: EXIT,
 }
@@ -139,7 +137,6 @@ class ServerStateMachine:
         WAITING_HOST,
         PREPARE,
         WAITING_PLAYER,
-        START_BEFORE_CONTROLS,
         START,
         WAITING_STOP,
         State_(STOP_IMMEDIATE, ignore_invalid_triggers=True),
@@ -187,15 +184,8 @@ class ServerStateMachine:
             after="after_waiting_player",
         )
         self.machine.add_transition(
-            "start_before_controls",
-            WAITING_PLAYER,
-            START_BEFORE_CONTROLS,
-            conditions=["host_connected", "player_connected"],
-            after="after_start_before_controls",
-        )
-        self.machine.add_transition(
             "start",
-            START_BEFORE_CONTROLS,
+            WAITING_PLAYER,
             START,
             conditions=["host_connected", "player_connected"],
             after="after_start",
@@ -208,7 +198,7 @@ class ServerStateMachine:
         )
         self.machine.add_transition(
             "stop_immediate",
-            [START_BEFORE_CONTROLS, START, WAITING_STOP],
+            [START, WAITING_STOP],
             STOP_IMMEDIATE,
             after="after_stop_immediate",
         )  # when: stop() or player.disconnected
@@ -285,28 +275,24 @@ class ServerStateMachine:
         # if self.state == WAITING_HOST:
         self.safe_state_change(self.prepare, "prepare")
         # elif self.state == WAITING_PLAYER:
-        self.safe_state_change(
-            self.start_before_controls, "start_before_controls"
-        )
+        self.safe_state_change(self.start, "start")
 
     def on_host_disconnect(self):
         self.host._name = ""
         self.host._is_connected = False
-        # if self.state in [START_BEFORE_CONTROLS, START, WAITING_STOP]:
+        # if self.state in [START, WAITING_STOP]:
         self.safe_state_change(self.stop_immediate, "stop_immediate")
 
     def on_player_connect(self, name):
         self.player._name = name
         self.player._is_connected = True
         # if self.state == WAITING_PLAYER:
-        self.safe_state_change(
-            self.start_before_controls, "start_before_controls"
-        )
+        self.safe_state_change(self.start, "start")
 
     def on_player_disconnect(self):
         self.player._name = ""
         self.player._is_connected = False
-        # if self.state in [START_BEFORE_CONTROLS, START, WAITING_STOP]:
+        # if self.state in [START, WAITING_STOP]:
         self.safe_state_change(self.stop_immediate, "stop_immediate")
 
     def after_init(self):
@@ -336,10 +322,11 @@ class ServerStateMachine:
     def after_waiting_player(self):
         logger.debug("STATE: waiting_player")
         # if self.player.connected:
-        self.start_before_controls()
+        self.start()
 
-    def after_start_before_controls(self):
-        logger.debug("STATE: start_before_controls")
+    def after_start(self):
+        logger.debug("STATE: start")
+        self.enable_controls()
         self.start_time = _time()
         self.callback_executor.execute_callbacks(
             CallbackBase.get_by_name("on_time"),
@@ -351,21 +338,6 @@ class ServerStateMachine:
             "on_repeat",
             self.on_repeat_or_time_finished_callback,
         )
-
-        def safe_start_before_controls_callback():
-            self.safe_state_change(self.start, "start")
-            self.safe_state_change(self.synced_stop, "synced_stop")
-            self.safe_state_change(self.synced_exit, "synced_exit")
-
-        self.callback_executor.execute_callbacks(
-            CallbackBase.get_by_name("on_start(before_controls=True)"),
-            "on_start(before_controls=True)",
-            safe_start_before_controls_callback,
-        )
-
-    def after_start(self):
-        logger.debug("STATE: start")
-        self.enable_controls()
 
         def safe_on_start_callback():
             self.safe_state_change(self.wait_stop, "wait_stop")
@@ -387,9 +359,7 @@ class ServerStateMachine:
         self.disable_controls()
         self.sleep_event_sync.set()
         self.sleep_event_async.set()
-        self.execute(
-            "on_stop(immediate=True)", self.synced_stop, "synced_stop"
-        )
+        self.execute("on_stop_immediate", self.synced_stop, "synced_stop")
 
     def after_stop(self):
         self.sleep_event_sync.clear()
