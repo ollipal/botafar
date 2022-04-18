@@ -47,23 +47,11 @@ class Host:
         return self._is_connected
 
     @property
-    def is_controlling_player(self):
-        return self._is_controlling_player
-
-    @property
-    def is_controlling_host_only(self):
-        return self._is_controlling_host_only
-
-    @property
     def name(self):
         return self._name
 
     def __repr__(self):
-        return (
-            f"Host(name='{self.name}', is_connected={self.is_connected}, "
-            f"is_controlling_player={self.is_controlling_player}, "
-            f"is_controlling_host_only={self.is_controlling_host_only})"
-        )
+        return f"Host(name='{self.name}', is_connected={self.is_connected}, "
 
 
 class Player:
