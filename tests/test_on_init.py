@@ -1,30 +1,8 @@
-import asyncio
-
 import pytest
 
 from telebotties import on_init
-from telebotties._internal.callbacks import CallbackBase
-from telebotties._internal.decorators import DecoratorBase
 
-# HELPERS
-
-
-def get_cb():
-    assert len(CallbackBase.get_by_name("on_init")) == 1
-    return CallbackBase.get_by_name("on_init")[0]
-
-
-def reset():
-    CallbackBase._callbacks = {}
-    DecoratorBase._needs_wrapping = {}
-    DecoratorBase._wihtout_instance = set()
-
-
-def get_async_result(func):
-    return asyncio.run(func)
-
-
-# TESTS
+from .helpers import fake_listen, get_async_result, get_cb_result, reset
 
 
 def test_on_init_empty_parenthesis_errors():
@@ -61,9 +39,9 @@ def test_function():
     def example():
         return 3
 
-    DecoratorBase.post_listen()
+    fake_listen()
     assert example() == 3
-    assert get_cb()() == 3
+    assert get_cb_result("on_init") == 3
 
 
 def test_function_async():
@@ -73,16 +51,16 @@ def test_function_async():
     async def example():
         return 3
 
-    DecoratorBase.post_listen()
+    fake_listen()
     assert get_async_result(example()) == 3
-    assert get_async_result(get_cb()()) == 3
+    assert get_cb_result("on_init") == 3
 
 
 def test_lambda():
     reset()
     on_init(lambda: 3)
-    DecoratorBase.post_listen()
-    assert get_cb()() == 3
+    fake_listen()
+    assert get_cb_result("on_init") == 3
 
 
 def test_class_instance():
@@ -99,9 +77,9 @@ def test_class_instance():
 
     on_init(c.example)
 
-    DecoratorBase.post_listen()
+    fake_listen()
     assert c.example() == 3
-    assert get_cb()() == 3
+    assert get_cb_result("on_init") == 3
 
 
 def test_class_instance_async():
@@ -118,9 +96,9 @@ def test_class_instance_async():
 
     on_init(c.example)
 
-    DecoratorBase.post_listen()
+    fake_listen()
     assert get_async_result(c.example()) == 3
-    assert get_async_result(get_cb()()) == 3
+    assert get_cb_result("on_init") == 3
 
 
 def test_class_instance_static():
@@ -135,9 +113,9 @@ def test_class_instance_static():
 
     on_init(c.example)
 
-    DecoratorBase.post_listen()
+    fake_listen()
     assert c.example() == 3
-    assert get_cb()() == 3
+    assert get_cb_result("on_init") == 3
 
 
 def test_class_instance_static_async():
@@ -152,9 +130,28 @@ def test_class_instance_static_async():
 
     on_init(c.example)
 
-    DecoratorBase.post_listen()
+    fake_listen()
     assert get_async_result(c.example()) == 3
-    assert get_async_result(get_cb()()) == 3
+    assert get_cb_result("on_init") == 3
+
+
+def test_class_classmethod():
+    reset()
+
+    class Class:
+        val = 1
+
+        @classmethod
+        def example(cls):
+            return cls.val + 3
+
+    c = Class()
+
+    on_init(c.example)
+
+    fake_listen()
+    assert c.example() == 4
+    assert get_cb_result("on_init") == 4
 
 
 def test_class_method():
@@ -170,8 +167,8 @@ def test_class_method():
 
     Class()
 
-    DecoratorBase.post_listen()
-    assert get_cb()() == 3
+    fake_listen()
+    assert get_cb_result("on_init") == 3
 
 
 def test_class_method_async():
@@ -187,5 +184,5 @@ def test_class_method_async():
 
     Class()
 
-    DecoratorBase.post_listen()
-    assert get_async_result(get_cb()()) == 3
+    fake_listen()
+    assert get_cb_result("on_init") == 3

@@ -2,16 +2,10 @@ import asyncio
 
 from ..log_formatter import get_logger
 from ..states import sleep as sleep_
-from ..states import sleep_async, state_machine
-from ..states import time as time_
+from ..states import sleep_async
 from . import CallbackBase
 
 logger = get_logger()
-
-
-# def on_init(function):
-#    CallbackBase.register_callback("on_init", function)
-#    return function
 
 
 def on_exit(*args, immediate=False):
@@ -84,84 +78,6 @@ def on_stop(*args, immediate=False):
         )
     else:  # With keyword
         raise RuntimeError("Unknown parameters for on_stop")  # TODO url
-
-
-# NOTE: does not allow at the same time,
-# will fire too late if takes too much time
-def on_time(*time):
-    def _on_time(function):
-        sorted_times = sorted(time)
-
-        if asyncio.iscoroutinefunction(function):
-            """NOT WORKING!!!
-            import copy
-                async def wrapper():
-                    for t in sorted_times:
-                        if CallbackBase._takes_time(function):
-                            async def func():
-                                await function(copy.deepcopy(t))
-                        else:
-                            func = function
-
-                        now = time_()
-                        if now == -1:
-                            logger.warning("on_time time is -1???")
-                            break
-
-                        sleep_(max(0, t - now))
-                        state_machine.execute_on_time_from_outside(copy.deepcopy(func))
-                        print("Here")
-            """
-
-            async def wrapper():
-                for t in sorted_times:
-                    now = time_()
-                    if now == -1:
-                        logger.warning("on_time time is -1???")
-                        break
-
-                    sleep_time = max(0, t - now)
-                    await sleep_async(sleep_time)
-                    if sleep_time == 0:
-                        logger.warning(
-                            f"on_time({t}) callback start was delayed, "
-                            "previous callback took too much time "
-                            "(this is a limitation only with async methods)"
-                        )
-                    if CallbackBase._takes_time(function):
-                        await function(t)
-                    else:
-                        await function()
-
-        else:
-
-            def wrapper():
-                for t in sorted_times:
-                    if CallbackBase._takes_time(function):
-
-                        def func():
-                            function(t)
-
-                    else:
-                        func = function
-
-                    now = time_()
-                    if now == -1:
-                        logger.warning("on_time time is -1???")
-                        break
-
-                    sleep_(max(0, t - now))
-                    state_machine.execute_on_time_from_outside(func)
-
-        CallbackBase.register_callback("on_time", wrapper)
-        return function
-
-    if len(time) == 1 and callable(time[0]):  # Regular
-        raise RuntimeError("Define time to trigger: for example on_time(5)")
-    elif len(time) == 0:  # With empty parenthesis
-        raise RuntimeError("Define time to trigger: for example on_time(5)")
-    else:  # Correct
-        return _on_time
 
 
 def on_repeat(*args, sleep=0.1):

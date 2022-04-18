@@ -26,7 +26,7 @@ class Button(ControlBase):
                     self_.takes_event = True
 
             def wrap(self_, func):  # noqa: N805
-                title = self_.func_name
+                title = self_.func_title
                 self._add_key_to_has_callbacks(self._key, title, 3)
                 self._add_state_callback("on_press", func)
                 return func
@@ -37,7 +37,7 @@ class Button(ControlBase):
                     self_.takes_event = True
 
             def wrap(self_, func):  # noqa: N805
-                title = self_.func_name
+                title = self_.func_title
                 self._add_key_to_has_callbacks(
                     self._key, f"{title} (release)", 1
                 )
@@ -56,7 +56,7 @@ class Button(ControlBase):
                         " as the first parameter."
                     )
 
-                title = self_.func_name
+                title = self_.func_title
                 self._add_key_to_has_callbacks(self._key, title, 2)
                 self._add_state_callback("on_press", func)
                 self._add_state_callback("on_release", func)

@@ -1,39 +1,14 @@
-import asyncio
-
 import pytest
 
 from telebotties import Button
-from telebotties._internal.callbacks import CallbackBase
-from telebotties._internal.controls import ControlBase
-from telebotties._internal.decorators import DecoratorBase
-from telebotties._internal.events import Event
 
-# HELPERS
-
-
-def get_cbs(name):
-    return ControlBase._get_callbacks(Event(name, "player", "A"))
-
-
-def get_cb(name):
-    callbacks = get_cbs(name)
-    assert len(callbacks) == 1
-    return callbacks[0]
-
-
-def reset():
-    CallbackBase._callbacks = {}
-    DecoratorBase._needs_wrapping = {}
-    DecoratorBase._wihtout_instance = set()
-    ControlBase._event_callbacks = {}
-    ControlBase._controls = []
-
-
-def get_async_result(func):
-    return asyncio.run(func)
-
-
-# TESTS
+from .helpers import (
+    fake_listen,
+    get_async_result,
+    get_input_cb_result,
+    get_input_cbs,
+    reset,
+)
 
 
 def test_non_callable_errors():
@@ -92,7 +67,7 @@ def test_function_wrong_param_errors():
         def example(other):
             return 3
 
-        DecoratorBase.post_listen()
+        fake_listen()
 
 
 def test_function_any_no_event_errors():
@@ -105,7 +80,7 @@ def test_function_any_no_event_errors():
         def example():
             return 3
 
-        DecoratorBase.post_listen()
+        fake_listen()
 
 
 def test_function_wrong_param_errors_2():
@@ -118,7 +93,7 @@ def test_function_wrong_param_errors_2():
         def example(event, other):
             return 3
 
-        DecoratorBase.post_listen()
+        fake_listen()
 
 
 def test_class_method_wrong_param_errors():
@@ -170,6 +145,7 @@ def test_class_method_any_no_event_errors():
                 return self.val + 2
 
         Class()
+        fake_listen()
 
 
 def test_function():
@@ -180,9 +156,9 @@ def test_function():
     def example():
         return 3
 
-    DecoratorBase.post_listen()
+    fake_listen()
     assert example() == 3
-    assert get_cb("on_press")() == 3
+    assert get_input_cb_result("on_press") == 3
 
 
 def test_function_event():
@@ -193,9 +169,9 @@ def test_function_event():
     def example(event):
         return event
 
-    DecoratorBase.post_listen()
+    fake_listen()
     assert example(1) == 1
-    assert get_cb("on_press")(1) == 1
+    assert get_input_cb_result("on_press", [1]) == 1
 
 
 def test_function_async():
@@ -206,16 +182,16 @@ def test_function_async():
     async def example():
         return 3
 
-    DecoratorBase.post_listen()
+    fake_listen()
     assert get_async_result(example()) == 3
-    assert get_async_result(get_cb("on_press")()) == 3
+    assert get_input_cb_result("on_press") == 3
 
 
 def test_lambda():
     reset()
     Button("A").on_press(lambda: 3)
-    DecoratorBase.post_listen()
-    assert get_cb("on_press")() == 3
+    fake_listen()
+    assert get_input_cb_result("on_press") == 3
 
 
 def test_class_instance():
@@ -233,9 +209,9 @@ def test_class_instance():
 
     b.on_press(c.example)
 
-    DecoratorBase.post_listen()
+    fake_listen()
     assert c.example() == 3
-    assert get_cb("on_press")() == 3
+    assert get_input_cb_result("on_press") == 3
 
 
 def test_class_instance_static():
@@ -251,9 +227,9 @@ def test_class_instance_static():
 
     b.on_press(c.example)
 
-    DecoratorBase.post_listen()
+    fake_listen()
     assert c.example() == 3
-    assert get_cb("on_press")() == 3
+    assert get_input_cb_result("on_press") == 3
 
 
 def test_class_instance_static_event():
@@ -269,9 +245,9 @@ def test_class_instance_static_event():
 
     b.on_press(c.example)
 
-    DecoratorBase.post_listen()
+    fake_listen()
     assert c.example(3) == 3
-    assert get_cb("on_press")(3) == 3
+    assert get_input_cb_result("on_press", [3]) == 3
 
 
 def test_class_instance_classmethod():
@@ -289,9 +265,10 @@ def test_class_instance_classmethod():
     Class()
 
     b.on_press(Class.example)
-    DecoratorBase.post_listen()
+
+    fake_listen()
     assert Class.example() == 3
-    assert get_cb("on_press")() == 3
+    assert get_input_cb_result("on_press") == 3
 
 
 def test_class_instance_classmethod_event():
@@ -309,9 +286,10 @@ def test_class_instance_classmethod_event():
     Class()
 
     b.on_press(Class.example)
-    DecoratorBase.post_listen()
+
+    fake_listen()
     assert Class.example(3) == 3
-    assert get_cb("on_press")(3) == 3
+    assert get_input_cb_result("on_press", [3]) == 3
 
 
 def test_class_method():
@@ -327,9 +305,8 @@ def test_class_method():
             return self.val + 2
 
     Class()
-
-    DecoratorBase.post_listen()
-    assert get_cb("on_press")() == 3
+    fake_listen()
+    assert get_input_cb_result("on_press") == 3
     assert Class().example() == 3
 
 
@@ -346,9 +323,8 @@ def test_class_method_event():
             return event
 
     Class()
-
-    DecoratorBase.post_listen()
-    assert get_cb("on_press")(3) == 3
+    fake_listen()
+    assert get_input_cb_result("on_press", [3]) == 3
     assert Class().example(3) == 3
 
 
@@ -369,9 +345,8 @@ def test_multiple_class_method():
             return self.val + 3
 
     Class()
-
-    DecoratorBase.post_listen()
-    callbacks = get_cbs("on_press")
+    fake_listen()
+    callbacks = get_input_cbs("on_press")
     assert callbacks[0]() + callbacks[1]() == 7
 
 
@@ -397,9 +372,8 @@ def test_multiple_classes():
 
     Class1()
     Class2()
-
-    DecoratorBase.post_listen()
-    callbacks = get_cbs("on_press")
+    fake_listen()
+    callbacks = get_input_cbs("on_press")
     assert callbacks[0]() + callbacks[1]() == 10
 
 
@@ -411,9 +385,9 @@ def test_function_any():
     def example(event):
         return event
 
-    DecoratorBase.post_listen()
+    fake_listen()
     assert example(3) == 3
-    assert get_cb("on_press")(3) == 3
+    assert get_input_cb_result("on_press", [3]) == 3
 
 
 def test_class_method_any():
@@ -429,7 +403,6 @@ def test_class_method_any():
             return event
 
     Class()
-
-    DecoratorBase.post_listen()
-    assert get_cb("on_press")(3) == 3
+    fake_listen()
+    assert get_input_cb_result("on_press", [3]) == 3
     assert Class().example(3) == 3

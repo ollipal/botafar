@@ -5,7 +5,7 @@ import types
 from abc import ABC, abstractmethod
 from inspect import Parameter, signature
 
-from ..function_utils import get_function_name, get_params
+from ..function_utils import get_function_title, get_params
 from ..log_formatter import get_logger
 from ..states import PRE_INIT, state_machine
 
@@ -18,43 +18,44 @@ class DecoratorBase(ABC):
     _wihtout_instance = set()
     _instance_callbacks = {}
 
-    def __init__(self, *args):
+    def __init__(self, *func):
         assert state_machine.state == PRE_INIT, (
             f"{self.__class__.__name__} callbacks cannot be added "
             "after listen()"
         )
-        assert len(args) != 0, (
+        assert len(func) != 0, (
             "Remove empty parentheses '()' from "
             f"@tb.{self.__class__.__name__}()"
         )
         assert (
-            len(args) == 1
-        ), f"{self.__class__.__name__} got too many arguments: {args}"
+            len(func) == 1
+        ), f"{self.__class__.__name__} got too many arguments: {func}"
         assert (
-            not hasattr(args[0], "__name__") or args[0].__name__ != "__init__"
+            not hasattr(func[0], "__name__") or func[0].__name__ != "__init__"
         ), f"Cannot add {self.__class__.__name__} callback to __init__ method"
 
         assert not inspect.isclass(
-            args[0]
+            func[0]
         ), f"Cannot use {self.__class__.__name__} with a class"
-        assert isinstance(args[0], (classmethod, staticmethod)) or callable(
-            args[0]
+        assert isinstance(func[0], (classmethod, staticmethod)) or callable(
+            func[0]
         ), (
             f"Cannot use {self.__class__.__name__} with a "
-            f"non-callable object {args[0]}"
+            f"non-callable object {func[0]}"
         )
 
-        self.func = args[0]
-        self.takes_event = (
-            False  # flag to set in 'verify_params_and_set_flags'
-        )
+        self.func = func[0]
+
+        # flags to set in 'verify_params_and_set_flags'
+        self.takes_event = False
+        self.takes_time = False
 
         DecoratorBase._needs_wrapping[self.func] = (
             self.wrap,
             self.verify_params_and_set_flags,
         )
 
-        self.func_name = get_function_name(self.func)
+        self.func_title = get_function_title(self.func)
         # NOTE: this is not as good as functools.wraps:
         # https://stackoverflow.com/a/25973438/7388328
         # TODO: make sure this does something
@@ -88,10 +89,15 @@ class DecoratorBase(ABC):
                     f"{self.__class__.__name__} callbacks cannot be added "
                     "after listen()"
                 )  # Should this be warning instead?
+                assert not (self.takes_event and self.takes_time)
 
                 if isinstance(self.func, (classmethod, staticmethod)):
+                    if isinstance(self.func, classmethod):
+                        params = list(get_params(self.func.__func__))[1:]
+                    else:
+                        params = get_params(self.func.__func__)
+
                     self.func = self.func.__func__
-                    params = get_params(self.func)
                     self.verify_params_and_set_flags(params)
                     params = []
                 else:
@@ -99,6 +105,9 @@ class DecoratorBase(ABC):
                     assert len(params) >= 1, "First param should be 'self'"
                     self.verify_params_and_set_flags(list(params)[1:])
                     params = [self_]
+
+                if self.takes_time:
+                    params.append(self.time)
 
                 if asyncio.iscoroutinefunction(self.func):
                     if self.takes_event:
@@ -200,8 +209,15 @@ class DecoratorBase(ABC):
             if isinstance(
                 func, (types.FunctionType, types.LambdaType, types.MethodType)
             ):
-                verify(get_params(func))
+                params = get_params(func)
+                verify(params)
                 wrap(func)
+            elif hasattr(func, "__class__") and issubclass(
+                func.__class__, DecoratorBase
+            ):
+                raise RuntimeError(
+                    "Currently no support for multiple callbacks"
+                )
             else:
                 raise RuntimeError(
                     f"Cannot reate a callback for: {func}, type: {type(func)}"

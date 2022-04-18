@@ -21,10 +21,6 @@ def blue_key(string):
     return f"\033[1;44;37m {string} \033[0m"
 
 
-def function_name_to_sentence(string):
-    return string.replace("_", " ").strip().capitalize()
-
-
 def error_to_string(e):
     return "".join(
         traceback.format_exception(type(e), e, e.__traceback__)
@@ -63,7 +59,6 @@ def control_list_string(control_datas):
         keys_map = data["keys"]
         for key in data["has_callbacks"]:
             description = data["titles"].get(key, ("Unknown action", 0))[0]
-            description = function_name_to_sentence(description)
             ret += (
                 f"{_color_keys(keys_map[key], 'blue', target)} "
                 f"- {description}\n"

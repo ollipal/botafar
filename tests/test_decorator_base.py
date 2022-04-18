@@ -1,12 +1,17 @@
-import asyncio
-
 import pytest
 
 from telebotties._internal.callbacks import CallbackBase
-from telebotties._internal.controls import ControlBase
 from telebotties._internal.decorators import DecoratorBase
 
-# HELPERS
+from .helpers import (
+    fake_listen,
+    get_async_result,
+    get_cb_result,
+    get_cbs,
+    reset,
+)
+
+# Decorator
 
 
 class dec(DecoratorBase):  # noqa: N801
@@ -17,24 +22,7 @@ class dec(DecoratorBase):  # noqa: N801
         CallbackBase.register_callback("dec", func)
 
 
-def get_cb():
-    assert len(CallbackBase.get_by_name("dec")) == 1
-    return CallbackBase.get_by_name("dec")[0]
-
-
-def reset():
-    CallbackBase._callbacks = {}
-    DecoratorBase._needs_wrapping = {}
-    DecoratorBase._wihtout_instance = set()
-    ControlBase._event_callbacks = {}
-    ControlBase._controls = []
-
-
-def get_async_result(func):
-    return asyncio.run(func)
-
-
-# TESTS
+# Tests
 
 
 def test_non_callable_errors():
@@ -68,9 +56,9 @@ def test_function():
     def example():
         return 3
 
-    DecoratorBase.post_listen()
+    fake_listen()
     assert example() == 3
-    assert get_cb()() == 3
+    assert get_cb_result("dec") == 3
 
 
 def test_function_async():
@@ -80,16 +68,16 @@ def test_function_async():
     async def example():
         return 3
 
-    DecoratorBase.post_listen()
+    fake_listen()
     assert get_async_result(example()) == 3
-    assert get_async_result(get_cb()()) == 3
+    assert get_cb_result("dec") == 3
 
 
 def test_lambda():
     reset()
     dec(lambda: 3)
-    DecoratorBase.post_listen()
-    assert get_cb()() == 3
+    fake_listen()
+    assert get_cb_result("dec") == 3
 
 
 def test_class_instance():
@@ -106,9 +94,9 @@ def test_class_instance():
 
     dec(c.example)
 
-    DecoratorBase.post_listen()
+    fake_listen()
     assert c.example() == 3
-    assert get_cb()() == 3
+    assert get_cb_result("dec") == 3
 
 
 def test_class_instance_async():
@@ -125,9 +113,9 @@ def test_class_instance_async():
 
     dec(c.example)
 
-    DecoratorBase.post_listen()
+    fake_listen()
     assert get_async_result(c.example()) == 3
-    assert get_async_result(get_cb()()) == 3
+    assert get_cb_result("dec") == 3
 
 
 def test_class_instance_static():
@@ -142,9 +130,9 @@ def test_class_instance_static():
 
     dec(c.example)
 
-    DecoratorBase.post_listen()
+    fake_listen()
     assert c.example() == 3
-    assert get_cb()() == 3
+    assert get_cb_result("dec") == 3
 
 
 def test_class_instance_static_async():
@@ -159,9 +147,9 @@ def test_class_instance_static_async():
 
     dec(c.example)
 
-    DecoratorBase.post_listen()
+    fake_listen()
     assert get_async_result(c.example()) == 3
-    assert get_async_result(get_cb()()) == 3
+    assert get_cb_result("dec") == 3
 
 
 def test_class_instance_classmethod():
@@ -178,9 +166,9 @@ def test_class_instance_classmethod():
     Class()
 
     dec(Class.example)
-    DecoratorBase.post_listen()
+    fake_listen()
     assert Class.example() == 3
-    assert get_cb()() == 3
+    assert get_cb_result("dec") == 3
 
 
 def test_class_instance_classmethod_async():
@@ -197,9 +185,9 @@ def test_class_instance_classmethod_async():
     Class()
 
     dec(Class.example)
-    DecoratorBase.post_listen()
+    fake_listen()
     assert get_async_result(Class.example()) == 3
-    assert get_async_result(get_cb()()) == 3
+    assert get_cb_result("dec") == 3
 
 
 def test_class_method():
@@ -215,8 +203,8 @@ def test_class_method():
 
     Class()
 
-    DecoratorBase.post_listen()
-    assert get_cb()() == 3
+    fake_listen()
+    assert get_cb_result("dec") == 3
     assert Class().example() == 3
 
 
@@ -233,8 +221,8 @@ def test_class_method_async():
 
     Class()
 
-    DecoratorBase.post_listen()
-    assert get_async_result(get_cb()()) == 3
+    fake_listen()
+    assert get_cb_result("dec") == 3
     assert get_async_result(Class().example()) == 3
 
 
@@ -249,9 +237,9 @@ def test_class_staticmethod():
 
     Class()
 
-    DecoratorBase.post_listen()
+    fake_listen()
     assert Class.example() == 3
-    assert get_cb()() == 3
+    assert get_cb_result("dec") == 3
 
 
 def test_class_staticmethod_mixed():
@@ -265,9 +253,9 @@ def test_class_staticmethod_mixed():
 
     Class()
 
-    DecoratorBase.post_listen()
+    fake_listen()
     assert Class.example() == 3
-    assert get_cb()() == 3
+    assert get_cb_result("dec") == 3
 
 
 def test_class_staticmethod_async():
@@ -281,9 +269,9 @@ def test_class_staticmethod_async():
 
     Class()
 
-    DecoratorBase.post_listen()
+    fake_listen()
     assert get_async_result(Class.example()) == 3
-    assert get_async_result(get_cb()()) == 3
+    assert get_cb_result("dec") == 3
 
 
 def test_class_classmethod():
@@ -300,9 +288,9 @@ def test_class_classmethod():
 
     Class()
 
-    DecoratorBase.post_listen()
+    fake_listen()
     assert Class.example() == 3
-    assert get_cb()() == 3
+    assert get_cb_result("dec") == 3
 
 
 # def test_class_classmethod_mixed():
@@ -323,9 +311,9 @@ def test_class_classmethod_async():
 
     Class()
 
-    DecoratorBase.post_listen()
+    fake_listen()
     assert get_async_result(Class.example()) == 3
-    assert get_async_result(get_cb()()) == 3
+    assert get_cb_result("dec") == 3
 
 
 def test_multiple_function():
@@ -339,7 +327,7 @@ def test_multiple_function():
     def example2():
         return 3
 
-    DecoratorBase.post_listen()
+    fake_listen()
     assert (
         CallbackBase.get_by_name("dec")[0]()
         + CallbackBase.get_by_name("dec")[1]()
@@ -364,12 +352,9 @@ def test_multiple_class_method():
 
     Class()
 
-    DecoratorBase.post_listen()
-    assert (
-        CallbackBase.get_by_name("dec")[0]()
-        + CallbackBase.get_by_name("dec")[1]()
-        == 7
-    )
+    fake_listen()
+    cbs = get_cbs("dec")
+    assert cbs[0]() + cbs[1]() == 7
 
 
 def test_multiple_classes():
@@ -394,22 +379,6 @@ def test_multiple_classes():
     Class1()
     Class2()
 
-    DecoratorBase.post_listen()
-    assert (
-        CallbackBase.get_by_name("dec")[0]()
-        + CallbackBase.get_by_name("dec")[1]()
-        == 10
-    )
-
-
-"""
-- without braces
-- with braces
-- with keyvalues
-
-- with passable event
-
-- test requires only self
-
-etc.
-"""
+    fake_listen()
+    cbs = get_cbs("dec")
+    assert cbs[0]() + cbs[1]() == 10

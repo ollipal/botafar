@@ -9,15 +9,19 @@ repos:
     rev: 22.3.0
     hooks:
       - id: black
-  - repo: https://gitlab.com/pycqa/flake8
-    rev: 4.0.1
-    hooks:
-      - id: flake8
-        additional_dependencies: [
-          'pyproject-flake8==0.0.1a2',
-          'pep8-naming==0.12.1',
-        ]
+  # This does not work with pflake8
+  #
+  #- repo: https://gitlab.com/pycqa/flake8
+  #  rev: 4.0.1
+  #  hooks:
+  #    - id: flake8
+  #      additional_dependencies: [
+  #        'pyproject-flake8==0.0.1a2',
+  #        'pep8-naming==0.12.1',
+  #      ]
+  #
   # Uncomment if locally installed
+  #
   #- repo: https://github.com/markdownlint/markdownlint
   #  rev: v0.11.0
   #  hooks:
@@ -30,6 +34,12 @@ repos:
         entry: codespell
   - repo: local
     hooks:
+      - id: pflake8
+        name: pflake8
+        stages: [commit]
+        language: system
+        entry: pflake8 --config=pyproject.toml
+        types: [python]
       - id: tox
         name: tox
         stages: [commit]

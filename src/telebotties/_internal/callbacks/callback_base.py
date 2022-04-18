@@ -55,4 +55,5 @@ class CallbackBase:
 
     @staticmethod
     def _takes_time(function):
+        # TODO remove, validate otherwise
         return takes_parameter(get_params(function), "time")

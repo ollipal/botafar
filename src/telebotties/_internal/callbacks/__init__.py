@@ -5,5 +5,4 @@ from .callback_registrars import (  # on_init,
     on_repeat,
     on_start,
     on_stop,
-    on_time,
 )

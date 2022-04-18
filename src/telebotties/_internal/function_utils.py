@@ -54,7 +54,7 @@ def takes_parameter(parameters, param_name):
 
 
 # NOTE: this should be used inside decorator, frame=3
-def get_function_name(f):
+def get_function_title(f):
     name = None
     try:
         name = nameof(f, frame=3, vars_only=False)
@@ -67,7 +67,11 @@ def get_function_name(f):
             name = f.__qualname__
 
     if name is not None:
-        name = name.split(".")[-1]
+        if name.startswith("lambda"):
+            pass
+        else:
+            name = name.split(".")[-1]
+            name = name.replace("_", " ").strip().capitalize()
 
     return name
 
@@ -75,7 +79,7 @@ def get_function_name(f):
 if __name__ == "__main__":
 
     def decorator(f):
-        name = get_function_name(f)
+        name = get_function_title(f)
         print(name)
         return f
 
@@ -83,14 +87,19 @@ if __name__ == "__main__":
     def regular_function():
         pass
 
-    class SampleClass:
+    class Class:
         @decorator
-        def regular_class_method(self):
+        def instance_method(self):
+            pass
+
+        @decorator
+        @classmethod
+        def class_method(cls):
             pass
 
         @decorator
         @staticmethod
-        def static_class_method(self):
+        def static_method(self):
             pass
 
     # Using decorator indirectly:
@@ -98,6 +107,7 @@ if __name__ == "__main__":
     named_lamda = lambda a: a + 10  # noqa:E731
     decorator(named_lamda)
     decorator(lambda a: a + 10)
-    c = SampleClass()
-    decorator(c.regular_class_method)
-    decorator(SampleClass.static_class_method)
+    c = Class()
+    decorator(c.instance_method)
+    decorator(Class.class_method)
+    decorator(Class.static_method)
