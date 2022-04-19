@@ -75,6 +75,17 @@ class Button(ControlBase):
             amount,
         )
 
+    def _get_release_callbacks_and_event(self, sender, time):
+        assert sender in ["host", "player"]
+
+        if self.is_released or self.latest_event.sender != sender:
+            return [], self.latest_event
+
+        release_event = self.latest_event
+        release_event._set_time(time)
+        release_event._name = "on_release"
+        return self._get_instance_callbacks(release_event), release_event
+
     @property
     def is_pressed(self):
         return self._state == "on_press"

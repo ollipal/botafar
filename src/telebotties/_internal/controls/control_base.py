@@ -121,6 +121,10 @@ class ControlBase(ABC):
         pass
 
     @abstractmethod
+    def _get_release_callbacks_and_event(self, sender, time):
+        pass
+
+    @abstractmethod
     def __repr__(self):
         pass
 
