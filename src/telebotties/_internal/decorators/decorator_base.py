@@ -185,13 +185,19 @@ class DecoratorBase(ABC):
     def _warn_ones_without_instance():
         join_str = "', '"
         for cls in list(DecoratorBase._wihtout_instance):
+            if (
+                hasattr(cls, "tb_ignore_no_instance")
+                and cls.tb_ignore_no_instance is True
+            ):
+                continue
+
             if DecoratorBase.requires_only_self(
                 cls.__telebotties_original_init__
             ):
                 logger.warning(
                     f"No {cls.__name__} instances created. Callbacks '"
                     f"{join_str.join(DecoratorBase._instance_callbacks[cls])}"
-                    "' will not trigger. Create a instance with '"
+                    "' will not trigger. Create an instance with '"
                     f"{cls.__name__}()' before 'listen()' to enable "
                     "callbacks."
                 )
@@ -199,8 +205,8 @@ class DecoratorBase(ABC):
                 logger.warning(
                     f"No {cls.__name__} instances created. Callbacks '"
                     f"{join_str.join(DecoratorBase._instance_callbacks[cls])}"
-                    f"' will not trigger. Create a {cls.__name__} instance "
-                    "before 'listen()' to enable callbacks."
+                    f"' will not trigger. Create at least one {cls.__name__} "
+                    "instance before 'listen()' to enable callbacks."
                 )
 
     @staticmethod
