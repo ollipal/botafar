@@ -87,10 +87,6 @@ class KeyboardListener:
                         print()  # makes new line for easier reading (linux)
                     self.stop()
                     return False
-                elif key == keyboard.Key.backspace:
-                    event = SystemEvent("player_connect", "player")
-                    self._process_event(event)
-                    return
 
                 key = _format_key(key)
                 if key is not None and is_pressed[key]:

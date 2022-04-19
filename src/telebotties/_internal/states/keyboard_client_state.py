@@ -39,6 +39,14 @@ class KeyboardClientState:
                 logger.error(event.text)
                 self.end_callback()
                 return
+            elif event.name == "state_change":
+                logger.debug(f"STATE: {event.value}")
+                if event.value == "waiting_player":
+                    self.player_connected = True
+                    self.send_event(SystemEvent("player_connect", "player"))
+                return
+            else:
+                logger.debug(f"Unknown handled: {event}")
 
         # Forward the event
         self.send_event(event)
@@ -46,5 +54,4 @@ class KeyboardClientState:
         # And potentially send more
         if event._type == SYSTEM_EVENT:
             if event.name == "host_connect":
-                self.player_connected = True
-                self.send_event(SystemEvent("player_connect", "player"))
+                logger.debug("Host connected")

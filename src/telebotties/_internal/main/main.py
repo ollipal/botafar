@@ -114,6 +114,7 @@ class Main(TelebottiesBase):
                 await self.server.serve(self.port)
 
             if pynput_supported and self.should_connect_keyboard:
+                self.event_prosessor.set_to_local()
                 await self.keyboard_listener.run_until_finished(
                     ControlBase._get_control_datas(), True
                 )

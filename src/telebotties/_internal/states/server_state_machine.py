@@ -221,8 +221,9 @@ class ServerStateMachine:
         )
 
     # TODO maybe something smarter someday...
-    def reinit(self, inform, callback_executor):
+    def reinit(self, inform, notify_state_change, callback_executor):
         self.inform = inform
+        self.notify_state_change = notify_state_change
         self.callback_executor = callback_executor
 
     def all_finished(self):
@@ -230,10 +231,6 @@ class ServerStateMachine:
             running_names = self.callback_executor.running_names
             if len(running_names) != 0:
                 logger.debug(f"Running: {running_names}")
-            """ from time import sleep as __sleep
-            __sleep(0.2)
-            running_names2 = self.callback_executor.running_names
-            return len(running_names) == 0 and len(running_names2) == 0 """
             return len(running_names) == 0
 
     def execute(self, name, callback, callback_name):
@@ -309,19 +306,22 @@ class ServerStateMachine:
 
     def after_init(self):
         with self.rlock:
-            logger.debug("STATE: init")
+            logger.debug("STATE: on_init")
+            # NOTE: not notify_state_change, no one connected yet
             # "on_init" executed from main
 
     def after_waiting_host(self):
         with self.rlock:
             logger.debug("STATE: waiting_host")
+            self.notify_state_change("waiting_host")
             self.start_time = -1
             # if self.host.connected:
             self.prepare()
 
     def after_prepare(self):
         with self.rlock:
-            logger.debug("STATE: prepare")
+            logger.debug("STATE: on_prepare")
+            self.notify_state_change("on_prepare")
 
             def safe_on_prepare_callback():
                 self.safe_state_change(self.wait_player, "wait_player")
@@ -337,12 +337,14 @@ class ServerStateMachine:
     def after_waiting_player(self):
         with self.rlock:
             logger.debug("STATE: waiting_player")
+            self.notify_state_change("waiting_player")
             # if self.player.connected:
             self.start()
 
     def after_start(self):
         with self.rlock:
-            logger.debug("STATE: start")
+            logger.debug("STATE: on_start")
+            self.notify_state_change("on_start")
             self.enable_controls()
             self.start_time = _time()
             self.callback_executor.execute_callbacks(
@@ -370,15 +372,17 @@ class ServerStateMachine:
     def after_waiting_stop(self):
         with self.rlock:
             logger.debug("STATE: waiting_stop")
+            # NOTE: not notify_state_change, state hidden from the user
             # .stop_immediate() will be triggered from outside
 
     def after_stop_immediate(self):
         with self.rlock:
             logger.debug("STATE: stop_immediate")
+            self.notify_state_change("on_stop")
             self.sleep_event_sync.set()
             self.sleep_event_async.set()
-            self.disable_controls()
             self.execute("on_stop_immediate", self.synced_stop, "synced_stop")
+            self.disable_controls()
 
     def after_stop(self):
         with self.rlock:
@@ -390,6 +394,7 @@ class ServerStateMachine:
     def after_exit_immediate(self):
         with self.rlock:
             logger.debug("STATE: exit_immediate")
+            self.notify_state_change("on_exit")
             self.sleep_event_sync.set()
             self.sleep_event_async.set()
             # "on_exit_immediate" executed from main
