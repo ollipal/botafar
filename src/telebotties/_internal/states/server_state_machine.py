@@ -394,8 +394,8 @@ class ServerStateMachine:
         self.notify_state_change("on_stop")
         self.sleep_event_sync.set()
         self.sleep_event_async.set()
-        self.execute("on_stop_immediate", self.synced_stop, "synced_stop")
         self.disable_controls()
+        self.execute("on_stop_immediate", self.synced_stop, "synced_stop")
 
     def after_stop(self):
         # with self.rlock:
@@ -410,6 +410,8 @@ class ServerStateMachine:
         self.notify_state_change("on_exit")
         self.sleep_event_sync.set()
         self.sleep_event_async.set()
+        self.disable_controls()
+        self.reset_controls("host")
         # "on_exit_immediate" executed from main
 
     def after_exit(self):
