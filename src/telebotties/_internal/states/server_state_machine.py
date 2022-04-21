@@ -239,17 +239,17 @@ class ServerStateMachine:
 
     def execute(self, name, callback, callback_name):
         def safe_callback():
-            self.safe_state_change(callback, callback_name)
+            self.safe_state_change(callback, callback_name, name)
 
         self.callback_executor.execute_callbacks(
             CallbackBase.get_by_name(name), name, safe_callback
         )
 
-    def safe_state_change(self, function, name):
+    def safe_state_change(self, function, name, origin):
         try:
             function()
         except core.MachineError:
-            logger.debug(f"Transition '{name}' skipped")
+            logger.debug(f"Transition '{name}' skipped (origin: {origin})")
 
     def synced_stop(self):
         # This hopefully addresses the theoritcally possible
@@ -282,30 +282,34 @@ class ServerStateMachine:
         self.host._name = name
         self.host._is_connected = True
         # if self.state == WAITING_HOST:
-        self.safe_state_change(self.prepare, "prepare")
+        self.safe_state_change(self.prepare, "prepare", "host_connect")
         # elif self.state == WAITING_PLAYER:
-        self.safe_state_change(self.start, "start")
+        self.safe_state_change(self.start, "start", "host_connect")
 
     def on_host_disconnect(self):
         # with self.rlock:
         self.host._name = ""
         self.host._is_connected = False
         # if self.state in [START, WAITING_STOP]:
-        self.safe_state_change(self.stop_immediate, "stop_immediate")
+        self.safe_state_change(
+            self.stop_immediate, "stop_immediate", "host_disconnect"
+        )
 
     def on_player_connect(self, name):
         # with self.rlock:
         self.player._name = name
         self.player._is_connected = True
         # if self.state == WAITING_PLAYER:
-        self.safe_state_change(self.start, "start")
+        self.safe_state_change(self.start, "start", "player_connect")
 
     def on_player_disconnect(self):
         # with self.rlock:
         self.player._name = ""
         self.player._is_connected = False
         # if self.state in [START, WAITING_STOP]:
-        self.safe_state_change(self.stop_immediate, "stop_immediate")
+        self.safe_state_change(
+            self.stop_immediate, "stop_immediate", "player_disconnect"
+        )
 
     def after_init(self):
         # with self.rlock:
@@ -327,9 +331,15 @@ class ServerStateMachine:
         self.notify_state_change("on_prepare")
 
         def safe_on_prepare_callback():
-            self.safe_state_change(self.wait_player, "wait_player")
-            self.safe_state_change(self.synced_stop, "synced_stop")
-            self.safe_state_change(self.synced_exit, "synced_exit")
+            self.safe_state_change(
+                self.wait_player, "wait_player", "on_prepare"
+            )
+            self.safe_state_change(
+                self.synced_stop, "synced_stop", "on_prepare"
+            )
+            self.safe_state_change(
+                self.synced_exit, "synced_exit", "on_prepare"
+            )
 
         self.callback_executor.execute_callbacks(
             CallbackBase.get_by_name("on_prepare"),
@@ -362,9 +372,9 @@ class ServerStateMachine:
         )
 
         def safe_on_start_callback():
-            self.safe_state_change(self.wait_stop, "wait_stop")
-            self.safe_state_change(self.synced_stop, "synced_stop")
-            self.safe_state_change(self.synced_exit, "synced_exit")
+            self.safe_state_change(self.wait_stop, "wait_stop", "on_start")
+            self.safe_state_change(self.synced_stop, "synced_stop", "on_start")
+            self.safe_state_change(self.synced_exit, "synced_exit", "on_start")
 
         self.callback_executor.execute_callbacks(
             CallbackBase.get_by_name("on_start"),
@@ -418,9 +428,13 @@ class ServerStateMachine:
         with self.rlock:
             if self.all_finished():
                 if self.state == STOP_IMMEDIATE:
-                    self.safe_state_change(self.synced_stop, "synced_stop")
+                    self.safe_state_change(
+                        self.synced_stop, "synced_stop", "control_finished"
+                    )
                 elif self.state == STOP:
-                    self.safe_state_change(self.wait_host, "wait_host")
+                    self.safe_state_change(
+                        self.wait_host, "wait_host", "control_finished"
+                    )
         # "synced_exit" executed from main
 
     def on_repeat_or_time_finished_callback(self):
