@@ -44,15 +44,19 @@ class DecoratorBase(ABC):
             f"non-callable object {func[0]}"
         )
 
+        self.func_original = func[0]
         self.func = func[0]
 
         # flags to set in 'verify_params_and_set_flags'
         self.takes_event = False
         self.takes_time = False
 
-        DecoratorBase._needs_wrapping[self.func] = (
+        self.new_func = None
+
+        DecoratorBase._needs_wrapping[self.func_original] = (
             self.wrap,
             self.verify_params_and_set_flags,
+            lambda: self.new_func,
         )
 
         self.func_title = get_function_title(self.func)
@@ -71,7 +75,7 @@ class DecoratorBase(ABC):
 
     # This is required for functions to stay callable
     def __call__(self, *args, **kwargs):
-        return self.func(*args, **kwargs)
+        return self.func_original(*args, **kwargs)
 
     # NOTE: this does not trigger for normal functions
     def __set_name__(self, owner, name):  # noqa: C901
@@ -131,6 +135,7 @@ class DecoratorBase(ABC):
                         def new_func():
                             return getattr(owner, name)(*params)
 
+                self.new_func = new_func
                 self.wrap(new_func)
 
             # Save instance init callbacks
@@ -156,7 +161,7 @@ class DecoratorBase(ABC):
                 DecoratorBase._instance_callbacks[owner].append(cb_name)
 
             # Only functions need wrapping
-            del DecoratorBase._needs_wrapping[self.func]
+            del DecoratorBase._needs_wrapping[self.func_original]
 
             def new_init(*args, **kwargs):
                 logger.debug(f"Custom init running for {owner.__name__}")
@@ -211,7 +216,11 @@ class DecoratorBase(ABC):
 
     @staticmethod
     def _wrap_ones_without_wrapping():
-        for func, (wrap, verify) in DecoratorBase._needs_wrapping.items():
+        for func, (
+            wrap,
+            verify,
+            get_new_func,
+        ) in DecoratorBase._needs_wrapping.items():
             if isinstance(
                 func, (types.FunctionType, types.LambdaType, types.MethodType)
             ):
@@ -221,9 +230,13 @@ class DecoratorBase(ABC):
             elif hasattr(func, "__class__") and issubclass(
                 func.__class__, DecoratorBase
             ):
-                raise RuntimeError(
-                    "Currently no support for multiple callbacks"
-                )
+                new_func = get_new_func()
+                if new_func is not None:  # in class methods is not None
+                    func = new_func
+
+                params = get_params(func)
+                verify(params)
+                wrap(func)
             else:
                 raise RuntimeError(
                     f"Cannot reate a callback for: {func}, type: {type(func)}"

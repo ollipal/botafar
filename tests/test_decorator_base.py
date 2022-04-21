@@ -382,3 +382,80 @@ def test_multiple_classes():
     fake_listen()
     cbs = get_cbs("dec")
     assert cbs[0]() + cbs[1]() == 10
+
+
+def test_multiple_decorators_function():
+    reset()
+
+    @dec
+    @dec
+    def example2():
+        return 3
+
+    fake_listen()
+    cbs = get_cbs("dec")
+    assert cbs[0]() + cbs[1]() == 6
+
+
+def test_multiple_decorators_class_instance_method():
+    reset()
+
+    class Class:
+        def __init__(self):
+            self.val = 1
+
+        @dec
+        @dec
+        def example(self):
+            return self.val + 3
+
+    c = Class()
+
+    fake_listen()
+    cbs = get_cbs("dec")
+    assert isinstance(c, Class)
+    assert c.example() == 4
+    assert cbs[0]() + cbs[1]() == 8
+
+
+def test_multiple_decorators_staticmethod():
+    reset()
+
+    class Class:
+        def __init__(self):
+            self.val = 1
+
+        @dec
+        @dec
+        @staticmethod
+        def example():
+            return 3
+
+    c = Class()
+
+    fake_listen()
+    cbs = get_cbs("dec")
+    assert isinstance(c, Class)
+    assert c.example() == 3
+    assert cbs[0]() + cbs[1]() == 6
+
+
+def test_multiple_decorators_classmethod():
+    reset()
+
+    class Class:
+        val = 1
+
+        @dec
+        @dec
+        @classmethod
+        def example(cls):
+            return cls.val + 3
+
+    c = Class()
+
+    fake_listen()
+    cbs = get_cbs("dec")
+    assert isinstance(c, Class)
+    assert c.example() == 4
+    assert cbs[0]() + cbs[1]() == 8
