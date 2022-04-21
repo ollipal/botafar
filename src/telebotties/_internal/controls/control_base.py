@@ -92,11 +92,13 @@ class ControlBase(ABC):
         if key not in KEYS:
             if isinstance(key, str) and key.upper() in KEYS:
                 raise RuntimeError(
-                    f"Unknown key '{key}', did you mean '{key.upper()}'?"
+                    f'Unknown key "{key}", did you mean "{key.upper()}"?'
                 )
+            elif key in range(10):
+                raise RuntimeError(f'Unknown key {key}, did you mean "{key}"?')
             else:
                 raise RuntimeError(
-                    f"Unknown key '{key}'"
+                    f'Unknown key "{key}"'
                 )  # TODO link to allowed keys
 
         new_event_callback_keys = self._get_event_callback_keys(
