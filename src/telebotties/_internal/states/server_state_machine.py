@@ -151,6 +151,10 @@ class ServerStateMachine:
         self.machine = Machine(
             model=self, states=self.states, initial=PRE_INIT
         )
+
+        # At least 'all_finished' and 'reset_controls'
+        # needs to be synced as it might otherwise show
+        # all_finished too early, others might be unnecessary
         self.rlock = threading.RLock()
         self.sleep_event_sync = threading.Event()
         self.sleep_event_async = None  # Added later when the loop starts
@@ -242,11 +246,10 @@ class ServerStateMachine:
         )
 
     def safe_state_change(self, function, name):
-        with self.rlock:
-            try:
-                function()
-            except core.MachineError:
-                logger.debug(f"Transition '{name}' skipped")
+        try:
+            function()
+        except core.MachineError:
+            logger.debug(f"Transition '{name}' skipped")
 
     def synced_stop(self):
         # This hopefully addresses the theoritcally possible
@@ -266,146 +269,146 @@ class ServerStateMachine:
 
     # transition conditions requires this
     def host_connected(self):
-        with self.rlock:
-            return self.host.is_connected
+        # with self.rlock:
+        return self.host.is_connected
 
     # transition conditions requires this
     def player_connected(self):
-        with self.rlock:
-            return self.player.is_connected
+        # with self.rlock:
+        return self.player.is_connected
 
     def on_host_connect(self, name):
-        with self.rlock:
-            self.host._name = name
-            self.host._is_connected = True
-            # if self.state == WAITING_HOST:
-            self.safe_state_change(self.prepare, "prepare")
-            # elif self.state == WAITING_PLAYER:
-            self.safe_state_change(self.start, "start")
+        # with self.rlock:
+        self.host._name = name
+        self.host._is_connected = True
+        # if self.state == WAITING_HOST:
+        self.safe_state_change(self.prepare, "prepare")
+        # elif self.state == WAITING_PLAYER:
+        self.safe_state_change(self.start, "start")
 
     def on_host_disconnect(self):
-        with self.rlock:
-            self.host._name = ""
-            self.host._is_connected = False
-            # if self.state in [START, WAITING_STOP]:
-            self.safe_state_change(self.stop_immediate, "stop_immediate")
+        # with self.rlock:
+        self.host._name = ""
+        self.host._is_connected = False
+        # if self.state in [START, WAITING_STOP]:
+        self.safe_state_change(self.stop_immediate, "stop_immediate")
 
     def on_player_connect(self, name):
-        with self.rlock:
-            self.player._name = name
-            self.player._is_connected = True
-            # if self.state == WAITING_PLAYER:
-            self.safe_state_change(self.start, "start")
+        # with self.rlock:
+        self.player._name = name
+        self.player._is_connected = True
+        # if self.state == WAITING_PLAYER:
+        self.safe_state_change(self.start, "start")
 
     def on_player_disconnect(self):
-        with self.rlock:
-            self.player._name = ""
-            self.player._is_connected = False
-            # if self.state in [START, WAITING_STOP]:
-            self.safe_state_change(self.stop_immediate, "stop_immediate")
+        # with self.rlock:
+        self.player._name = ""
+        self.player._is_connected = False
+        # if self.state in [START, WAITING_STOP]:
+        self.safe_state_change(self.stop_immediate, "stop_immediate")
 
     def after_init(self):
-        with self.rlock:
-            logger.debug("STATE: on_init")
-            # NOTE: not notify_state_change, no one connected yet
-            # "on_init" executed from main
+        # with self.rlock:
+        logger.debug("STATE: on_init")
+        # NOTE: not notify_state_change, no one connected yet
+        # "on_init" executed from main
 
     def after_waiting_host(self):
-        with self.rlock:
-            logger.debug("STATE: waiting_host")
-            self.notify_state_change("waiting_host")
-            self.start_time = -1
-            # if self.host.connected:
-            self.prepare()
+        # with self.rlock:
+        logger.debug("STATE: waiting_host")
+        self.notify_state_change("waiting_host")
+        self.start_time = -1
+        # if self.host.connected:
+        self.prepare()
 
     def after_prepare(self):
-        with self.rlock:
-            logger.debug("STATE: on_prepare")
-            self.notify_state_change("on_prepare")
+        # with self.rlock:
+        logger.debug("STATE: on_prepare")
+        self.notify_state_change("on_prepare")
 
-            def safe_on_prepare_callback():
-                self.safe_state_change(self.wait_player, "wait_player")
-                self.safe_state_change(self.synced_stop, "synced_stop")
-                self.safe_state_change(self.synced_exit, "synced_exit")
+        def safe_on_prepare_callback():
+            self.safe_state_change(self.wait_player, "wait_player")
+            self.safe_state_change(self.synced_stop, "synced_stop")
+            self.safe_state_change(self.synced_exit, "synced_exit")
 
-            self.callback_executor.execute_callbacks(
-                CallbackBase.get_by_name("on_prepare"),
-                "on_prepare",
-                safe_on_prepare_callback,
-            )
+        self.callback_executor.execute_callbacks(
+            CallbackBase.get_by_name("on_prepare"),
+            "on_prepare",
+            safe_on_prepare_callback,
+        )
 
     def after_waiting_player(self):
-        with self.rlock:
-            logger.debug("STATE: waiting_player")
-            self.notify_state_change("waiting_player")
-            # if self.player.connected:
-            self.start()
+        # with self.rlock:
+        logger.debug("STATE: waiting_player")
+        self.notify_state_change("waiting_player")
+        # if self.player.connected:
+        self.start()
 
     def after_start(self):
-        with self.rlock:
-            logger.debug("STATE: on_start")
-            self.notify_state_change("on_start")
-            self.enable_controls()
-            self.start_time = _time()
-            self.callback_executor.execute_callbacks(
-                CallbackBase.get_by_name("on_time"),
-                "on_time",
-                self.on_repeat_or_time_finished_callback,
-            )
-            self.callback_executor.execute_callbacks(
-                CallbackBase.get_by_name("on_repeat"),
-                "on_repeat",
-                self.on_repeat_or_time_finished_callback,
-            )
+        # with self.rlock:
+        logger.debug("STATE: on_start")
+        self.notify_state_change("on_start")
+        self.enable_controls()
+        self.start_time = _time()
+        self.callback_executor.execute_callbacks(
+            CallbackBase.get_by_name("on_time"),
+            "on_time",
+            self.on_repeat_or_time_finished_callback,
+        )
+        self.callback_executor.execute_callbacks(
+            CallbackBase.get_by_name("on_repeat"),
+            "on_repeat",
+            self.on_repeat_or_time_finished_callback,
+        )
 
-            def safe_on_start_callback():
-                self.safe_state_change(self.wait_stop, "wait_stop")
-                self.safe_state_change(self.synced_stop, "synced_stop")
-                self.safe_state_change(self.synced_exit, "synced_exit")
+        def safe_on_start_callback():
+            self.safe_state_change(self.wait_stop, "wait_stop")
+            self.safe_state_change(self.synced_stop, "synced_stop")
+            self.safe_state_change(self.synced_exit, "synced_exit")
 
-            self.callback_executor.execute_callbacks(
-                CallbackBase.get_by_name("on_start"),
-                "on_start",
-                safe_on_start_callback,
-            )
+        self.callback_executor.execute_callbacks(
+            CallbackBase.get_by_name("on_start"),
+            "on_start",
+            safe_on_start_callback,
+        )
 
     def after_waiting_stop(self):
-        with self.rlock:
-            logger.debug("STATE: waiting_stop")
-            # NOTE: not notify_state_change, state hidden from the user
-            # .stop_immediate() will be triggered from outside
+        # with self.rlock:
+        logger.debug("STATE: waiting_stop")
+        # NOTE: not notify_state_change, state hidden from the user
+        # .stop_immediate() will be triggered from outside
 
     def after_stop_immediate(self):
-        with self.rlock:
-            logger.debug("STATE: stop_immediate")
-            self.notify_state_change("on_stop")
-            self.sleep_event_sync.set()
-            self.sleep_event_async.set()
-            self.execute("on_stop_immediate", self.synced_stop, "synced_stop")
-            self.disable_controls()
+        # with self.rlock:
+        logger.debug("STATE: stop_immediate")
+        self.notify_state_change("on_stop")
+        self.sleep_event_sync.set()
+        self.sleep_event_async.set()
+        self.execute("on_stop_immediate", self.synced_stop, "synced_stop")
+        self.disable_controls()
 
     def after_stop(self):
-        with self.rlock:
-            logger.debug("STATE: stop")
-            self.sleep_event_sync.clear()
-            self.sleep_event_async.clear()
-            self.execute("on_stop", self.wait_host, "wait_host")
+        # with self.rlock:
+        logger.debug("STATE: stop")
+        self.sleep_event_sync.clear()
+        self.sleep_event_async.clear()
+        self.execute("on_stop", self.wait_host, "wait_host")
 
     def after_exit_immediate(self):
-        with self.rlock:
-            logger.debug("STATE: exit_immediate")
-            self.notify_state_change("on_exit")
-            self.sleep_event_sync.set()
-            self.sleep_event_async.set()
-            # "on_exit_immediate" executed from main
+        # with self.rlock:
+        logger.debug("STATE: exit_immediate")
+        self.notify_state_change("on_exit")
+        self.sleep_event_sync.set()
+        self.sleep_event_async.set()
+        # "on_exit_immediate" executed from main
 
     def after_exit(self):
-        with self.rlock:
-            self.sleep_event_sync.clear()
-            self.sleep_event_async.clear()
-            logger.debug("STATE: exit")
-            self.start_time = -1
-            # "on_exit" executed from main
+        # with self.rlock:
+        self.sleep_event_sync.clear()
+        self.sleep_event_async.clear()
+        logger.debug("STATE: exit")
+        self.start_time = -1
+        # "on_exit" executed from main
 
     def on_control_finished_callback(self):
         # Perf reasons, this is executed a lot
@@ -421,8 +424,7 @@ class ServerStateMachine:
         # "synced_exit" executed from main
 
     def on_repeat_or_time_finished_callback(self):
-        with self.rlock:
-            self.on_control_finished_callback()
+        self.on_control_finished_callback()
 
     def enable_controls(self):
         with self.rlock:
