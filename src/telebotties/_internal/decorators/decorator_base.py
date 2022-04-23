@@ -15,32 +15,32 @@ logger = get_logger()
 main = None
 
 
-def get_decorator(cls, always_empty):
+def get_decorator(cls, name, always_empty):
     def decorator(*args, **kwargs):
         assert not (always_empty and len(args) == 0 and len(kwargs) == 0), (
-            "Remove empty parentheses '()' from " f"@tb.{cls.__name__}()"
+            "Remove empty parentheses '()' from " f"@tb.{name}()"
         )
         assert not (
             always_empty and len(kwargs) != 0
-        ), f"@tb.{cls.__name__} got unknown parameters {list(kwargs.keys())}"
+        ), f"@tb.{name} got unknown parameters {list(kwargs.keys())}"
         assert not (
             always_empty and len(args) > 1
-        ), f"@tb.{cls.__name__} got unknown arguments {args}"
+        ), f"@tb.{name} got unknown arguments {args}"
         assert not (
             always_empty
             and not (
                 isinstance(args[0], (classmethod, staticmethod))
                 or callable(args[0])
             )
-        ), (
-            f"Cannot use {cls.__name__} with a "
-            f"non-callable object {args[0]}"
-        )
+        ), (f"Cannot use {name} with a " f"non-callable object {args[0]}")
 
         def wrap(*args):
-            return cls(*args, **kwargs)
+            return cls(name, *args, **kwargs)
 
-        if len(args) >= 1 and callable(args[0]):
+        if len(args) >= 1 and (
+            isinstance(args[0], (classmethod, staticmethod))
+            or callable(args[0])
+        ):
             return wrap(*args)
         else:
             return wrap
@@ -53,25 +53,26 @@ class DecoratorBase(ABC):
     _wihtout_instance = set()
     _instance_callbacks = OrderedDict()
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, decorator_name, *args, **kwargs):
+        self.decorator_name = decorator_name
         assert state_machine.state == PRE_INIT, (
-            f"{self.__class__.__name__} callbacks cannot be added "
+            f"{self.decorator_name} callbacks cannot be added "
             "after listen()"
         )
         assert (
             len(args) == 1
-        ), f"{self.__class__.__name__} got too many arguments: {args}"
+        ), f"{self.decorator_name} got too many arguments: {args}"
         assert (
             not hasattr(args[0], "__name__") or args[0].__name__ != "__init__"
-        ), f"Cannot add {self.__class__.__name__} callback to __init__ method"
+        ), f"Cannot add {self.decorator_name} callback to __init__ method"
 
         assert not inspect.isclass(
             args[0]
-        ), f"Cannot use {self.__class__.__name__} with a class"
+        ), f"Cannot use {self.decorator_name} with a class"
         assert isinstance(args[0], (classmethod, staticmethod)) or callable(
             args[0]
         ), (
-            f"Cannot use {self.__class__.__name__} with a "
+            f"Cannot use {self.decorator_name} with a "
             f"non-callable object {args[0]}"
         )
 
@@ -112,7 +113,7 @@ class DecoratorBase(ABC):
         # Do custom things
         def init_callback(self_):
             assert state_machine.state == PRE_INIT, (
-                f"{self.__class__.__name__} callbacks cannot be added "
+                f"{self.decorator_name} callbacks cannot be added "
                 "after listen()"
             )  # Should this be warning instead?
             assert not (self.takes_event and self.takes_time)
@@ -156,7 +157,7 @@ class DecoratorBase(ABC):
         if owner not in DecoratorBase._wihtout_instance:
             DecoratorBase._wihtout_instance.add(owner)
 
-        cb_name = self.__class__.__name__
+        cb_name = self.decorator_name
         if owner not in DecoratorBase._instance_callbacks:
             DecoratorBase._instance_callbacks[owner] = [cb_name]
         elif cb_name not in DecoratorBase._instance_callbacks[owner]:
@@ -181,6 +182,8 @@ class DecoratorBase(ABC):
         if not hasattr(owner, "__telebotties_original_init__"):
             setattr(owner, "__telebotties_original_init__", owner.__init__)
             setattr(owner, "__init__", new_init)
+
+        # DecoratorBase._wrap_ones_without_wrapping()
 
     def init_callback_wrap(self, func, owner, name, params, takes_event):
         try:
@@ -294,6 +297,8 @@ class DecoratorBase(ABC):
                 raise RuntimeError(
                     f"Cannot reate a callback for: {func}, type: {type(func)}"
                 )
+
+        # DecoratorBase._needs_wrapping = OrderedDict()
 
     @staticmethod
     def requires_only_self(function):

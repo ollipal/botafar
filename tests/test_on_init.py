@@ -7,7 +7,7 @@ from .helpers import fake_listen, get_async_result, get_cb_result, reset
 
 def test_on_init_empty_parenthesis_errors():
     reset()
-    with pytest.raises(AssertionError):
+    with pytest.raises(TypeError):
 
         @on_init()
         def example():
@@ -16,7 +16,7 @@ def test_on_init_empty_parenthesis_errors():
 
 def test_on_init_extra_kwargs_errors():
     reset()
-    with pytest.raises(AssertionError):
+    with pytest.raises(TypeError):
 
         @on_init(a=7)
         def example():
@@ -25,7 +25,7 @@ def test_on_init_extra_kwargs_errors():
 
 def test_on_init_extra_args_errors():
     reset()
-    with pytest.raises(AssertionError):
+    with pytest.raises(TypeError):
 
         @on_init(7, 8)
         def example():

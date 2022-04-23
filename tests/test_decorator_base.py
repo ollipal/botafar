@@ -1,7 +1,7 @@
 import pytest
 
 from telebotties._internal.callbacks import CallbackBase
-from telebotties._internal.decorators import DecoratorBase
+from telebotties._internal.decorators import DecoratorBase, get_decorator
 
 from .helpers import (
     fake_listen,
@@ -14,12 +14,16 @@ from .helpers import (
 # Decorator
 
 
-class dec(DecoratorBase):  # noqa: N801
+class Dec(DecoratorBase):
     def verify_params_and_set_flags(self, params):
         pass
 
     def wrap(self, func):
         CallbackBase.register_callback("dec", func)
+
+
+def dec(func):
+    return get_decorator(Dec, "dec", True)(func)
 
 
 # Tests
@@ -42,7 +46,7 @@ def test_class_decorator_errors():
 
 def test_decorator_empty_parenthesis_errors():
     reset()
-    with pytest.raises(AssertionError):
+    with pytest.raises(TypeError):
 
         @dec()
         def example():

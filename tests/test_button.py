@@ -30,7 +30,7 @@ def test_class_decorator_errors():
 
 def test_on_init_empty_parenthesis_errors():
     reset()
-    with pytest.raises(AssertionError):
+    with pytest.raises(TypeError):
 
         b = Button("A")
 
@@ -39,7 +39,7 @@ def test_on_init_empty_parenthesis_errors():
             return 3
 
     reset()
-    with pytest.raises(AssertionError):
+    with pytest.raises(TypeError):
 
         b = Button("A")
 
@@ -48,7 +48,7 @@ def test_on_init_empty_parenthesis_errors():
             return 3
 
     reset()
-    with pytest.raises(AssertionError):
+    with pytest.raises(TypeError):
 
         b = Button("A")
 

@@ -12,6 +12,7 @@ from ._internal.decorators import (
     on_start,
     on_stop,
 )
+from ._internal.decorators import on_time
 from ._internal.decorators import on_time as _internal_on_time
 from ._internal.exceptions import SleepCancelledError
 from ._internal.main import _cli  # This enables `telebotties` from cli
@@ -31,7 +32,7 @@ from ._internal.states import (
 version = __version__
 
 
-def _internal_get_on_time(time_):
+""" def _internal_get_on_time(time_):
     class on_time(_internal_on_time):  # noqa: N801
         def __init__(self, *func):
             self.time = time_
@@ -60,3 +61,4 @@ def __getattr__(name):
 
         return _internal_get_on_time(time_)
     raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
+ """

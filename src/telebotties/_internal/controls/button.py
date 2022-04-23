@@ -1,4 +1,4 @@
-from ..decorators import DecoratorBase
+from ..decorators import DecoratorBase, get_decorator
 from ..events import Event
 from ..function_utils import takes_parameter
 from .control_base import ControlBase
@@ -20,7 +20,7 @@ class Button(ControlBase):
         # and this was needed?...
         self._key = key
 
-        class on_press(DecoratorBase):  # noqa: N801
+        class OnPress(DecoratorBase):
             def verify_params_and_set_flags(self_, params):  # noqa: N805
                 if takes_parameter(params, "event"):
                     self_.takes_event = True
@@ -31,7 +31,7 @@ class Button(ControlBase):
                 self._add_state_callback("on_press", func)
                 return func
 
-        class on_release(DecoratorBase):  # noqa: N801
+        class OnRelease(DecoratorBase):
             def verify_params_and_set_flags(self_, params):  # noqa: N805
                 if takes_parameter(params, "event"):
                     self_.takes_event = True
@@ -44,7 +44,7 @@ class Button(ControlBase):
                 self._add_state_callback("on_release", func)
                 return func
 
-        class on_any(DecoratorBase):  # noqa: N801
+        class OnAny(DecoratorBase):
             def verify_params_and_set_flags(self_, params):  # noqa: N805
                 if takes_parameter(params, "event"):
                     self_.takes_event = True
@@ -62,9 +62,9 @@ class Button(ControlBase):
                 self._add_state_callback("on_release", func)
                 return func
 
-        self.on_press = on_press
-        self.on_release = on_release
-        self.on_any = on_any
+        self._on_press_class = OnPress
+        self._on_release_class = OnRelease
+        self._on_any_class = OnAny
 
         super().__init__(
             "Button",
@@ -74,6 +74,15 @@ class Button(ControlBase):
             alternative,
             amount,
         )
+
+    def on_press(self, func):
+        return get_decorator(self._on_press_class, "on_press", True)(func)
+
+    def on_release(self, func):
+        return get_decorator(self._on_release_class, "on_release", True)(func)
+
+    def on_any(self, func):
+        return get_decorator(self._on_any_class, "on_any", True)(func)
 
     def _get_release_callbacks_and_event(self, sender, time):
         assert sender in ["host", "player"]
