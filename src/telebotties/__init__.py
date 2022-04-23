@@ -6,13 +6,11 @@ __version__ = "0.0.1"
 from ._internal.controls import Button
 from ._internal.decorators import (
     on_exit,
-    on_exit_immediate,
     on_init,
     on_prepare,
     on_repeat,
     on_start,
     on_stop,
-    on_stop_immediate,
 )
 from ._internal.decorators import on_time as _internal_on_time
 from ._internal.exceptions import SleepCancelledError

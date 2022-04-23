@@ -389,12 +389,15 @@ def test_multiple_decorators_function():
 
     @dec
     @dec
-    def example2():
+    @dec
+    def example():
         return 3
 
     fake_listen()
     cbs = get_cbs("dec")
-    assert cbs[0]() + cbs[1]() == 6
+    assert example() == 3
+    assert len(cbs) == 3
+    assert cbs[0]() + cbs[1]() + cbs[2]() == 9
 
 
 def test_multiple_decorators_class_instance_method():
@@ -406,6 +409,7 @@ def test_multiple_decorators_class_instance_method():
 
         @dec
         @dec
+        @dec
         def example(self):
             return self.val + 3
 
@@ -415,7 +419,8 @@ def test_multiple_decorators_class_instance_method():
     cbs = get_cbs("dec")
     assert isinstance(c, Class)
     assert c.example() == 4
-    assert cbs[0]() + cbs[1]() == 8
+    assert len(cbs) == 3
+    assert cbs[0]() + cbs[1]() + cbs[2]() == 12
 
 
 def test_multiple_decorators_staticmethod():
@@ -425,6 +430,7 @@ def test_multiple_decorators_staticmethod():
         def __init__(self):
             self.val = 1
 
+        @dec
         @dec
         @dec
         @staticmethod
@@ -437,7 +443,8 @@ def test_multiple_decorators_staticmethod():
     cbs = get_cbs("dec")
     assert isinstance(c, Class)
     assert c.example() == 3
-    assert cbs[0]() + cbs[1]() == 6
+    assert len(cbs) == 3
+    assert cbs[0]() + cbs[1]() + cbs[2]() == 9
 
 
 def test_multiple_decorators_classmethod():
@@ -446,6 +453,7 @@ def test_multiple_decorators_classmethod():
     class Class:
         val = 1
 
+        @dec
         @dec
         @dec
         @classmethod
@@ -458,4 +466,5 @@ def test_multiple_decorators_classmethod():
     cbs = get_cbs("dec")
     assert isinstance(c, Class)
     assert c.example() == 4
-    assert cbs[0]() + cbs[1]() == 8
+    assert len(cbs) == 3
+    assert cbs[0]() + cbs[1]() + cbs[2]() == 12

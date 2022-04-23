@@ -1,4 +1,5 @@
 import asyncio
+from collections import OrderedDict
 
 from telebotties._internal.callbacks import CallbackBase
 from telebotties._internal.controls import ControlBase
@@ -32,9 +33,9 @@ def get_input_cb(name):
 def reset():
     CallbackBase._callbacks = {}
     CallbackBase._instances = {}
-    DecoratorBase._needs_wrapping = {}
+    DecoratorBase._needs_wrapping = OrderedDict()
     DecoratorBase._wihtout_instance = set()
-    DecoratorBase._instance_callbacks = {}
+    DecoratorBase._instance_callbacks = OrderedDict()
     ControlBase._event_callbacks = {}
     ControlBase._controls = []
     state_machine.sleep_event_async = None

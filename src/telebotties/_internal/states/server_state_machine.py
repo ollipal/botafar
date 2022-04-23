@@ -157,6 +157,7 @@ class ServerStateMachine:
         # all_finished too early, others might be unnecessary
         self.rlock = threading.RLock()
         self.sleep_event_sync = threading.Event()
+        self.internal_sleep_event_sync = threading.Event()
         self.sleep_event_async = None  # Added later when the loop starts
         self.callback_executor = None  # Added later also
 
@@ -307,9 +308,10 @@ class ServerStateMachine:
         self.player._name = ""
         self.player._is_connected = False
         # if self.state in [START, WAITING_STOP]:
-        self.safe_state_change(
-            self.stop_immediate, "stop_immediate", "player_disconnect"
-        )
+        if self.state is not EXIT_IMMEDIATE:
+            self.safe_state_change(
+                self.stop_immediate, "stop_immediate", "player_disconnect"
+            )
 
     def after_init(self):
         # with self.rlock:
@@ -394,8 +396,10 @@ class ServerStateMachine:
         self.notify_state_change("on_stop")
         self.sleep_event_sync.set()
         self.sleep_event_async.set()
+        self.execute(
+            "on_stop(immediate=True)", self.synced_stop, "synced_stop"
+        )
         self.disable_controls()
-        self.execute("on_stop_immediate", self.synced_stop, "synced_stop")
 
     def after_stop(self):
         # with self.rlock:
@@ -412,7 +416,7 @@ class ServerStateMachine:
         self.sleep_event_async.set()
         self.disable_controls()
         self.reset_controls("host")
-        # "on_exit_immediate" executed from main
+        # "on_exit(immediate=True)" executed from main
 
     def after_exit(self):
         # with self.rlock:
@@ -495,6 +499,15 @@ class ServerStateMachine:
             raise SleepCancelledError()
 
         if self.sleep_event_sync.wait(timeout=secs):
+            raise SleepCancelledError()
+
+    def internal_sleep(self, secs):
+        # Triggers even when secs=0
+        # (not sure if required here, but at least on sleep_async it is)
+        if self.internal_sleep_event_sync.is_set():
+            raise SleepCancelledError()
+
+        if self.internal_sleep_event_sync.wait(timeout=secs):
             raise SleepCancelledError()
 
     async def sleep_async(self, secs):

@@ -3,6 +3,7 @@ import functools
 import inspect
 import types
 from abc import ABC, abstractmethod
+from collections import OrderedDict
 from inspect import Parameter, signature
 
 from ..function_utils import get_function_title, get_params
@@ -13,57 +14,82 @@ logger = get_logger()
 main = None
 
 
-class DecoratorBase(ABC):
-    _needs_wrapping = {}
-    _wihtout_instance = set()
-    _instance_callbacks = {}
+def get_decorator(cls, always_empty):
+    def decorator(*args, **kwargs):
+        assert not (always_empty and len(args) == 0 and len(kwargs) == 0), (
+            "Remove empty parentheses '()' from " f"@tb.{cls.__name__}()"
+        )
+        assert not (
+            always_empty and len(kwargs) != 0
+        ), f"@tb.{cls.__name__} got unknown parameters {list(kwargs.keys())}"
+        assert not (
+            always_empty and len(args) > 1
+        ), f"@tb.{cls.__name__} got unknown arguments {args}"
+        assert not (
+            always_empty
+            and not (
+                isinstance(args[0], (classmethod, staticmethod))
+                or callable(args[0])
+            )
+        ), (
+            f"Cannot use {cls.__name__} with a "
+            f"non-callable object {args[0]}"
+        )
 
-    def __init__(self, *func):
+        def wrap(*args):
+            return cls(*args, **kwargs)
+
+        if len(args) >= 1 and callable(args[0]):
+            return wrap(*args)
+        else:
+            return wrap
+
+    return decorator
+
+
+class DecoratorBase(ABC):
+    _needs_wrapping = OrderedDict()
+    _wihtout_instance = set()
+    _instance_callbacks = OrderedDict()
+
+    def __init__(self, *args, **kwargs):
         assert state_machine.state == PRE_INIT, (
             f"{self.__class__.__name__} callbacks cannot be added "
             "after listen()"
         )
-        assert len(func) != 0, (
-            "Remove empty parentheses '()' from "
-            f"@tb.{self.__class__.__name__}()"
-        )
         assert (
-            len(func) == 1
-        ), f"{self.__class__.__name__} got too many arguments: {func}"
+            len(args) == 1
+        ), f"{self.__class__.__name__} got too many arguments: {args}"
         assert (
-            not hasattr(func[0], "__name__") or func[0].__name__ != "__init__"
+            not hasattr(args[0], "__name__") or args[0].__name__ != "__init__"
         ), f"Cannot add {self.__class__.__name__} callback to __init__ method"
 
         assert not inspect.isclass(
-            func[0]
+            args[0]
         ), f"Cannot use {self.__class__.__name__} with a class"
-        assert isinstance(func[0], (classmethod, staticmethod)) or callable(
-            func[0]
+        assert isinstance(args[0], (classmethod, staticmethod)) or callable(
+            args[0]
         ), (
             f"Cannot use {self.__class__.__name__} with a "
-            f"non-callable object {func[0]}"
+            f"non-callable object {args[0]}"
         )
 
-        self.func_original = func[0]
-        self.func = func[0]
+        self.func_original = args[0]
+        self.func = args[0]
 
         # flags to set in 'verify_params_and_set_flags'
         self.takes_event = False
         self.takes_time = False
 
-        self.new_func = None
+        self.init_finished = False
 
-        DecoratorBase._needs_wrapping[self.func_original] = (
-            self.wrap,
-            self.verify_params_and_set_flags,
-            lambda: self.new_func,
-        )
+        DecoratorBase._needs_wrapping[self.func_original] = self
 
         self.func_title = get_function_title(self.func)
         # NOTE: this is not as good as functools.wraps:
         # https://stackoverflow.com/a/25973438/7388328
         # TODO: make sure this does something
-        functools.update_wrapper(self, self.func)
+        functools.update_wrapper(self, self.func_original)
 
     @abstractmethod
     def verify_params_and_set_flags(self, params):
@@ -82,104 +108,104 @@ class DecoratorBase(ABC):
         # Do the default __set_name__ action
         setattr(owner, name, self.func)
 
-        # Make sure runs only once (not sure if even possible?)
-        if not hasattr(owner, "__telebotties_instance_init_callbacks__") or (
+        # Do custom things
+        def init_callback(self_):
+            assert state_machine.state == PRE_INIT, (
+                f"{self.__class__.__name__} callbacks cannot be added "
+                "after listen()"
+            )  # Should this be warning instead?
+            assert not (self.takes_event and self.takes_time)
+
+            if isinstance(self.func, (classmethod, staticmethod)):
+                if isinstance(self.func, classmethod):
+                    params = list(get_params(self.func.__func__))[1:]
+                else:
+                    params = get_params(self.func.__func__)
+
+                self.verify_params_and_set_flags(params)
+                params = []
+            else:
+                params = get_params(self.func)
+                assert len(params) >= 1, "First param should be 'self'"
+                self.verify_params_and_set_flags(list(params)[1:])
+                params = [self_]
+
+            if self.takes_time:
+                params.append(self.time)
+
+            self.init_callback_wrap(owner, name, params, self.takes_event)
+            self.init_finished = True
+            self.owner = owner
+            self.name = name
+            self.params = params
+
+        # Save instance init callbacks
+        if not hasattr(owner, "__telebotties_instance_init_callbacks__"):
+            owner.__telebotties_instance_init_callbacks__ = {
+                self: init_callback
+            }
+        elif (
             hasattr(owner, "__telebotties_instance_init_callbacks__")
             and self not in owner.__telebotties_instance_init_callbacks__
         ):
+            owner.__telebotties_instance_init_callbacks__[self] = init_callback
 
-            def init_callback(self_):
-                assert state_machine.state == PRE_INIT, (
-                    f"{self.__class__.__name__} callbacks cannot be added "
-                    "after listen()"
-                )  # Should this be warning instead?
-                assert not (self.takes_event and self.takes_time)
+        if owner not in DecoratorBase._wihtout_instance:
+            DecoratorBase._wihtout_instance.add(owner)
 
-                if isinstance(self.func, (classmethod, staticmethod)):
-                    if isinstance(self.func, classmethod):
-                        params = list(get_params(self.func.__func__))[1:]
-                    else:
-                        params = get_params(self.func.__func__)
+        cb_name = self.__class__.__name__
+        if owner not in DecoratorBase._instance_callbacks:
+            DecoratorBase._instance_callbacks[owner] = [cb_name]
+        elif cb_name not in DecoratorBase._instance_callbacks[owner]:
+            DecoratorBase._instance_callbacks[owner].append(cb_name)
 
-                    self.func = self.func.__func__
-                    self.verify_params_and_set_flags(params)
-                    params = []
-                else:
-                    params = get_params(self.func)
-                    assert len(params) >= 1, "First param should be 'self'"
-                    self.verify_params_and_set_flags(list(params)[1:])
-                    params = [self_]
+        # Only functions need wrapping
+        # if self.func_original in DecoratorBase._needs_wrapping:
+        del DecoratorBase._needs_wrapping[self.func_original]
 
-                if self.takes_time:
-                    params.append(self.time)
+        def new_init(*args, **kwargs):
+            logger.debug(f"Custom init running for {owner.__name__}")
 
-                if asyncio.iscoroutinefunction(self.func):
-                    if self.takes_event:
+            for (
+                callback
+            ) in owner.__telebotties_instance_init_callbacks__.values():
+                callback(args[0])
 
-                        async def new_func(event):
-                            return await getattr(owner, name)(*params, event)
+            if owner in DecoratorBase._wihtout_instance:
+                DecoratorBase._wihtout_instance.remove(owner)
+            owner.__telebotties_original_init__(*args, **kwargs)
 
-                    else:
+        if not hasattr(owner, "__telebotties_original_init__"):
+            setattr(owner, "__telebotties_original_init__", owner.__init__)
+            setattr(owner, "__init__", new_init)
 
-                        async def new_func():
-                            return await getattr(owner, name)(*params)
+    def init_callback_wrap(self, owner, name, params, takes_event):
+        if isinstance(self.func, (classmethod, staticmethod)):
+            self.func = self.func.__func__
 
-                else:
-                    if self.takes_event:
+        if asyncio.iscoroutinefunction(self.func):
+            if takes_event:
 
-                        def new_func(event):
-                            return getattr(owner, name)(*params, event)
+                async def new_func(event):
+                    return await getattr(owner, name)(*params, event)
 
-                    else:
+            else:
 
-                        def new_func():
-                            return getattr(owner, name)(*params)
+                async def new_func():
+                    return await getattr(owner, name)(*params)
 
-                self.new_func = new_func
-                self.wrap(new_func)
-
-            # Save instance init callbacks
-            if not hasattr(owner, "__telebotties_instance_init_callbacks__"):
-                owner.__telebotties_instance_init_callbacks__ = {
-                    self: init_callback
-                }
-            elif (
-                hasattr(owner, "__telebotties_instance_init_callbacks__")
-                and self not in owner.__telebotties_instance_init_callbacks__
-            ):
-                owner.__telebotties_instance_init_callbacks__[
-                    self
-                ] = init_callback
-
-            if owner not in DecoratorBase._wihtout_instance:
-                DecoratorBase._wihtout_instance.add(owner)
-
-            cb_name = self.__class__.__name__
-            if owner not in DecoratorBase._instance_callbacks:
-                DecoratorBase._instance_callbacks[owner] = [cb_name]
-            elif cb_name not in DecoratorBase._instance_callbacks[owner]:
-                DecoratorBase._instance_callbacks[owner].append(cb_name)
-
-            # Only functions need wrapping
-            del DecoratorBase._needs_wrapping[self.func_original]
-
-            def new_init(*args, **kwargs):
-                logger.debug(f"Custom init running for {owner.__name__}")
-
-                for (
-                    callback
-                ) in owner.__telebotties_instance_init_callbacks__.values():
-                    callback(args[0])
-
-                if owner in DecoratorBase._wihtout_instance:
-                    DecoratorBase._wihtout_instance.remove(owner)
-                owner.__telebotties_original_init__(*args, **kwargs)
-
-            if not hasattr(owner, "__telebotties_original_init__"):
-                setattr(owner, "__telebotties_original_init__", owner.__init__)
-                setattr(owner, "__init__", new_init)
         else:
-            logger.debug("Second __set_name__ ignored")
+            if takes_event:
+
+                def new_func(event):
+                    return getattr(owner, name)(*params, event)
+
+            else:
+
+                def new_func():
+                    return getattr(owner, name)(*params)
+
+        self.wrap(new_func)
 
     @staticmethod
     def post_listen():
@@ -216,27 +242,45 @@ class DecoratorBase(ABC):
 
     @staticmethod
     def _wrap_ones_without_wrapping():
-        for func, (
-            wrap,
-            verify,
-            get_new_func,
-        ) in DecoratorBase._needs_wrapping.items():
-            if isinstance(
-                func, (types.FunctionType, types.LambdaType, types.MethodType)
-            ):
-                params = get_params(func)
-                verify(params)
-                wrap(func)
-            elif hasattr(func, "__class__") and issubclass(
-                func.__class__, DecoratorBase
-            ):
-                new_func = get_new_func()
-                if new_func is not None:  # in class methods is not None
-                    func = new_func
+        # Pass owner and params 'up' as long as possible
+        # This makes stacked decorators work
+        while True:
+            del_list = []
+            for func, self_ in DecoratorBase._needs_wrapping.items():
+                if self_.init_finished is True:
+                    func.init_callback_wrap(
+                        self_.owner,
+                        self_.name,
+                        self_.params,
+                        self_.takes_event,
+                    )
+                    func.init_finished = True
+                    func.owner = self_.owner
+                    func.name = self_.name
+                    func.params = self_.params
+                    func.takes_event = self_.takes_event
+                    del_list.append(func)
 
+            if len(del_list) == 0:
+                break
+
+            for func in del_list:
+                del DecoratorBase._needs_wrapping[func]
+
+        for func, self_ in DecoratorBase._needs_wrapping.items():
+            if isinstance(
+                func,
+                (
+                    types.FunctionType,
+                    types.LambdaType,
+                    types.MethodType,
+                    DecoratorBase,
+                ),
+            ):
                 params = get_params(func)
-                verify(params)
-                wrap(func)
+                self_.verify_params_and_set_flags(params)
+                self_.wrap(func)
+                self_.has_wrapped = True
             else:
                 raise RuntimeError(
                     f"Cannot reate a callback for: {func}, type: {type(func)}"

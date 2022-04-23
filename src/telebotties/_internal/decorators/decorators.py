@@ -3,7 +3,7 @@ import asyncio
 from ..callbacks import CallbackBase
 from ..function_utils import takes_parameter
 from ..states import sleep, sleep_async
-from .decorator_base import DecoratorBase
+from .decorator_base import DecoratorBase, get_decorator
 
 
 class on_init(DecoratorBase):  # noqa: N801
@@ -15,6 +15,9 @@ class on_init(DecoratorBase):  # noqa: N801
         return func
 
 
+on_init = get_decorator(on_init, True)
+
+
 class on_prepare(DecoratorBase):  # noqa: N801
     def verify_params_and_set_flags(self, params):
         pass
@@ -22,6 +25,9 @@ class on_prepare(DecoratorBase):  # noqa: N801
     def wrap(self, func):
         CallbackBase.register_callback("on_prepare", func)
         return func
+
+
+on_prepare = get_decorator(on_prepare, True)
 
 
 class on_start(DecoratorBase):  # noqa: N801
@@ -33,22 +39,36 @@ class on_start(DecoratorBase):  # noqa: N801
         return func
 
 
+on_start = get_decorator(on_start, True)
+
+
 class on_stop(DecoratorBase):  # noqa: N801
+    def __init__(self, *args, **kwargs):
+        assert len(args) == 1 and (
+            len(kwargs) == 0 or (len(kwargs) == 1 and "immediate" in kwargs)
+        ), (
+            "Only a function and a keyword parameter 'immediate' can be "
+            f"passed to {self.__class__.__name__}"
+        )
+        if "immediate" in kwargs and kwargs["immediate"] is True:
+            self.immediate = True
+        else:
+            self.immediate = False
+
+        super().__init__(*args, **kwargs)
+
     def verify_params_and_set_flags(self, params):
         pass
 
     def wrap(self, func):
-        CallbackBase.register_callback("on_stop", func)
+        if self.immediate:
+            CallbackBase.register_callback("on_stop(immediate=True)", func)
+        else:
+            CallbackBase.register_callback("on_stop", func)
         return func
 
 
-class on_stop_immediate(DecoratorBase):  # noqa: N801
-    def verify_params_and_set_flags(self, params):
-        pass
-
-    def wrap(self, func):
-        CallbackBase.register_callback("on_stop_immediate", func)
-        return func
+on_stop = get_decorator(on_stop, False)
 
 
 class on_exit(DecoratorBase):  # noqa: N801
@@ -65,7 +85,7 @@ class on_exit_immediate(DecoratorBase):  # noqa: N801
         pass
 
     def wrap(self, func):
-        CallbackBase.register_callback("on_exit_immediate", func)
+        CallbackBase.register_callback("on_exit(immediate=True)", func)
         return func
 
 

@@ -16,7 +16,7 @@ def test_on_init_empty_parenthesis_errors():
 
 def test_on_init_extra_kwargs_errors():
     reset()
-    with pytest.raises(TypeError):
+    with pytest.raises(AssertionError):
 
         @on_init(a=7)
         def example():
