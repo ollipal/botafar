@@ -125,7 +125,7 @@ class Main(TelebottiesBase):
         finally:
             state_machine.exit_immediate()
             await self.run_callbacks("on_exit(immediate=True)", None)
-            state_machine.synced_exit()
+            state_machine.exit()
             await self.run_callbacks("on_exit", None)
 
     def error_callback(self, e, sigint=False, exit=False):
@@ -159,14 +159,7 @@ class Main(TelebottiesBase):
                 )
             )
         else:
-            self.event_prosessor.process_event(
-                SystemEvent(
-                    "host_disconnect",
-                    "server",
-                )
-            )
-
-        # TODO there is no check that send_events have been done
+            pass  # Does not continue locally
 
         self.should_connect_keyboard = False
         self.server.stop()
