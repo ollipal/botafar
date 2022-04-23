@@ -1,4 +1,5 @@
 import asyncio
+import copy
 import functools
 import inspect
 import types
@@ -133,7 +134,9 @@ class DecoratorBase(ABC):
             if self.takes_time:
                 params.append(self.time)
 
-            self.init_callback_wrap(owner, name, params, self.takes_event)
+            self.init_callback_wrap(
+                self.func, owner, name, params, self.takes_event
+            )
             self.init_finished = True
             self.owner = owner
             self.name = name
@@ -179,11 +182,16 @@ class DecoratorBase(ABC):
             setattr(owner, "__telebotties_original_init__", owner.__init__)
             setattr(owner, "__init__", new_init)
 
-    def init_callback_wrap(self, owner, name, params, takes_event):
-        if isinstance(self.func, (classmethod, staticmethod)):
-            self.func = self.func.__func__
+    def init_callback_wrap(self, func, owner, name, params, takes_event):
+        try:
+            func = copy.deepcopy(func)  # Does not help
+        except TypeError:
+            pass
 
-        if asyncio.iscoroutinefunction(self.func):
+        if isinstance(func, (classmethod, staticmethod)):
+            func = func.__func__
+
+        if asyncio.iscoroutinefunction(func):
             if takes_event:
 
                 async def new_func(event):
@@ -249,6 +257,7 @@ class DecoratorBase(ABC):
             for func, self_ in DecoratorBase._needs_wrapping.items():
                 if self_.init_finished is True:
                     func.init_callback_wrap(
+                        func,
                         self_.owner,
                         self_.name,
                         self_.params,

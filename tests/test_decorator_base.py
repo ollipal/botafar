@@ -384,6 +384,30 @@ def test_multiple_classes():
     assert cbs[0]() + cbs[1]() == 10
 
 
+def test_multiple_mixed():
+    reset()
+
+    @dec
+    def example():
+        return 2
+
+    class Class:
+        def __init__(self):
+            self.val = 3
+
+        @dec
+        def example(self):
+            return self.val + 4
+
+    c = Class()
+    fake_listen()
+    cbs = get_cbs("dec")
+    assert example() == 2
+    assert c.example() == 7
+    assert len(cbs) == 2
+    assert cbs[0]() + cbs[1]() == 9
+
+
 def test_multiple_decorators_function():
     reset()
 

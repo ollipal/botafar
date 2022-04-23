@@ -292,9 +292,10 @@ class ServerStateMachine:
         self.host._name = ""
         self.host._is_connected = False
         # if self.state in [START, WAITING_STOP]:
-        self.safe_state_change(
-            self.stop_immediate, "stop_immediate", "host_disconnect"
-        )
+        if self.state is not EXIT_IMMEDIATE:
+            self.safe_state_change(
+                self.stop_immediate, "stop_immediate", "host_disconnect"
+            )
 
     def on_player_connect(self, name):
         # with self.rlock:
@@ -307,8 +308,10 @@ class ServerStateMachine:
         # with self.rlock:
         self.player._name = ""
         self.player._is_connected = False
+
         # if self.state in [START, WAITING_STOP]:
         if self.state is not EXIT_IMMEDIATE:
+            self.disable_controls()
             self.safe_state_change(
                 self.stop_immediate, "stop_immediate", "player_disconnect"
             )
@@ -396,10 +399,10 @@ class ServerStateMachine:
         self.notify_state_change("on_stop")
         self.sleep_event_sync.set()
         self.sleep_event_async.set()
+        self.disable_controls()
         self.execute(
             "on_stop(immediate=True)", self.synced_stop, "synced_stop"
         )
-        self.disable_controls()
 
     def after_stop(self):
         # with self.rlock:
@@ -431,16 +434,16 @@ class ServerStateMachine:
         if self.state not in [STOP_IMMEDIATE, STOP]:
             return
 
-        with self.rlock:
-            if self.all_finished():
-                if self.state == STOP_IMMEDIATE:
-                    self.safe_state_change(
-                        self.synced_stop, "synced_stop", "control_finished"
-                    )
-                elif self.state == STOP:
-                    self.safe_state_change(
-                        self.wait_host, "wait_host", "control_finished"
-                    )
+        # with self.rlock:
+        if self.all_finished():
+            if self.state == STOP_IMMEDIATE:
+                self.safe_state_change(
+                    self.synced_stop, "synced_stop", "control_finished"
+                )
+            elif self.state == STOP:
+                self.safe_state_change(
+                    self.wait_host, "wait_host", "control_finished"
+                )
         # "synced_exit" executed from main
 
     def on_repeat_or_time_finished_callback(self):
@@ -458,7 +461,9 @@ class ServerStateMachine:
                 self.player._is_controlling = False
                 if self.player.is_connected:
                     self.inform("controls disabled")
-                self.reset_controls("player")
+                else:
+                    logger.info("controls disabled")
+            self.reset_controls("player")
 
     def reset_controls(self, sender):
         assert sender in ["host", "player"]
