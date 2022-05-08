@@ -1,5 +1,4 @@
 import asyncio
-import copy
 import functools
 import inspect
 import types
@@ -136,11 +135,13 @@ class DecoratorBase(ABC):
                 self.verify_params_and_set_flags(list(params)[1:])
                 params = [self_]
 
-            if self.takes_time:
-                params.append(self.time)
-
             self.init_callback_wrap(
-                self.func, owner, name, params, self.takes_event
+                self.func,
+                owner,
+                name,
+                params,
+                self.takes_event,
+                self.takes_time,
             )
             self.init_finished = True
             self.owner = owner
@@ -189,11 +190,9 @@ class DecoratorBase(ABC):
 
         # DecoratorBase._wrap_ones_without_wrapping()
 
-    def init_callback_wrap(self, func, owner, name, params, takes_event):
-        try:
-            func = copy.deepcopy(func)  # Does not help
-        except TypeError:
-            pass
+    def init_callback_wrap(
+        self, func, owner, name, params, takes_event, takes_time
+    ):
 
         if isinstance(func, (classmethod, staticmethod)):
             func = func.__func__
@@ -203,6 +202,11 @@ class DecoratorBase(ABC):
 
                 async def new_func(event):
                     return await getattr(owner, name)(*params, event)
+
+            elif takes_time:
+
+                async def new_func(time):
+                    return await getattr(owner, name)(*params, time)
 
             else:
 
@@ -214,6 +218,11 @@ class DecoratorBase(ABC):
 
                 def new_func(event):
                     return getattr(owner, name)(*params, event)
+
+            elif takes_time:
+
+                def new_func(time):
+                    return getattr(owner, name)(*params, time)
 
             else:
 
@@ -269,12 +278,14 @@ class DecoratorBase(ABC):
                         self_.name,
                         self_.params,
                         self_.takes_event,
+                        self_.takes_time,
                     )
                     func.init_finished = True
                     func.owner = self_.owner
                     func.name = self_.name
                     func.params = self_.params
                     func.takes_event = self_.takes_event
+                    func.takes_time = self_.takes_time
                     del_list.append(func)
 
             if len(del_list) == 0:

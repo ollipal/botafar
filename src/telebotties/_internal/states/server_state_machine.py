@@ -488,6 +488,14 @@ class ServerStateMachine:
                     logger.debug("controls disabled")
             self.reset_controls(_release_cb)
 
+    def execute_on_time_from_outside(self, callback):
+        if self.callback_executor is not None:
+            self.callback_executor.execute_callbacks(
+                [callback],
+                "on_time",
+                self.on_repeat_or_time_finished_callback,
+            )
+
     def reset_controls(self, release_cb):
         if self.callback_executor is not None:
             # Reset all controls

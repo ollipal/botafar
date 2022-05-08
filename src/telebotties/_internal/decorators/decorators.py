@@ -2,8 +2,11 @@ import asyncio
 
 from ..callbacks import CallbackBase
 from ..function_utils import takes_parameter
-from ..states import sleep, sleep_async
+from ..log_formatter import get_logger
+from ..states import sleep, sleep_async, state_machine, time
 from .decorator_base import DecoratorBase, get_decorator
+
+logger = get_logger()
 
 
 class OnInit(DecoratorBase):
@@ -98,30 +101,75 @@ def on_exit(*func, immediate=False):
 
 
 class OnTime(DecoratorBase):
+    def __init__(self, decorator_name, *args, **kwargs):
+        assert len(args) > 1, (
+            f"{decorator_name} takes one or more times as parameter"
+            f"for example '@tb.{decorator_name}(5)' "
+            f"or '@tb.{decorator_name}(1, 2, 3)' "
+        )
+        self.times = args[1:]
+
+        assert all(isinstance(time, (int, float)) for time in self.times), (
+            f"{decorator_name} all times should be numeric (int or float), "
+            f"current times: {self.times}"
+        )
+        assert self.times == tuple(sorted(self.times)), (
+            f"{decorator_name} times should be sorted from smallest to "
+            f"largest, current times: {self.times}"
+        )
+
+        super().__init__(decorator_name, args[0], **kwargs)
+
     def verify_params_and_set_flags(self, params):  # noqa: N805
         if takes_parameter(params, "time"):
             self.takes_time = True
+        else:
+            self.takes_time = False
 
     def wrap(self, func):
-        assert self.time is not None, "Set self.time during __init__"
-        if asyncio.iscoroutinefunction(func):
+        def get_wrapper(args, t):
+            if asyncio.iscoroutinefunction(func):
+                if self.takes_time:
 
-            async def wrapper(*args):
-                await sleep_async(self.time)
-                return await func(*args)
+                    async def wrapper():
+                        return await func(*args, t)
 
-        else:
+                else:
 
-            def wrapper(*args):
-                sleep(self.time)
-                return func(*args)
+                    async def wrapper():
+                        return await func(*args)
 
-        CallbackBase.register_callback("on_time", wrapper)
+            else:
+                if self.takes_time:
+
+                    def wrapper():
+                        return func(*args, t)
+
+                else:
+
+                    def wrapper():
+                        return func(*args)
+
+            return wrapper
+
+        async def outer_wrapper(*args):
+            for t in self.times:
+                now = time()
+                if now == -1:
+                    logger.warning("on_time time is -1???")
+                    break
+
+                await sleep_async(max(0, t - now))
+                state_machine.execute_on_time_from_outside(
+                    get_wrapper(args, t)
+                )
+
+        CallbackBase.register_callback("on_time", outer_wrapper)
         return func
 
 
-def on_time(func):
-    return get_decorator(OnTime, "on_time", False)(func)
+def on_time(func, *time):
+    return get_decorator(OnTime, "on_time", False)(func, *time)
 
 
 class OnRepeat(DecoratorBase):
