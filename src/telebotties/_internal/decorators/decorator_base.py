@@ -45,7 +45,7 @@ def get_decorator(cls, name, always_empty):
         else:
 
             def wrap2(func):
-                return wrap(func, **kwargs)  # Saves kwargs
+                return wrap(func, *args, **kwargs)  # Saves kwargs
 
             return wrap2
 

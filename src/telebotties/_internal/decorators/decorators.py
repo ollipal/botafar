@@ -125,6 +125,23 @@ def on_time(func):
 
 
 class OnRepeat(DecoratorBase):
+    def __init__(self, decorator_name, *args, **kwargs):
+        assert not (len(args) == 2 and isinstance(args[1], (int, float))), (
+            f"{decorator_name} parameter 'sleep' should be passed "
+            f"with a keyword: '@tb.{decorator_name}(sleep={args[1]})'"
+        )
+        assert "sleep" in kwargs
+        self.sleep = kwargs["sleep"]
+        assert isinstance(self.sleep, (int, float)), (
+            f"{decorator_name} parameter 'sleep' should be numeric "
+            f"(int or float), not '{self.sleep}'"
+        )
+        assert (
+            self.sleep >= 0
+        ), f"{decorator_name} parameter 'sleep' cannot be negative"
+        self.immediate = kwargs.get("sleep", False)
+        super().__init__(decorator_name, *args, **kwargs)
+
     def verify_params_and_set_flags(self, params):  # noqa: N805
         pass
 
@@ -134,18 +151,20 @@ class OnRepeat(DecoratorBase):
             async def wrapper(*args):
                 while True:
                     await func(*args)
-                    await sleep_async(0)
+                    await sleep_async(self.sleep)
 
         else:
 
             def wrapper(*args):
                 while True:
                     func(*args)
-                    sleep(0)
+                    sleep(self.sleep)
 
         CallbackBase.register_callback("on_repeat", wrapper)
         return func
 
 
-def on_repeat(func):
-    return get_decorator(OnRepeat, "on_repeat", True)(func)
+def on_repeat(*func, sleep=0.1):
+    return get_decorator(OnRepeat, "on_repeat", False)(
+        *func, **{"sleep": sleep}
+    )
