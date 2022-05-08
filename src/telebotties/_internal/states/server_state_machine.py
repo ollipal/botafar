@@ -480,14 +480,14 @@ class ServerStateMachine:
             self.controls_released = False
             if not self.player.is_controlling:
                 self.player._is_controlling = True
-                self.inform("controls enabled")
+                logger.debug("controls enabled")
 
     def disable_controls(self, _release_cb=None):
         with self.rlock:
             if self.player.is_controlling:
                 self.player._is_controlling = False
                 if self.player.is_connected:
-                    self.inform("controls disabled")
+                    logger.debug("controls disabled")
             self.reset_controls(_release_cb)
 
     def reset_controls(self, release_cb):
