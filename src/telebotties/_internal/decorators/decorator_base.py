@@ -14,7 +14,7 @@ logger = get_logger()
 main = None
 
 
-def get_decorator(cls, name, always_empty):
+def get_decorator(cls, title, name, always_empty):
     def decorator(*args, **kwargs):
         assert not (always_empty and len(args) == 0 and len(kwargs) == 0), (
             "Remove empty parentheses '()' from " f"@tb.{name}()"
@@ -33,18 +33,19 @@ def get_decorator(cls, name, always_empty):
             )
         ), (f"Cannot use {name} with a " f"non-callable object {args[0]}")
 
-        def wrap(*args, **kwargs):
-            return cls(name, *args, **kwargs)
+        def wrap(title, *args, **kwargs):
+            return cls(title, name, *args, **kwargs)
 
         if len(args) >= 1 and (
             isinstance(args[0], (classmethod, staticmethod))
             or callable(args[0])
         ):
-            return wrap(*args, **kwargs)
+            return wrap(title, *args, **kwargs)
         else:
 
             def wrap2(func):
-                return wrap(func, *args, **kwargs)  # Saves kwargs
+                title = get_function_title(func)
+                return wrap(title, func, *args, **kwargs)  # Saves kwargs
 
             return wrap2
 
@@ -56,7 +57,7 @@ class DecoratorBase(ABC):
     _wihtout_instance = set()
     _instance_callbacks = OrderedDict()
 
-    def __init__(self, decorator_name, *args, **kwargs):
+    def __init__(self, title, decorator_name, *args, **kwargs):
         self.decorator_name = decorator_name
         assert state_machine.state == PRE_INIT, (
             f"{self.decorator_name} callbacks cannot be added "
@@ -90,7 +91,7 @@ class DecoratorBase(ABC):
 
         DecoratorBase._needs_wrapping[self.func_original] = self
 
-        self.func_title = get_function_title(self.func)
+        self.func_title = title
         # NOTE: this is not as good as functools.wraps:
         # https://stackoverflow.com/a/25973438/7388328
         # TODO: make sure this does something
@@ -286,6 +287,7 @@ class DecoratorBase(ABC):
                     func.params = self_.params
                     func.takes_event = self_.takes_event
                     func.takes_time = self_.takes_time
+                    func.func_title = self_.func_title
                     del_list.append(func)
 
             if len(del_list) == 0:

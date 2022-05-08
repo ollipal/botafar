@@ -1,7 +1,11 @@
 import asyncio
 
 from ..callbacks import CallbackBase
-from ..function_utils import get_required_params, takes_parameter
+from ..function_utils import (
+    get_function_title,
+    get_required_params,
+    takes_parameter,
+)
 from ..log_formatter import get_logger
 from ..states import sleep, sleep_async, state_machine, time
 from .decorator_base import DecoratorBase, get_decorator
@@ -24,7 +28,8 @@ class OnInit(DecoratorBase):
 
 
 def on_init(func):
-    return get_decorator(OnInit, "on_init", True)(func)
+    title = get_function_title(func)
+    return get_decorator(OnInit, title, "on_init", True)(func)
 
 
 class OnPrepare(DecoratorBase):
@@ -42,7 +47,8 @@ class OnPrepare(DecoratorBase):
 
 
 def on_prepare(func):
-    return get_decorator(OnPrepare, "on_prepare", True)(func)
+    title = get_function_title(func)
+    return get_decorator(OnPrepare, title, "on_prepare", True)(func)
 
 
 class OnStart(DecoratorBase):
@@ -60,17 +66,18 @@ class OnStart(DecoratorBase):
 
 
 def on_start(func):
-    return get_decorator(OnStart, "on_start", True)(func)
+    title = get_function_title(func)
+    return get_decorator(OnStart, title, "on_start", True)(func)
 
 
 class OnStop(DecoratorBase):
-    def __init__(self, decorator_name, *args, **kwargs):
+    def __init__(self, title, decorator_name, *args, **kwargs):
         assert isinstance(kwargs.get("immediate", False), bool), (
             f"{decorator_name} parameter 'immediate' should be True or "
             f"False, not {kwargs['immediate']}"
         )
         self.immediate = kwargs.get("immediate", False)
-        super().__init__(decorator_name, *args, **kwargs)
+        super().__init__(title, decorator_name, *args, **kwargs)
 
     def verify_params_and_set_flags(self, params):
         required = get_required_params(params)
@@ -89,19 +96,26 @@ class OnStop(DecoratorBase):
 
 
 def on_stop(*func, immediate=False):
-    return get_decorator(OnStop, "on_stop", False)(
+    if len(func) >= 1 and (
+        isinstance(func[0], (classmethod, staticmethod)) or callable(func[0])
+    ):
+        title = get_function_title(func[0])
+    else:
+        title = "TITLE"
+
+    return get_decorator(OnStop, title, "on_stop", False)(
         *func, **{"immediate": immediate}
     )
 
 
 class OnExit(DecoratorBase):
-    def __init__(self, decorator_name, *args, **kwargs):
+    def __init__(self, title, decorator_name, *args, **kwargs):
         assert isinstance(kwargs.get("immediate", False), bool), (
             f"{decorator_name} parameter 'immediate' should be True or "
             f"False, not {kwargs['immediate']}"
         )
         self.immediate = kwargs.get("immediate", False)
-        super().__init__(decorator_name, *args, **kwargs)
+        super().__init__(title, decorator_name, *args, **kwargs)
 
     def verify_params_and_set_flags(self, params):
         required = get_required_params(params)
@@ -120,13 +134,20 @@ class OnExit(DecoratorBase):
 
 
 def on_exit(*func, immediate=False):
-    return get_decorator(OnExit, "on_exit", False)(
+    if len(func) >= 1 and (
+        isinstance(func[0], (classmethod, staticmethod)) or callable(func[0])
+    ):
+        title = get_function_title(func[0])
+    else:
+        title = "TITLE"
+
+    return get_decorator(OnExit, title, "on_exit", False)(
         *func, **{"immediate": immediate}
     )
 
 
 class OnTime(DecoratorBase):
-    def __init__(self, decorator_name, *args, **kwargs):
+    def __init__(self, title, decorator_name, *args, **kwargs):
         assert len(args) > 1, (
             f"{decorator_name} takes one or more times as parameter"
             f"for example '@tb.{decorator_name}(5)' "
@@ -143,7 +164,7 @@ class OnTime(DecoratorBase):
             f"largest, current times: {self.times}"
         )
 
-        super().__init__(decorator_name, args[0], **kwargs)
+        super().__init__(title, decorator_name, args[0], **kwargs)
 
     def verify_params_and_set_flags(self, params):  # noqa: N805
         if takes_parameter(params, "time", error_name=self.decorator_name):
@@ -194,11 +215,16 @@ class OnTime(DecoratorBase):
 
 
 def on_time(func, *time):
-    return get_decorator(OnTime, "on_time", False)(func, *time)
+    if isinstance(func, (classmethod, staticmethod)) or callable(func):
+        title = get_function_title(func)
+    else:
+        title = "TITLE"
+
+    return get_decorator(OnTime, title, "on_time", False)(func, *time)
 
 
 class OnRepeat(DecoratorBase):
-    def __init__(self, decorator_name, *args, **kwargs):
+    def __init__(self, title, decorator_name, *args, **kwargs):
         assert not (len(args) == 2 and isinstance(args[1], (int, float))), (
             f"{decorator_name} parameter 'sleep' should be passed "
             f"with a keyword: '@tb.{decorator_name}(sleep={args[1]})'"
@@ -213,7 +239,7 @@ class OnRepeat(DecoratorBase):
             self.sleep >= 0
         ), f"{decorator_name} parameter 'sleep' cannot be negative"
         self.immediate = kwargs.get("sleep", False)
-        super().__init__(decorator_name, *args, **kwargs)
+        super().__init__(title, decorator_name, *args, **kwargs)
 
     def verify_params_and_set_flags(self, params):
         required = get_required_params(params)
@@ -243,6 +269,13 @@ class OnRepeat(DecoratorBase):
 
 
 def on_repeat(*func, sleep=0.1):
-    return get_decorator(OnRepeat, "on_repeat", False)(
+    if len(func) >= 1 and (
+        isinstance(func[0], (classmethod, staticmethod)) or callable(func[0])
+    ):
+        title = get_function_title(func[0])
+    else:
+        title = "TITLE"
+
+    return get_decorator(OnRepeat, title, "on_repeat", False)(
         *func, **{"sleep": sleep}
     )

@@ -23,7 +23,7 @@ class Dec(DecoratorBase):
 
 
 def dec(func):
-    return get_decorator(Dec, "dec", True)(func)
+    return get_decorator(Dec, "title", "dec", True)(func)
 
 
 # Tests

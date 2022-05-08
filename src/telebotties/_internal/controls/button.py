@@ -1,6 +1,6 @@
 from ..decorators import DecoratorBase, get_decorator
 from ..events import Event
-from ..function_utils import takes_parameter
+from ..function_utils import get_function_title, takes_parameter
 from .control_base import ControlBase
 
 
@@ -82,13 +82,20 @@ class Button(ControlBase):
         )
 
     def on_press(self, func):
-        return get_decorator(self._on_press_class, "on_press", True)(func)
+        title = get_function_title(func)
+        return get_decorator(self._on_press_class, title, "on_press", True)(
+            func
+        )
 
     def on_release(self, func):
-        return get_decorator(self._on_release_class, "on_release", True)(func)
+        title = get_function_title(func)
+        return get_decorator(
+            self._on_release_class, title, "on_release", True
+        )(func)
 
     def on_any(self, func):
-        return get_decorator(self._on_any_class, "on_any", True)(func)
+        title = get_function_title(func)
+        return get_decorator(self._on_any_class, title, "on_any", True)(func)
 
     def _get_release_callbacks_and_event(self, time):
         if self.is_released:
