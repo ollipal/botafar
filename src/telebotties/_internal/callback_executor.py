@@ -37,42 +37,49 @@ class CallbackExecutor:
             if not name.startswith("_")
         ]
 
+    # TODO there must be a logic mistake here
     def execute_callbacks(
         self, callbacks, name, finished_callback, event=None
     ):
-        if len(callbacks) == 0:
-            if finished_callback is not None:
-                finished_callback()
-            return
+        futures = []
 
-        for callback in callbacks:
-            if event is not None and callback in self.takes_event:
-                params = [event]
-            else:
-                params = []
+        with self.rlock:
+            # Use an empty callback to trigger
+            # finished_callback with a proper timing
+            # If no callbacks entered
+            if len(callbacks) == 0:
+                if finished_callback is not None:
+                    callbacks = [lambda: None]
 
-            if asyncio.iscoroutinefunction(callback):
+            for callback in callbacks:
+                if event is not None and callback in self.takes_event:
+                    params = [event]
+                else:
+                    params = []
 
-                async def suppressed(cb, *args):
-                    try:
-                        await cb(*args)
-                    except SleepCancelledError:
-                        logger.debug("SleepCancelledError suppressed")
+                if asyncio.iscoroutinefunction(callback):
 
-                future = asyncio.run_coroutine_threadsafe(
-                    suppressed(callback, *params), self.loop
-                )
-            else:
+                    async def suppressed(cb, *args):
+                        try:
+                            await cb(*args)
+                        except SleepCancelledError:
+                            logger.debug("SleepCancelledError suppressed")
 
-                def suppressed(cb, *args):
-                    try:
-                        cb(*args)
-                    except SleepCancelledError:
-                        logger.debug("SleepCancelledError suppressed")
+                    future = asyncio.run_coroutine_threadsafe(
+                        suppressed(callback, *params), self.loop
+                    )
+                else:
 
-                future = self.executor.submit(suppressed, callback, *params)
+                    def suppressed(cb, *args):
+                        try:
+                            cb(*args)
+                        except SleepCancelledError:
+                            logger.debug("SleepCancelledError suppressed")
 
-            with self.rlock:
+                    future = self.executor.submit(
+                        suppressed, callback, *params
+                    )
+
                 if finished_callback is not None:
                     # NOTE this can override existing, which should be ok
                     self.finished_callbacks[name] = finished_callback
@@ -81,6 +88,12 @@ class CallbackExecutor:
                     self.running_futures[name] = set()
                 self.running_futures[name].add(future)
 
+                futures.append(future)
+
+        # NOTE: Adding done callback inside rlock when is already
+        # ready, will trigger _done immediately, and with lock
+        # acquired! That is why this needs to be done outside separately
+        for future in futures:
             # TODO can future finish before done callback is added?
             # Probably just then triggers immediately
             future.add_done_callback(self._done)
@@ -91,7 +104,6 @@ class CallbackExecutor:
 
     async def wait_until_all_finished(self):
         futures = set().union(*self.running_futures.values())
-        # TODO skip SleepCancelledErrors
         await asyncio.gather(*[asyncio.wrap_future(f) for f in futures])
 
     def _done(self, future):

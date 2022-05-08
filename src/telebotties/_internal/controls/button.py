@@ -84,15 +84,14 @@ class Button(ControlBase):
     def on_any(self, func):
         return get_decorator(self._on_any_class, "on_any", True)(func)
 
-    def _get_release_callbacks_and_event(self, sender, time):
-        assert sender in ["host", "player"]
-
-        if self.is_released or self.latest_event.sender != sender:
-            return [], self.latest_event
+    def _get_release_callbacks_and_event(self, time):
+        if self.is_released:
+            return [], None
 
         release_event = self.latest_event
         release_event._set_time(time)
-        release_event._name = "on_release"
+        release_event._change_name("on_release")
+        print(f"here: {release_event}")
         return self._get_instance_callbacks(release_event), release_event
 
     @property

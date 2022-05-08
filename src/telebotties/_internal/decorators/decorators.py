@@ -47,17 +47,11 @@ def on_start(func):
 
 class OnStop(DecoratorBase):
     def __init__(self, decorator_name, *args, **kwargs):
-        assert len(args) == 1 and (
-            len(kwargs) == 0 or (len(kwargs) == 1 and "immediate" in kwargs)
-        ), (
-            "Only a function and a keyword parameter 'immediate' can be "
-            f"passed to {decorator_name}"
+        assert isinstance(kwargs.get("immediate", False), bool), (
+            f"{decorator_name} parameter 'immediate' should be True or "
+            f"False, not {kwargs['immediate']}"
         )
-        if "immediate" in kwargs and kwargs["immediate"] is True:
-            self.immediate = True
-        else:
-            self.immediate = False
-
+        self.immediate = kwargs.get("immediate", False)
         super().__init__(decorator_name, *args, **kwargs)
 
     def verify_params_and_set_flags(self, params):
@@ -71,23 +65,19 @@ class OnStop(DecoratorBase):
         return func
 
 
-def on_stop(func, immediate=False):
-    return get_decorator(OnStop, "on_stop", False)(func, immediate=immediate)
+def on_stop(*func, immediate=False):
+    return get_decorator(OnStop, "on_stop", False)(
+        *func, **{"immediate": immediate}
+    )
 
 
 class OnExit(DecoratorBase):
     def __init__(self, decorator_name, *args, **kwargs):
-        assert len(args) == 1 and (
-            len(kwargs) == 0 or (len(kwargs) == 1 and "immediate" in kwargs)
-        ), (
-            "Only a function and a keyword parameter 'immediate' can be "
-            f"passed to {decorator_name}"
+        assert isinstance(kwargs.get("immediate", False), bool), (
+            f"{decorator_name} parameter 'immediate' should be True or "
+            f"False, not {kwargs['immediate']}"
         )
-        if "immediate" in kwargs and kwargs["immediate"] is True:
-            self.immediate = True
-        else:
-            self.immediate = False
-
+        self.immediate = kwargs.get("immediate", False)
         super().__init__(decorator_name, *args, **kwargs)
 
     def verify_params_and_set_flags(self, params):
@@ -101,8 +91,10 @@ class OnExit(DecoratorBase):
         return func
 
 
-def on_exit(func, immediate=False):
-    return get_decorator(OnExit, "on_exit", False)(func, immediate=immediate)
+def on_exit(*func, immediate=False):
+    return get_decorator(OnExit, "on_exit", False)(
+        *func, **{"immediate": immediate}
+    )
 
 
 class OnTime(DecoratorBase):

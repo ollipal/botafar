@@ -37,8 +37,6 @@ SIMPLIFIED_STATES = {
 class Host:
     def __init__(self):
         self._is_connected = False
-        self._is_controlling_player = False
-        self._is_controlling_host_only = False
         self._name = ""
 
     @property
@@ -157,9 +155,13 @@ class ServerStateMachine:
         # all_finished too early, others might be unnecessary
         self.rlock = threading.RLock()
         self.sleep_event_sync = threading.Event()
-        self.internal_sleep_event_sync = threading.Event()
         self.sleep_event_async = None  # Added later when the loop starts
+        self.exit_event = None  # Added later when the loop starts
         self.callback_executor = None  # Added later also
+
+        self.controls_released = False
+        self.stop_immediate_finished = False
+        self.exit_immediate_finished = False
 
         # add_transition params: trigger, source, destination
         self.machine.add_transition(
@@ -192,7 +194,7 @@ class ServerStateMachine:
             "start",
             WAITING_PLAYER,
             START,
-            conditions=["host_connected", "player_connected"],
+            conditions="host_and_player_connected",
             after="after_start",
         )
         self.machine.add_transition(
@@ -211,7 +213,7 @@ class ServerStateMachine:
             "stop",
             STOP_IMMEDIATE,
             STOP,
-            conditions="all_finished",
+            conditions="can_stop",
             after="after_stop",
         )
         self.machine.add_transition(
@@ -221,7 +223,7 @@ class ServerStateMachine:
             "exit",
             EXIT_IMMEDIATE,
             EXIT,
-            conditions="all_finished",
+            conditions="can_exit",
             after="after_exit",
         )
 
@@ -230,6 +232,20 @@ class ServerStateMachine:
         self.inform = inform
         self.notify_state_change = notify_state_change
         self.callback_executor = callback_executor
+
+    def can_stop(self):
+        return (
+            self.all_finished()
+            and self.controls_released
+            and self.stop_immediate_finished
+        )
+
+    def can_exit(self):
+        return (
+            self.all_finished()
+            and self.controls_released
+            and self.exit_immediate_finished
+        )
 
     def all_finished(self):
         with self.rlock:
@@ -258,24 +274,21 @@ class ServerStateMachine:
         return self.host.is_connected
 
     # transition conditions requires this
-    def player_connected(self):
+    def host_and_player_connected(self):
         # with self.rlock:
-        return self.player.is_connected
+        return self.host.is_connected and self.player.is_connected
 
     def on_host_connect(self, name):
         # with self.rlock:
         self.host._name = name
         self.host._is_connected = True
-        # if self.state == WAITING_HOST:
         self.safe_state_change(self.prepare, "prepare", "host_connect")
-        # elif self.state == WAITING_PLAYER:
         self.safe_state_change(self.start, "start", "host_connect")
 
     def on_host_disconnect(self):
         # with self.rlock:
         self.host._name = ""
         self.host._is_connected = False
-        # if self.state in [START, WAITING_STOP]:
         if self.state != EXIT_IMMEDIATE:
             self.safe_state_change(
                 self.stop_immediate, "stop_immediate", "host_disconnect"
@@ -285,17 +298,13 @@ class ServerStateMachine:
         # with self.rlock:
         self.player._name = name
         self.player._is_connected = True
-        # if self.state == WAITING_PLAYER:
         self.safe_state_change(self.start, "start", "player_connect")
 
     def on_player_disconnect(self):
         # with self.rlock:
         self.player._name = ""
         self.player._is_connected = False
-        self.disable_controls()
-
-        # if self.state in [START, WAITING_STOP]:
-        if self.state is not EXIT_IMMEDIATE:
+        if self.state != EXIT_IMMEDIATE:
             self.safe_state_change(
                 self.stop_immediate, "stop_immediate", "player_disconnect"
             )
@@ -311,13 +320,17 @@ class ServerStateMachine:
         logger.debug("STATE: waiting_host")
         self.notify_state_change("waiting_host")
         self.start_time = -1
-        # if self.host.connected:
-        self.prepare()
+        self.safe_state_change(self.prepare, "prepare", "waiting_host")
 
     def after_prepare(self):
         # with self.rlock:
         logger.debug("STATE: on_prepare")
         self.notify_state_change("on_prepare")
+
+        # Reset state flags
+        self.controls_released = False
+        self.stop_immediate_finished = False
+        self.exit_immediate_finished = False
 
         def safe_on_prepare_callback():
             self.safe_state_change(
@@ -379,15 +392,32 @@ class ServerStateMachine:
         self.notify_state_change("on_stop")
         self.sleep_event_sync.set()
         self.sleep_event_async.set()
-        self.disable_controls()
-        self.execute("on_stop(immediate=True)", self.stop, "stop")
+
+        # stop_lock makes sure both must start before
+        # stop() is called
+        def wrapper():
+            self.stop_immediate_finished = True
+            self.safe_state_change(self.stop, "stop", "stop_immediate")
+            self.safe_state_change(self.exit, "exit", "stop_immediate")
+
+        self.execute("on_stop(immediate=True)", wrapper, "stop_immediate")
+
+        def safe_stop():
+            self.safe_state_change(self.stop, "stop", "stop_immediate")
+
+        self.disable_controls(_release_cb=safe_stop)
 
     def after_stop(self):
         # with self.rlock:
         logger.debug("STATE: stop")
         self.sleep_event_sync.clear()
         self.sleep_event_async.clear()
-        self.execute("on_stop", self.wait_host, "wait_host")
+
+        def wrapper():
+            self.safe_state_change(self.wait_host, "wait_host", "on_stop")
+            self.safe_state_change(self.exit, "exit", "on_stop")
+
+        self.execute("on_stop", wrapper, "wait_host")
 
     def after_exit_immediate(self):
         # with self.rlock:
@@ -403,9 +433,16 @@ class ServerStateMachine:
         self.on_player_disconnect()
         self.on_host_disconnect()
 
-        self.disable_controls()
-        self.reset_controls("host")
-        # "on_exit(immediate=True)" executed from main
+        def exit_wrapper():
+            self.exit_immediate_finished = True
+            self.exit()
+
+        self.execute("on_exit(immediate=True)", exit_wrapper, "exit_immediate")
+
+        def safe_exit():
+            self.safe_state_change(self.exit, "exit", "exit_immediate")
+
+        self.disable_controls(_release_cb=safe_exit)
 
     def after_exit(self):
         # with self.rlock:
@@ -413,11 +450,18 @@ class ServerStateMachine:
         self.sleep_event_async.clear()
         logger.debug("STATE: exit")
         self.start_time = -1
-        # "on_exit" executed from main
+
+        def set_exit_event():
+            assert (
+                self.exit_event is not None
+            ), "exit_event should be awailable here..."
+            self.loop.call_soon_threadsafe(self.exit_event.set)
+
+        self.execute("on_exit", set_exit_event, "wait_host")
 
     def on_control_finished_callback(self):
         # Perf reasons, this is executed a lot
-        if self.state not in [STOP_IMMEDIATE, STOP]:
+        if self.state not in [STOP_IMMEDIATE, EXIT_IMMEDIATE]:
             return
 
         with self.rlock:
@@ -426,40 +470,43 @@ class ServerStateMachine:
                     self.safe_state_change(
                         self.stop, "stop", "control_finished"
                     )
-                elif self.state == STOP:
+                elif self.state == EXIT_IMMEDIATE:
                     self.safe_state_change(
-                        self.wait_host, "wait_host", "control_finished"
+                        self.exit, "exit", "control_finished"
                     )
-        # "exit()" executed from main
 
     def on_repeat_or_time_finished_callback(self):
         self.on_control_finished_callback()
 
     def enable_controls(self):
+        self.controls_released = False
         with self.rlock:
             if not self.player.is_controlling:
                 self.player._is_controlling = True
                 self.inform("controls enabled")
 
-    def disable_controls(self):
+    def disable_controls(self, _release_cb=None):
         with self.rlock:
             if self.player.is_controlling:
                 self.player._is_controlling = False
                 if self.player.is_connected:
                     self.inform("controls disabled")
-            self.reset_controls("player")
+            self.reset_controls(_release_cb)
 
-    def reset_controls(self, sender):
-        assert sender in ["host", "player"]
-
-        with self.rlock:
-            if self.callback_executor is not None:
+    def reset_controls(self, release_cb):
+        if self.callback_executor is not None:
+            # Reset all controls
+            names = set()
+            with self.rlock:
                 time = self.time()
                 for control in ControlBase._controls:
                     (
                         callbacks,
                         event,
-                    ) = control._get_release_callbacks_and_event(sender, time)
+                    ) = control._get_release_callbacks_and_event(time)
+
+                    if len(callbacks) == 0:
+                        continue
 
                     self.callback_executor.execute_callbacks(
                         callbacks,
@@ -467,6 +514,25 @@ class ServerStateMachine:
                         self.on_control_finished_callback,
                         event=event,
                     )
+                    names.add(event.name)
+
+            # After all controls finished, set controls_released to True
+            async def wait_releases():
+                await asyncio.gather(
+                    *[
+                        self.callback_executor.wait_until_finished(n)
+                        for n in names
+                    ]
+                )
+                self.controls_released = True
+                if release_cb is not None:
+                    release_cb()
+
+            self.callback_executor.execute_callbacks(
+                [wait_releases],
+                "_wait_releases",
+                None,
+            )
 
     def _state(self):  # name 'state' is reserved by transitions
         return SIMPLIFIED_STATES.get(self.state, self.state)
@@ -480,6 +546,7 @@ class ServerStateMachine:
     def set_loop(self, loop):
         self.loop = loop
         self.sleep_event_async = asyncio.Event()
+        self.exit_event = asyncio.Event()
 
     def sleep(self, secs):
         # Triggers even when secs=0
@@ -488,15 +555,6 @@ class ServerStateMachine:
             raise SleepCancelledError()
 
         if self.sleep_event_sync.wait(timeout=secs):
-            raise SleepCancelledError()
-
-    def internal_sleep(self, secs):
-        # Triggers even when secs=0
-        # (not sure if required here, but at least on sleep_async it is)
-        if self.internal_sleep_event_sync.is_set():
-            raise SleepCancelledError()
-
-        if self.internal_sleep_event_sync.wait(timeout=secs):
             raise SleepCancelledError()
 
     async def sleep_async(self, secs):
@@ -516,6 +574,14 @@ class ServerStateMachine:
             raise SleepCancelledError()
         except asyncio.TimeoutError:
             pass
+
+    async def wait_exit(self):
+        assert (
+            self.exit_event is not None
+        ), "exit_event should be awailable here..."
+        logger.debug("Waiting exit...")
+        await self.exit_event.wait()
+        logger.debug("...Exit waited")
 
 
 state_machine = ServerStateMachine()

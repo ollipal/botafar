@@ -34,16 +34,20 @@ def get_decorator(cls, name, always_empty):
             )
         ), (f"Cannot use {name} with a " f"non-callable object {args[0]}")
 
-        def wrap(*args):
+        def wrap(*args, **kwargs):
             return cls(name, *args, **kwargs)
 
         if len(args) >= 1 and (
             isinstance(args[0], (classmethod, staticmethod))
             or callable(args[0])
         ):
-            return wrap(*args)
+            return wrap(*args, **kwargs)
         else:
-            return wrap
+
+            def wrap2(func):
+                return wrap(func, **kwargs)  # Saves kwargs
+
+            return wrap2
 
     return decorator
 
