@@ -22,7 +22,9 @@ class Button(ControlBase):
 
         class OnPress(DecoratorBase):
             def verify_params_and_set_flags(self_, params):  # noqa: N805
-                if takes_parameter(params, "event"):
+                if takes_parameter(
+                    params, "event", error_name=self_.decorator_name
+                ):
                     self_.takes_event = True
 
             def wrap(self_, func):  # noqa: N805
@@ -33,7 +35,9 @@ class Button(ControlBase):
 
         class OnRelease(DecoratorBase):
             def verify_params_and_set_flags(self_, params):  # noqa: N805
-                if takes_parameter(params, "event"):
+                if takes_parameter(
+                    params, "event", error_name=self_.decorator_name
+                ):
                     self_.takes_event = True
 
             def wrap(self_, func):  # noqa: N805
@@ -46,14 +50,16 @@ class Button(ControlBase):
 
         class OnAny(DecoratorBase):
             def verify_params_and_set_flags(self_, params):  # noqa: N805
-                if takes_parameter(params, "event"):
+                if takes_parameter(
+                    params, "event", error_name=self_.decorator_name
+                ):
                     self_.takes_event = True
 
             def wrap(self_, func):  # noqa: N805
                 if not self._takes_event(func):
                     raise RuntimeError(
-                        "on_any callback function must take 'event'"
-                        " as the first parameter."
+                        f"{self_.decorator_name} callback function must take "
+                        "'event' as the first parameter."
                     )
 
                 title = self_.func_title

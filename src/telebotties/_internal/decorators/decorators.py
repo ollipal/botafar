@@ -146,7 +146,7 @@ class OnTime(DecoratorBase):
         super().__init__(decorator_name, args[0], **kwargs)
 
     def verify_params_and_set_flags(self, params):  # noqa: N805
-        if takes_parameter(params, "time"):
+        if takes_parameter(params, "time", error_name=self.decorator_name):
             self.takes_time = True
         else:
             self.takes_time = False

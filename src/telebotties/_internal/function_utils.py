@@ -7,7 +7,7 @@ def get_params(function):
     return signature(function).parameters.values()
 
 
-def takes_parameter(parameters, param_name):
+def takes_parameter(parameters, param_name, error_name=None):
     takes_param = False
     for i, param in enumerate(parameters):
         if i == 0:
@@ -25,11 +25,20 @@ def takes_parameter(parameters, param_name):
                     and param.default == Parameter.empty
                 )  # Required keyword only argument
             ):
-                raise RuntimeError(
-                    f"The first control callback argument must be called "
-                    f"'{param_name}', or it needs to be optional. Currently "
-                    f"it is '{param.name}' and it is required."
-                )
+                if error_name is None:
+                    raise RuntimeError(
+                        f"The first callback parameter must be called "
+                        f"'{param_name}', or it needs to be optional. "
+                        f"Currently it is '{param.name}' and it is "
+                        "required."
+                    )
+                else:
+                    raise RuntimeError(
+                        f"{error_name} callback parameter must be called "
+                        f"'{param_name}', or it needs to be optional. "
+                        f"Currently it is '{param.name}' and it is "
+                        "required."
+                    )
             # else: is some optional param
         else:
             if (

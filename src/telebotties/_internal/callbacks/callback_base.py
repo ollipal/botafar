@@ -1,4 +1,4 @@
-from ..function_utils import get_params, takes_parameter
+from ..function_utils import get_params, get_required_params
 from ..log_formatter import get_logger
 
 logger = get_logger()
@@ -29,9 +29,7 @@ class CallbackBase:
 
     @staticmethod
     def register_callback(name, function):
-        # NOTE # Also validates other parameters
-        if CallbackBase._takes_time(function):
-            pass  # The result does not matter, as time is already wrapped in
+        assert not CallbackBase._requires_params(function)
 
         if name in CallbackBase._callbacks:
             CallbackBase._callbacks[name].append(function)
@@ -42,9 +40,7 @@ class CallbackBase:
 
     @staticmethod
     def register_instance(name, function):
-        # NOTE # Also validates other parameters
-        if CallbackBase._takes_time(function):
-            pass  # The result does not matter, as time is already wrapped in
+        assert not CallbackBase._requires_params(function)
 
         if name in CallbackBase._callbacks:
             CallbackBase._callbacks[name].append(function)
@@ -54,6 +50,5 @@ class CallbackBase:
         logger.debug(f"{name} registered")
 
     @staticmethod
-    def _takes_time(function):
-        # TODO remove, validate otherwise
-        return takes_parameter(get_params(function), "time")
+    def _requires_params(function):
+        return len(get_required_params(get_params(function))) != 0
