@@ -104,12 +104,12 @@ class Cli(TelebottiesBase):
     default=None,
     help="Connect keyboard to address, default: 127.0.0.1:1996.",
 )
-@click.option(
-    "-s",
-    "--suppress-keys",
-    is_flag=True,
-    help="Suppress key events from other programs.",
-)
+# @click.option(
+#    "-s",
+#    "--suppress-keys",
+#    is_flag=True,
+#    help="Suppress key events from other programs.",
+# )
 @click.option(
     "-l",
     "--log-level",
@@ -129,7 +129,9 @@ class Cli(TelebottiesBase):
 @click.option(
     "-v", "--version", is_flag=True, help="Prints telebotties version."
 )
-def _cli(connect, suppress_keys, log_level, no_help, version):
+def _cli(connect, log_level, no_help, version):
+    suppress_keys = True
+
     # Show help if no args empty
     if len(sys.argv) == 1:
         ctx = click.get_current_context()

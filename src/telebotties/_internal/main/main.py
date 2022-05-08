@@ -216,12 +216,12 @@ def _main(log_level, port, suppress_keys, prints_removed):
     default="1996",
     help="Telebotties listening port, default: 1996",
 )
-@click.option(
-    "-s",
-    "--suppress-keys",
-    is_flag=True,
-    help="Suppress key events from other programs.",
-)
+# @click.option(
+#    "-s",
+#    "--suppress-keys",
+#    is_flag=True,
+#    help="Suppress key events from other programs.",
+# )
 @click.option(
     "-l",
     "--log-level",
@@ -238,7 +238,8 @@ def _main(log_level, port, suppress_keys, prints_removed):
     is_flag=True,
     help="Removes help messages from standard out.",
 )
-def _cli(port, suppress_keys, log_level, no_help):
+def _cli(port, log_level, no_help):
+    suppress_keys = True
     _main(log_level.upper(), port, suppress_keys, no_help)
 
 

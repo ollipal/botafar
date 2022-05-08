@@ -21,6 +21,7 @@ try:
         keyboard.Key.down: "DOWN",
         keyboard.Key.right: "RIGHT",
     }
+    CTRLS = {keyboard.Key.ctrl_l, keyboard.Key.ctrl_r}
     pynput_supported = True
 except Exception:
     logger.debug("pynput not supported")
@@ -51,8 +52,11 @@ class KeyboardListener:
         self.prints_removed = prints_removed
         self._running = False
         self._stop_event = None
+        # For ctrl + c detection, when suppressed
+        self._ctrl_pressed = False
+        self._c_pressed = False
 
-    async def run_until_finished(self, control_datas, local):
+    async def run_until_finished(self, control_datas, local):  # noqa: C901
         if self.running:
             logger.debug("KeyboardListener was already running")
             return
@@ -63,6 +67,20 @@ class KeyboardListener:
 
         def on_press(key):
             try:
+                if key in CTRLS:
+                    self._ctrl_pressed = True
+                    return  # Cannot trigger anything else
+                elif hasattr(key, "char") and key.char.upper() == "C":
+                    self._c_pressed = True
+
+                if key == keyboard.Key.esc or (
+                    self._ctrl_pressed and self._c_pressed
+                ):
+                    if not self._suppress_keys and not self.prints_removed:
+                        print()  # makes new line for easier reading (linux)
+                    self.stop()
+                    return False
+
                 if key == keyboard.Key.backspace:
                     event = SystemEvent("player_disconnect", "keyboard")
                     self._process_event(event)
@@ -82,11 +100,11 @@ class KeyboardListener:
 
         def on_release(key):
             try:
-                if key == keyboard.Key.esc:
-                    if not self._suppress_keys and not self.prints_removed:
-                        print()  # makes new line for easier reading (linux)
-                    self.stop()
-                    return False
+                if key in CTRLS:
+                    self._ctrl_pressed = False
+                    return  # Cannot trigger anything else
+                elif hasattr(key, "char") and key.char.upper() == "C":
+                    self._c_pressed = False
 
                 key = _format_key(key)
                 if key is not None and is_pressed[key]:
