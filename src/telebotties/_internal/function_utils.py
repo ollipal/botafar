@@ -45,12 +45,31 @@ def takes_parameter(parameters, param_name):
                 )  # Required keyword only argument
             ):
                 raise RuntimeError(
-                    "Callback arguments need to be optional, "
-                    "except for the first one that can be required if it "
-                    f"called '{param_name}'. Argument '{param.name}' should "
+                    "Callback parameters need to be optional, "
+                    "except for the first one that can be required if it is "
+                    f"called '{param_name}'. Parameter '{param.name}' should "
                     "be made optional or removed."
                 )
     return takes_param
+
+
+def get_required_params(parameters):
+    required = []
+    for param in parameters:
+        if (
+            (
+                param.kind == Parameter.POSITIONAL_OR_KEYWORD
+                and param.default == Parameter.empty
+            )
+            or param.kind  # Reguired positional or keyword argument
+            == Parameter.POSITIONAL_ONLY
+            or (  # Reguired positional argument
+                param.kind == Parameter.KEYWORD_ONLY
+                and param.default == Parameter.empty
+            )  # Required keyword only argument
+        ):
+            required.append(param.name)
+    return required
 
 
 # NOTE: this should be used inside decorator, frame=3

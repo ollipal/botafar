@@ -1,7 +1,7 @@
 import asyncio
 
 from ..callbacks import CallbackBase
-from ..function_utils import takes_parameter
+from ..function_utils import get_required_params, takes_parameter
 from ..log_formatter import get_logger
 from ..states import sleep, sleep_async, state_machine, time
 from .decorator_base import DecoratorBase, get_decorator
@@ -11,7 +11,12 @@ logger = get_logger()
 
 class OnInit(DecoratorBase):
     def verify_params_and_set_flags(self, params):
-        pass
+        required = get_required_params(params)
+        assert len(required) == 0, (
+            f"{self.decorator_name} callback parameters need to be optional, "
+            f"currently required parameters {required} need to be made "
+            "optional or removed"
+        )
 
     def wrap(self, func):
         CallbackBase.register_callback("on_init", func)
@@ -24,7 +29,12 @@ def on_init(func):
 
 class OnPrepare(DecoratorBase):
     def verify_params_and_set_flags(self, params):
-        pass
+        required = get_required_params(params)
+        assert len(required) == 0, (
+            f"{self.decorator_name} callback parameters need to be optional, "
+            f"currently required parameters {required} need to be made "
+            "optional or removed"
+        )
 
     def wrap(self, func):
         CallbackBase.register_callback("on_prepare", func)
@@ -37,7 +47,12 @@ def on_prepare(func):
 
 class OnStart(DecoratorBase):
     def verify_params_and_set_flags(self, params):
-        pass
+        required = get_required_params(params)
+        assert len(required) == 0, (
+            f"{self.decorator_name} callback parameters need to be optional, "
+            f"currently required parameters {required} need to be made "
+            "optional or removed"
+        )
 
     def wrap(self, func):
         CallbackBase.register_callback("on_start", func)
@@ -58,7 +73,12 @@ class OnStop(DecoratorBase):
         super().__init__(decorator_name, *args, **kwargs)
 
     def verify_params_and_set_flags(self, params):
-        pass
+        required = get_required_params(params)
+        assert len(required) == 0, (
+            f"{self.decorator_name} callback parameters need to be optional, "
+            f"currently required parameters {required} need to be made "
+            "optional or removed"
+        )
 
     def wrap(self, func):
         if self.immediate:
@@ -84,7 +104,12 @@ class OnExit(DecoratorBase):
         super().__init__(decorator_name, *args, **kwargs)
 
     def verify_params_and_set_flags(self, params):
-        pass
+        required = get_required_params(params)
+        assert len(required) == 0, (
+            f"{self.decorator_name} callback parameters need to be optional, "
+            f"currently required parameters {required} need to be made "
+            "optional or removed"
+        )
 
     def wrap(self, func):
         if self.immediate:
@@ -190,8 +215,13 @@ class OnRepeat(DecoratorBase):
         self.immediate = kwargs.get("sleep", False)
         super().__init__(decorator_name, *args, **kwargs)
 
-    def verify_params_and_set_flags(self, params):  # noqa: N805
-        pass
+    def verify_params_and_set_flags(self, params):
+        required = get_required_params(params)
+        assert len(required) == 0, (
+            f"{self.decorator_name} callback parameters need to be optional, "
+            f"currently required parameters {required} need to be made "
+            "optional or removed"
+        )
 
     def wrap(self, func):
         if asyncio.iscoroutinefunction(func):

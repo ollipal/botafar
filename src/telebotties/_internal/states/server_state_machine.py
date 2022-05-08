@@ -432,8 +432,6 @@ class ServerStateMachine:
         self.on_player_disconnect()
         self.on_host_disconnect()
 
-        print("exit immediate ongoing")
-
         def exit_wrapper():
             self.exit_immediate_finished = True
             self.exit()
