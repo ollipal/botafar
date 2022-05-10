@@ -16,7 +16,7 @@ from ..constants import (
 from ..decorators import DecoratorBase
 from ..listeners import EnterListener, pynput_supported
 from ..log_formatter import get_logger, setup_logging
-from ..states import ServerEventProsessor, state_machine
+from ..states import PRE_INIT, ServerEventProsessor, state_machine
 from ..string_utils import error_to_string, get_welcome_message
 from ..websocket import Server
 from .telebotties_base import TelebottiesBase
@@ -197,6 +197,9 @@ def exit():
 
 
 def _main(log_level, port, suppress_keys, prints_removed):
+    assert (
+        state_machine.state == PRE_INIT
+    ), "tb.listen() can be called only once"
     global main
     setup_logging(log_level)
     main = Main(port, suppress_keys, prints_removed)
@@ -243,8 +246,10 @@ def _cli(port, log_level, no_help):
     _main(log_level.upper(), port, suppress_keys, no_help)
 
 
-def listen(cli_enabled=True):
-    if cli_enabled:
-        _cli()
+def listen(cli=True):
+    if cli:
+        _cli.main(
+            standalone_mode=False
+        )  # Why not just _cli(): https://stackoverflow.com/a/60321370/7388328
     else:
         _main("INFO", 1996, False, False)
