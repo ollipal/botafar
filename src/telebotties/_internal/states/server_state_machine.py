@@ -155,6 +155,7 @@ class ServerStateMachine:
         # all_finished too early, others might be unnecessary
         self.rlock = threading.RLock()
         self.sleep_event_sync = threading.Event()
+        self.internal_sleep_event_sync = threading.Event()
         self.sleep_event_async = None  # Added later when the loop starts
         self.exit_event = None  # Added later when the loop starts
         self.callback_executor = None  # Added later also
@@ -404,9 +405,11 @@ class ServerStateMachine:
             self.safe_state_change(self.stop, "stop", "stop_immediate")
 
         self.disable_controls(_release_cb=safe_stop)
+        self.warn_stuck("on_stop")
 
     def after_stop(self):
         logger.debug("STATE: stop")
+        self.internal_sleep_event_sync.set()
         self.sleep_event_sync.clear()
         self.sleep_event_async.clear()
 
@@ -442,9 +445,11 @@ class ServerStateMachine:
             self.safe_state_change(self.exit, "exit", "exit_immediate")
 
         self.disable_controls(_release_cb=safe_exit)
+        self.warn_stuck("on_exit")
 
     def after_exit(self):
         logger.debug("STATE: exit")
+        self.internal_sleep_event_sync.set()
         self.sleep_event_sync.clear()
         self.sleep_event_async.clear()
 
@@ -534,6 +539,27 @@ class ServerStateMachine:
                 None,
             )
 
+    def warn_stuck(self, state):
+        def _warn_stuck():
+            self.internal_sleep_event_sync.set()  # clears if previous
+            self.internal_sleep_event_sync.clear()
+            self.internal_sleep(5)
+            running_names = self.callback_executor.running_names
+            if len(running_names) != 0:
+                # TODO URL TO DOCS TO WARNING
+                logger.warning(
+                    f"{running_names} still running, cannot move to "
+                    f"'{state}'before all callbacks finish"
+                )
+            else:
+                logger.debug("No running names???")
+
+        self.callback_executor.execute_callbacks(
+            [_warn_stuck],
+            "_stuck_warn",
+            None,
+        )
+
     def _state(self):  # name 'state' is reserved by transitions
         return SIMPLIFIED_STATES.get(self.state, self.state)
 
@@ -555,6 +581,10 @@ class ServerStateMachine:
             raise SleepCancelledError()
 
         if self.sleep_event_sync.wait(timeout=secs):
+            raise SleepCancelledError()
+
+    def internal_sleep(self, secs):
+        if self.internal_sleep_event_sync.wait(timeout=secs):
             raise SleepCancelledError()
 
     async def sleep_async(self, secs):
