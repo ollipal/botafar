@@ -73,7 +73,7 @@ class Button(ControlBase):
         self._on_any_class = OnAny
 
         super().__init__(
-            "Button",
+            "button",
             [key],
             host_only,
             start_event,

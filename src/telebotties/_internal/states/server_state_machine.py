@@ -612,6 +612,7 @@ class ServerStateMachine:
         logger.debug("Waiting exit...")
         await self.exit_event.wait()
         logger.debug("...Exit waited")
+        self.internal_sleep_event_sync.set()
 
 
 state_machine = ServerStateMachine()
