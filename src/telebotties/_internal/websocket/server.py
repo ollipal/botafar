@@ -94,7 +94,15 @@ class Server:
     async def serve(self, port):
         self._stop = asyncio.Event()
         self.loop = asyncio.get_running_loop()
-        async with websockets.serve(self._server_start, port=port) as server:
+        # close_timeout=0.1 and ping interval/timeout make
+        # connecting on Firefox way faster
+        async with websockets.serve(
+            self._server_start,
+            port=port,
+            ping_interval=1,
+            ping_timeout=1,
+            close_timeout=0.1,
+        ) as server:
             self.server = server
             self._connected = True
             await self._stop.wait()

@@ -390,6 +390,7 @@ class ServerStateMachine:
         logger.debug("STATE: stop_immediate")
         self.sleep_event_sync.set()
         self.sleep_event_async.set()
+        self.internal_sleep_event_sync.set()
 
         # with self.rlock:
         self.notify_state_change("on_stop")
@@ -424,6 +425,7 @@ class ServerStateMachine:
         logger.debug("STATE: exit_immediate")
         self.sleep_event_sync.set()
         self.sleep_event_async.set()
+        self.internal_sleep_event_sync.set()
 
         # with self.rlock:
         self.notify_state_change("on_exit")
@@ -541,7 +543,6 @@ class ServerStateMachine:
 
     def warn_stuck(self, state):
         def _warn_stuck():
-            self.internal_sleep_event_sync.set()  # clears if previous
             self.internal_sleep_event_sync.clear()
             self.internal_sleep(5)
             running_names = self.callback_executor.running_names
@@ -554,6 +555,7 @@ class ServerStateMachine:
             else:
                 logger.debug("No running names???")
 
+        self.internal_sleep_event_sync.set()  # clears if previous
         self.callback_executor.execute_callbacks(
             [_warn_stuck],
             "_stuck_warn",
