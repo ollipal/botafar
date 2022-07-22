@@ -13,3 +13,21 @@ to run `markdownlint` locally as well,
 [install Ruby](https://www.ruby-lang.org/en/documentation/installation/)
 and install markdown lint with `gem install mdl -v 0.11.0` and
 uncomment lines from `.pre-commit-config.yaml`
+
+## Install in virtual env
+
+sudo apt-get install python3-dev
+
+python3 -m venv env
+
+source env/bin/activate
+
+pip install flit
+
+flit install --symlink
+
+cd docs
+
+sphinx-autobuild ./source/ ./build/html/
+
+deactivate
