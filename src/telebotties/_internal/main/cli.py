@@ -92,7 +92,7 @@ class Cli(TelebottiesBase):
 
 
 @click.command(
-    help="telebotties cli, use --connect to control listening bots.",
+    help="telebotties cli, use --connect to control running bots.",
     context_settings=dict(help_option_names=["-h", "--help"]),
 )
 @click.option(

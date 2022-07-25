@@ -9,6 +9,10 @@ def bold(string):
     return f"\033[1m{string}\033[0m"
 
 
+def cyan_bold(string):
+    return f"\033[1;36m{string}\033[0m"
+
+
 def underlined(string):
     return f"\033[4m{string}\033[0m"
 
@@ -77,16 +81,19 @@ def get_welcome_message(ip, port, pynput_supported):
     ip_url = "-".join(ip.split(".") + [port])
 
     second_connection_help = (
-        f"Press {key('ENTER')} to start listening to local keyboard events: "
+        f"\n(or press {key('ENTER')} to start listening "
+        "to local keyboard events) "
         if pynput_supported
         else (
-            f'Run "{bold(f"telebotties --connect {ip}:{port}")}" '
-            "from an another machine"
+            f'\n(or run "{bold(f"telebotties --connect {ip}:{port}")}" '
+            "from an another machine)"
         )
     )
 
-    return f"""Listening to web connections at {ip}:{port}
+    # return f"""Listening to web connections at {ip}:{port}
 
-Go to {bold("http://localhost:3000/new?address=" + ip_url)} to connect
-  or
-{second_connection_help}"""
+    return (
+        "\nBot running, connect at "
+        f"{cyan_bold('http://bot.telebotties.com/create?address=' + ip_url)}"
+        f"\n{second_connection_help}"
+    )

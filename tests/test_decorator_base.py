@@ -3,13 +3,7 @@ import pytest
 from telebotties._internal.callbacks import CallbackBase
 from telebotties._internal.decorators import DecoratorBase, get_decorator
 
-from .helpers import (
-    fake_listen,
-    get_async_result,
-    get_cb_result,
-    get_cbs,
-    reset,
-)
+from .helpers import fake_run, get_async_result, get_cb_result, get_cbs, reset
 
 # Decorator
 
@@ -60,7 +54,7 @@ def test_function():
     def example():
         return 3
 
-    fake_listen()
+    fake_run()
     assert example() == 3
     assert get_cb_result("dec") == 3
 
@@ -72,7 +66,7 @@ def test_function_async():
     async def example():
         return 3
 
-    fake_listen()
+    fake_run()
     assert get_async_result(example()) == 3
     assert get_cb_result("dec") == 3
 
@@ -80,7 +74,7 @@ def test_function_async():
 def test_lambda():
     reset()
     dec(lambda: 3)
-    fake_listen()
+    fake_run()
     assert get_cb_result("dec") == 3
 
 
@@ -98,7 +92,7 @@ def test_class_instance():
 
     dec(c.example)
 
-    fake_listen()
+    fake_run()
     assert c.example() == 3
     assert get_cb_result("dec") == 3
 
@@ -117,7 +111,7 @@ def test_class_instance_async():
 
     dec(c.example)
 
-    fake_listen()
+    fake_run()
     assert get_async_result(c.example()) == 3
     assert get_cb_result("dec") == 3
 
@@ -134,7 +128,7 @@ def test_class_instance_static():
 
     dec(c.example)
 
-    fake_listen()
+    fake_run()
     assert c.example() == 3
     assert get_cb_result("dec") == 3
 
@@ -151,7 +145,7 @@ def test_class_instance_static_async():
 
     dec(c.example)
 
-    fake_listen()
+    fake_run()
     assert get_async_result(c.example()) == 3
     assert get_cb_result("dec") == 3
 
@@ -170,7 +164,7 @@ def test_class_instance_classmethod():
     Class()
 
     dec(Class.example)
-    fake_listen()
+    fake_run()
     assert Class.example() == 3
     assert get_cb_result("dec") == 3
 
@@ -189,7 +183,7 @@ def test_class_instance_classmethod_async():
     Class()
 
     dec(Class.example)
-    fake_listen()
+    fake_run()
     assert get_async_result(Class.example()) == 3
     assert get_cb_result("dec") == 3
 
@@ -207,7 +201,7 @@ def test_class_method():
 
     Class()
 
-    fake_listen()
+    fake_run()
     assert get_cb_result("dec") == 3
     assert Class().example() == 3
 
@@ -225,7 +219,7 @@ def test_class_method_async():
 
     Class()
 
-    fake_listen()
+    fake_run()
     assert get_cb_result("dec") == 3
     assert get_async_result(Class().example()) == 3
 
@@ -241,7 +235,7 @@ def test_class_staticmethod():
 
     Class()
 
-    fake_listen()
+    fake_run()
     assert Class.example() == 3
     assert get_cb_result("dec") == 3
 
@@ -257,7 +251,7 @@ def test_class_staticmethod_mixed():
 
     Class()
 
-    fake_listen()
+    fake_run()
     assert Class.example() == 3
     assert get_cb_result("dec") == 3
 
@@ -273,7 +267,7 @@ def test_class_staticmethod_async():
 
     Class()
 
-    fake_listen()
+    fake_run()
     assert get_async_result(Class.example()) == 3
     assert get_cb_result("dec") == 3
 
@@ -292,7 +286,7 @@ def test_class_classmethod():
 
     Class()
 
-    fake_listen()
+    fake_run()
     assert Class.example() == 3
     assert get_cb_result("dec") == 3
 
@@ -315,7 +309,7 @@ def test_class_classmethod_async():
 
     Class()
 
-    fake_listen()
+    fake_run()
     assert get_async_result(Class.example()) == 3
     assert get_cb_result("dec") == 3
 
@@ -331,7 +325,7 @@ def test_multiple_function():
     def example2():
         return 3
 
-    fake_listen()
+    fake_run()
     assert (
         CallbackBase.get_by_name("dec")[0]()
         + CallbackBase.get_by_name("dec")[1]()
@@ -356,7 +350,7 @@ def test_multiple_class_method():
 
     Class()
 
-    fake_listen()
+    fake_run()
     cbs = get_cbs("dec")
     assert cbs[0]() + cbs[1]() == 7
 
@@ -383,7 +377,7 @@ def test_multiple_classes():
     Class1()
     Class2()
 
-    fake_listen()
+    fake_run()
     cbs = get_cbs("dec")
     assert cbs[0]() + cbs[1]() == 10
 
@@ -404,7 +398,7 @@ def test_multiple_mixed():
             return self.val + 4
 
     c = Class()
-    fake_listen()
+    fake_run()
     cbs = get_cbs("dec")
     assert example() == 2
     assert c.example() == 7
@@ -421,7 +415,7 @@ def test_multiple_decorators_function():
     def example():
         return 3
 
-    fake_listen()
+    fake_run()
     cbs = get_cbs("dec")
     assert example() == 3
     assert len(cbs) == 3
@@ -443,7 +437,7 @@ def test_multiple_decorators_class_instance_method():
 
     c = Class()
 
-    fake_listen()
+    fake_run()
     cbs = get_cbs("dec")
     assert isinstance(c, Class)
     assert c.example() == 4
@@ -467,7 +461,7 @@ def test_multiple_decorators_staticmethod():
 
     c = Class()
 
-    fake_listen()
+    fake_run()
     cbs = get_cbs("dec")
     assert isinstance(c, Class)
     assert c.example() == 3
@@ -490,7 +484,7 @@ def test_multiple_decorators_classmethod():
 
     c = Class()
 
-    fake_listen()
+    fake_run()
     cbs = get_cbs("dec")
     assert isinstance(c, Class)
     assert c.example() == 4

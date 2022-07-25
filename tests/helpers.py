@@ -41,7 +41,7 @@ def reset():
     state_machine.sleep_event_async = None
 
 
-def fake_listen():
+def fake_run():
     DecoratorBase.post_listen()
 
     class MockEvent:

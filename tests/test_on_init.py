@@ -2,7 +2,7 @@ import pytest
 
 from telebotties import on_init
 
-from .helpers import fake_listen, get_async_result, get_cb_result, reset
+from .helpers import fake_run, get_async_result, get_cb_result, reset
 
 
 def test_on_init_empty_parenthesis_errors():
@@ -39,7 +39,7 @@ def test_function():
     def example():
         return 3
 
-    fake_listen()
+    fake_run()
     assert example() == 3
     assert get_cb_result("on_init") == 3
 
@@ -51,7 +51,7 @@ def test_function_async():
     async def example():
         return 3
 
-    fake_listen()
+    fake_run()
     assert get_async_result(example()) == 3
     assert get_cb_result("on_init") == 3
 
@@ -59,7 +59,7 @@ def test_function_async():
 def test_lambda():
     reset()
     on_init(lambda: 3)
-    fake_listen()
+    fake_run()
     assert get_cb_result("on_init") == 3
 
 
@@ -77,7 +77,7 @@ def test_class_instance():
 
     on_init(c.example)
 
-    fake_listen()
+    fake_run()
     assert c.example() == 3
     assert get_cb_result("on_init") == 3
 
@@ -96,7 +96,7 @@ def test_class_instance_async():
 
     on_init(c.example)
 
-    fake_listen()
+    fake_run()
     assert get_async_result(c.example()) == 3
     assert get_cb_result("on_init") == 3
 
@@ -113,7 +113,7 @@ def test_class_instance_static():
 
     on_init(c.example)
 
-    fake_listen()
+    fake_run()
     assert c.example() == 3
     assert get_cb_result("on_init") == 3
 
@@ -130,7 +130,7 @@ def test_class_instance_static_async():
 
     on_init(c.example)
 
-    fake_listen()
+    fake_run()
     assert get_async_result(c.example()) == 3
     assert get_cb_result("on_init") == 3
 
@@ -149,7 +149,7 @@ def test_class_classmethod():
 
     on_init(c.example)
 
-    fake_listen()
+    fake_run()
     assert c.example() == 4
     assert get_cb_result("on_init") == 4
 
@@ -167,7 +167,7 @@ def test_class_method():
 
     Class()
 
-    fake_listen()
+    fake_run()
     assert get_cb_result("on_init") == 3
 
 
@@ -184,5 +184,5 @@ def test_class_method_async():
 
     Class()
 
-    fake_listen()
+    fake_run()
     assert get_cb_result("on_init") == 3

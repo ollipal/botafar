@@ -254,7 +254,7 @@ class DecoratorBase(ABC):
                     f"No {cls.__name__} instances created. Callbacks '"
                     f"{join_str.join(DecoratorBase._instance_callbacks[cls])}"
                     "' will not trigger. Create an instance with '"
-                    f"{cls.__name__}()' before 'listen()' to enable "
+                    f"{cls.__name__}()' before 'run()' to enable "
                     "callbacks."
                 )
             else:
@@ -262,7 +262,7 @@ class DecoratorBase(ABC):
                     f"No {cls.__name__} instances created. Callbacks '"
                     f"{join_str.join(DecoratorBase._instance_callbacks[cls])}"
                     f"' will not trigger. Create at least one {cls.__name__} "
-                    "instance before 'listen()' to enable callbacks."
+                    "instance before 'run()' to enable callbacks."
                 )
 
     @staticmethod

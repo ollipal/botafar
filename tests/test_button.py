@@ -3,7 +3,7 @@ import pytest
 from telebotties import Button
 
 from .helpers import (
-    fake_listen,
+    fake_run,
     get_async_result,
     get_input_cb_result,
     get_input_cbs,
@@ -67,7 +67,7 @@ def test_function_wrong_param_errors():
         def example(other):
             return 3
 
-        fake_listen()
+        fake_run()
 
 
 def test_function_any_no_event_errors():
@@ -80,7 +80,7 @@ def test_function_any_no_event_errors():
         def example():
             return 3
 
-        fake_listen()
+        fake_run()
 
 
 def test_function_wrong_param_errors_2():
@@ -93,7 +93,7 @@ def test_function_wrong_param_errors_2():
         def example(event, other):
             return 3
 
-        fake_listen()
+        fake_run()
 
 
 def test_class_method_wrong_param_errors():
@@ -145,7 +145,7 @@ def test_class_method_any_no_event_errors():
                 return self.val + 2
 
         Class()
-        fake_listen()
+        fake_run()
 
 
 def test_function():
@@ -156,7 +156,7 @@ def test_function():
     def example():
         return 3
 
-    fake_listen()
+    fake_run()
     assert example() == 3
     assert get_input_cb_result("on_press") == 3
 
@@ -169,7 +169,7 @@ def test_function_event():
     def example(event):
         return event
 
-    fake_listen()
+    fake_run()
     assert example(1) == 1
     assert get_input_cb_result("on_press", [1]) == 1
 
@@ -182,7 +182,7 @@ def test_function_async():
     async def example():
         return 3
 
-    fake_listen()
+    fake_run()
     assert get_async_result(example()) == 3
     assert get_input_cb_result("on_press") == 3
 
@@ -190,7 +190,7 @@ def test_function_async():
 def test_lambda():
     reset()
     Button("A").on_press(lambda: 3)
-    fake_listen()
+    fake_run()
     assert get_input_cb_result("on_press") == 3
 
 
@@ -209,7 +209,7 @@ def test_class_instance():
 
     b.on_press(c.example)
 
-    fake_listen()
+    fake_run()
     assert c.example() == 3
     assert get_input_cb_result("on_press") == 3
 
@@ -227,7 +227,7 @@ def test_class_instance_static():
 
     b.on_press(c.example)
 
-    fake_listen()
+    fake_run()
     assert c.example() == 3
     assert get_input_cb_result("on_press") == 3
 
@@ -245,7 +245,7 @@ def test_class_instance_static_event():
 
     b.on_press(c.example)
 
-    fake_listen()
+    fake_run()
     assert c.example(3) == 3
     assert get_input_cb_result("on_press", [3]) == 3
 
@@ -266,7 +266,7 @@ def test_class_instance_classmethod():
 
     b.on_press(Class.example)
 
-    fake_listen()
+    fake_run()
     assert Class.example() == 3
     assert get_input_cb_result("on_press") == 3
 
@@ -287,7 +287,7 @@ def test_class_instance_classmethod_event():
 
     b.on_press(Class.example)
 
-    fake_listen()
+    fake_run()
     assert Class.example(3) == 3
     assert get_input_cb_result("on_press", [3]) == 3
 
@@ -305,7 +305,7 @@ def test_class_method():
             return self.val + 2
 
     Class()
-    fake_listen()
+    fake_run()
     assert get_input_cb_result("on_press") == 3
     assert Class().example() == 3
 
@@ -323,7 +323,7 @@ def test_class_method_event():
             return event
 
     Class()
-    fake_listen()
+    fake_run()
     assert get_input_cb_result("on_press", [3]) == 3
     assert Class().example(3) == 3
 
@@ -345,7 +345,7 @@ def test_multiple_class_method():
             return self.val + 3
 
     Class()
-    fake_listen()
+    fake_run()
     callbacks = get_input_cbs("on_press")
     assert callbacks[0]() + callbacks[1]() == 7
 
@@ -372,7 +372,7 @@ def test_multiple_classes():
 
     Class1()
     Class2()
-    fake_listen()
+    fake_run()
     callbacks = get_input_cbs("on_press")
     assert callbacks[0]() + callbacks[1]() == 10
 
@@ -385,7 +385,7 @@ def test_function_any():
     def example(event):
         return event
 
-    fake_listen()
+    fake_run()
     assert example(3) == 3
     assert get_input_cb_result("on_press", [3]) == 3
 
@@ -403,6 +403,6 @@ def test_class_method_any():
             return event
 
     Class()
-    fake_listen()
+    fake_run()
     assert get_input_cb_result("on_press", [3]) == 3
     assert Class().example(3) == 3

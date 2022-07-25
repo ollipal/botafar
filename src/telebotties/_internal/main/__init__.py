@@ -1,3 +1,3 @@
 from .cli import _cli
 from .main import _print as print
-from .main import exit, listen
+from .main import exit, run

@@ -6,17 +6,6 @@ and release events with tb.Button
 import telebotties as tb
 
 b = tb.Button("A")
-b2 = tb.Button("Z", alternative="Y")
-
-
-@tb.on_init
-def init():
-    tb.print("init")
-
-
-@tb.on_exit
-def exit():
-    tb.print("exit")
 
 
 @b.on_press
@@ -29,7 +18,7 @@ def release_callback():  # Access event: `def release_callback('event')`
     tb.print("Button released")
 
 
-tb.listen()
+tb.run()
 
 
 """
@@ -46,5 +35,5 @@ def release_button(event):
     elif event.name == "release":
         print("Button released")
 
-tb.listen()
+tb.run()
 """

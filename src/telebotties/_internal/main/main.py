@@ -193,13 +193,11 @@ def exit():
     if main is not None:
         main.exit()
     else:
-        raise RuntimeError("tb.exit() cannot be called before tb.listen()")
+        raise RuntimeError("tb.exit() cannot be called before tb.run()")
 
 
 def _main(log_level, port, suppress_keys, prints_removed):
-    assert (
-        state_machine.state == PRE_INIT
-    ), "tb.listen() can be called only once"
+    assert state_machine.state == PRE_INIT, "tb.run() can be called only once"
     global main
     setup_logging(log_level)
     main = Main(port, suppress_keys, prints_removed)
@@ -246,7 +244,7 @@ def _cli(port, log_level, no_help):
     _main(log_level.upper(), port, suppress_keys, no_help)
 
 
-def listen(cli=True):
+def run(cli=True):
     if cli:
         _cli.main(
             standalone_mode=False
