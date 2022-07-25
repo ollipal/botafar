@@ -1,6 +1,6 @@
 # Quick start
 
-1. Install the Python library ([more detailed install instructions](http://telebotties.com)):
+1. Install the library ([help](install.md)):
 
 ```
 pip install telebotties
