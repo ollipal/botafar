@@ -1,5 +1,5 @@
 [build-system]
-requires = ["flit_core ==3.6.0"]
+requires = ["flit_core >=3.7.1,<4"]
 build-backend = "flit_core.buildapi"
 
 # if versions changed, change also on .pre-commit-config.yaml and .github/workflows/main.yaml

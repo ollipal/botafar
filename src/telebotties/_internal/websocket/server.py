@@ -66,18 +66,38 @@ class Server:
             self.server is not None
         ), "Server.serve() not called before .send()"
 
+        slow_connections = []
+
         for connection in self._connections:
             try:
-                await connection.send(event._to_json())
+                await asyncio.wait_for(
+                    connection.send(event._to_json()), timeout=0.5
+                )
             except websockets.exceptions.ConnectionClosedError as e:
                 logger.debug(f"Server.send failed, error: {e}")
             except websockets.exceptions.ConnectionClosedOK as e:
                 logger.debug(f"Server.send failed, closed: {e}")
+            except asyncio.TimeoutError:
+                logger.warning("Connection.send was slow, closing...")
+                slow_connections.append(connection)
             except Exception as e:
                 logger.error(
                     f"Unecpected Server.send error:\n{error_to_string(e)}"
                 )
                 self.stop()
+                break
+
+            for slow_connection in slow_connections:
+                await connection.close()
+                self._connections.remove(slow_connection)
+
+    async def stop_async(self):
+        # Async handles connection closing as well
+        await asyncio.gather(
+            *[connection.close() for connection in self._connections]
+        )
+        self._connections = []
+        self.stop()
 
     def stop(self):
         if self._stop is None:

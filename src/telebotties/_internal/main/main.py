@@ -120,7 +120,7 @@ class Main(TelebottiesBase):
                 )
         except Exception as e:
             logger.error(f"Unexpected internal error: {error_to_string(e)}")
-            self.server.stop()
+            await self.server.stop_async()
             self.enter_listener.stop()
         finally:
             state_machine.exit_immediate()
@@ -176,7 +176,9 @@ class Main(TelebottiesBase):
     def sigint_callback(self):
         if not self.prints_removed:
             print(SIGINT_MESSAGE)
+        state_machine.exit_immediate()
         self.error_callback(None, sigint=True)
+        self.keyboard_listener.stop()
 
 
 def _print(string, print_locally=True):
