@@ -6,7 +6,7 @@
 pip install telebotties
 ```
 
-2. Create a **main.py** file:
+2. Create and save a **bot.py** file:
 
 ```python
 import telebotties as tb
@@ -25,10 +25,22 @@ def world():
 tb.run()
 ```
 
-3. Execute the **main.py** file with `python main.py` or `python3 main.py` command, and open the returned link in browser.
+3. Execute the **bot.py** file with:
 
-4. From the browser, select a video source (a phone camera for an example)
+```
+python bot.py
+```
 
-5. Press the **Control Bot** -button. Now when you press and release `A` key from a keyboard, texts "Hello" and "World" get printed on screen.
+and open the returned link in browser ([help](execute_help.md)).
 
-Next you can [share the bot link to others](https://telebotties.com), [make the bot public](https://telebotties.com) or [stream the bot](https://telebotties.com) to Twitch or Youtube!
+4. From the browser, add a live video feed by opening the video feed link in a separate tab or another device such as phone.
+
+5. Press the **Control Bot** -button. Now when you press and release `A` key from a keyboard or a phone screen, texts "Hello" and "World" get printed on the bottom of the live video feed.
+
+Keep reading if you want to learn how to:
+
+- [Share the bot with others](https://telebotties.com)
+- [Make the bot public on telebotties.com](https://telebotties.com)
+- [Stream the bot to Twitch or Youtube](https://telebotties.com)
+
+and a lot more!

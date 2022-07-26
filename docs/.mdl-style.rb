@@ -9,5 +9,4 @@ exclude_rule 'MD040'
 exclude_rule 'MD041'
 rule 'MD013', :line_length => 500, :code_blocks => false
 rule 'MD009', :br_spaces => 2
-rule 'MD029', :style => :ordered
 rule 'MD007', :indent => 4

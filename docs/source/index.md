@@ -10,6 +10,7 @@
 :caption: Basics
 
 quickstart
+basics
 arduino
 raspi
 sharing_and_streaming
