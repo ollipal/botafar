@@ -1,5 +1,6 @@
 import asyncio
 import threading
+from time import sleep as _sleep
 from time import time as _time
 
 from transitions import Machine
@@ -543,19 +544,20 @@ class ServerStateMachine:
 
     def warn_stuck(self, state):
         def _warn_stuck():
-            self.internal_sleep_event_sync.clear()
             self.internal_sleep(5)
             running_names = self.callback_executor.running_names
             if len(running_names) != 0:
                 # TODO URL TO DOCS TO WARNING
                 logger.warning(
                     f"{running_names} still running, cannot move to "
-                    f"'{state}'before all callbacks finish"
+                    f"'{state}' before all callbacks finish"
                 )
             else:
                 logger.debug("No running names???")
 
         self.internal_sleep_event_sync.set()  # clears if previous
+        _sleep(0.01)  # TODO a better implementation...
+        self.internal_sleep_event_sync.clear()  # start new
         self.callback_executor.execute_callbacks(
             [_warn_stuck],
             "_stuck_warn",
@@ -586,6 +588,11 @@ class ServerStateMachine:
             raise SleepCancelledError()
 
     def internal_sleep(self, secs):
+        # Triggers even when secs=0
+        # (not sure if required here, but at least on sleep_async it is)
+        if self.internal_sleep_event_sync.is_set():
+            raise SleepCancelledError()
+
         if self.internal_sleep_event_sync.wait(timeout=secs):
             raise SleepCancelledError()
 

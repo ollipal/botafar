@@ -78,7 +78,7 @@ class Server:
             except websockets.exceptions.ConnectionClosedOK as e:
                 logger.debug(f"Server.send failed, closed: {e}")
             except asyncio.TimeoutError:
-                logger.warning("Connection.send was slow, closing...")
+                logger.warning("Connection.send was slow, closing soon...")
                 slow_connections.append(connection)
             except Exception as e:
                 logger.error(
@@ -88,7 +88,11 @@ class Server:
                 break
 
             for slow_connection in slow_connections:
-                await connection.close()
+                try:
+                    await asyncio.wait_for(connection.close(), timeout=0.5)
+                except asyncio.TimeoutError:
+                    logger.warning("Connection closing was slow, skipping...")
+
                 self._connections.remove(slow_connection)
 
     async def stop_async(self):
