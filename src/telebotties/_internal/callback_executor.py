@@ -107,6 +107,8 @@ class CallbackExecutor:
         await asyncio.gather(*[asyncio.wrap_future(f) for f in futures])
 
     def _done(self, future):
+        callback = None
+
         with self.rlock:
             name = self.future_to_name[future]
             del self.future_to_name[future]
@@ -114,10 +116,7 @@ class CallbackExecutor:
             self.running_futures[name].remove(future)
             if len(self.running_futures[name]) == 0:
                 del self.running_futures[name]
-
                 callback = self.finished_callbacks.pop(name, None)
-                if callback is not None:
-                    callback()
 
             if (
                 not future.cancelled()
@@ -125,4 +124,9 @@ class CallbackExecutor:
                 and not isinstance(future.exception(), SleepCancelledError)
             ):
                 self.error_callback(future.exception())
+                return
             self.done_callback(future)
+
+        # Execute callback outside lock is not errored
+        if callback is not None:
+            callback()
