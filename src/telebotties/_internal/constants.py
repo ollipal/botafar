@@ -64,12 +64,12 @@ Press {key("Esc")} to exit, {key("Backspace")} to reconnect player.
 {underlined("Custom controls")}:"""
 
 LISTEN_WEB_MESSAGE_PYNPUT = (
-    f"\n\n\n{bold('A remote keyboard connected')} {dim('(will not listen to local keyboard events)')}\n"
+    f"\n\n\n{bold('Connected')} {dim('(will not listen to local keyboard events)')}\n"
     f"Press {key('Ctrl')} + {key('C')} to exit.\n"
 )
 
 LISTEN_WEB_MESSAGE_NO_PYNPUT = (
-    f"\n\n\n{bold('A remote keyboard connected')}\n"
+    f"\n\n\n{bold('Connected')}\n"
     f"Press {key('Ctrl')} + {key('C')} to exit.\n"
 )
 
