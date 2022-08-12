@@ -44,13 +44,13 @@ def world():
 tb.run()
 ```
 
-3. Execute the **bot.py** file with:
+3. Execute the **bot.py** file with
 
 ```
 python bot.py
 ```
 
-and open the returned link in browser ([help](https://docs.telebotties.com/execute_help)).
+and open the returned link in browser ([help](https://docs.telebotties.com/quickstart_help)).
 
 4. From the browser, add a live video feed by opening the video feed link in a separate tab or another device such as phone.
 
