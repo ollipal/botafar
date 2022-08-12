@@ -1,6 +1,6 @@
 # Bot lifecycle
 
-TODO
+Coming soon
 
 Other topics:
 

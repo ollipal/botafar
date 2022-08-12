@@ -7,7 +7,7 @@
 **Stream to Twitch or YouTube and let viewers control your robot one by one**
 
 - No hardware required to get started
-- [Arduino](https://telebotties.com) and [Raspberry Pi](https://telebotties.com) tutorials available
+- [Arduino](https://docs.telebotties.com/arduino) and [Raspberry Pi](https://docs.telebotties.com/raspi) tutorials available
 - OBS and Streamlabs compatible video source
 - Simple open-source Python library
 

@@ -1,5 +1,7 @@
 # Development
 
+More info coming.
+
 ## Use pre-commit hooks
 
 To enable local hooks:

@@ -1,3 +1,3 @@
 # Arduino tutorial
 
-TODO
+Coming soon

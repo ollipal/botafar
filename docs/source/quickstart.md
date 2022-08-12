@@ -35,7 +35,7 @@ and open the returned link in browser ([help](execute_help.md)).
 
 4. From the browser, add a live video feed by opening the video feed link in a separate tab or another device such as phone.
 
-5. Press the **Control** -button. Now when you press and release `A` key from a keyboard or a touch screen, texts "Hello" and "World" get printed on the bottom of the live video feed.
+5. Press the **Try controls** -button. Now when you press and release `A` key from a keyboard or a touch screen, texts "Hello" and "World" get printed on the bottom of the live video feed.
 
 Keep reading if you want to learn how to:
 

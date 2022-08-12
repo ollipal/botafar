@@ -1,3 +1,3 @@
 # Raspberry Pi tutorial
 
-TODO
+Coming soon
