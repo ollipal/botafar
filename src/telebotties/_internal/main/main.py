@@ -12,6 +12,7 @@ from ..constants import (
     LISTEN_WEB_MESSAGE_NO_PYNPUT,
     LISTEN_WEB_MESSAGE_PYNPUT,
     SIGINT_MESSAGE,
+    is_windows,
 )
 from ..decorators import DecoratorBase
 from ..listeners import EnterListener, pynput_supported
@@ -101,17 +102,26 @@ class Main(TelebottiesBase):
             ip = get_ip()  # TODO save
             if not self.prints_removed:
                 print(
-                    get_welcome_message(ip, self.port, pynput_supported),
+                    get_welcome_message(
+                        ip,
+                        self.port,
+                        is_windows,
+                        pynput_supported,
+                    ),
                     end="",
                     flush=True,
                 )
 
-            if pynput_supported:
+            # Currently at least enter_listener fails on Windows
+            # Local keyboard support removed for now
+            # (get_welcome_message has been adjusted as well)
+            if pynput_supported and not is_windows:
                 await asyncio.gather(
                     self.enter_listener.run_until_finished(self.server.stop),
                     self.server.serve(self.port),
                 )
             else:
+                logger.debug("Local keyboard listening skipped")
                 await self.server.serve(self.port)
 
             if pynput_supported and self.should_connect_keyboard:

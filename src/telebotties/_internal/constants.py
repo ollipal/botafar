@@ -1,4 +1,8 @@
+from platform import system
+
 from .string_utils import bold, dim, key, underlined
+
+is_windows = system().lower() == "windows"
 
 KEYS = {
     "A",

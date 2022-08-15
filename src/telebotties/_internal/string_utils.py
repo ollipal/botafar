@@ -77,23 +77,22 @@ def control_list_string(control_datas):
     return ret + "\n" if ret != "" else dim("(no controls created)\n")
 
 
-def get_welcome_message(ip, port, pynput_supported):
+def get_welcome_message(ip, port, is_windows, pynput_supported):
     ip_url = "-".join(ip.split(".") + [port])
 
     second_connection_help = (
-        f"\n(or press {key('ENTER')} to start listening "
+        f"\n\n(or press {key('ENTER')} to start listening "
         "to local keyboard events) "
-        if pynput_supported
-        else (
-            f'\n(or run "{bold(f"telebotties --connect {ip}:{port}")}" '
-            "from an another machine)"
-        )
+        if pynput_supported and not is_windows
+        else "\n"
     )
 
-    # return f"""Listening to web connections at {ip}:{port}
+    # TODO: add these advanced instructions to the docs?
+    # f'\n\n(or run "{bold(f"telebotties --connect {ip}:{port}")}" '
+    # "from an another machine)"
 
     return (
         "\nBot running, connect at "
         f"{cyan_bold('http://bot.telebotties.com/create?address=' + ip_url)}"
-        f"\n{second_connection_help}"
+        f"{second_connection_help}"
     )

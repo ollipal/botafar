@@ -18,15 +18,15 @@ uncomment lines from `.pre-commit-config.yaml`
 
 ## Install in virtual env
 
-sudo apt-get install python3-dev
+sudo apt-get install python3-dev python3-pip
 
 python3 -m venv env
 
 source env/bin/activate
 
-pip install flit
+python3 -m pip install flit
 
-flit install --symlink
+python3 -m flit install --symlink
 
 pre-commit install
 
