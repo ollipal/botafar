@@ -103,6 +103,7 @@ class Main(TelebottiesBase):
                 print(
                     get_welcome_message(ip, self.port, pynput_supported),
                     end="",
+                    flush=True,
                 )
 
             if pynput_supported:
