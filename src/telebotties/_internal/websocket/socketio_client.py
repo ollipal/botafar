@@ -139,6 +139,52 @@ async def main():
     pcs = {}
     dcs = {}
     reqs = {}
+    sios = {}
+
+    async def create_sio():
+        if sios.get("owner"):
+            await sios["owner"].disconnect()
+
+        id = "bot"
+        import logging
+
+        socketio_logger = logging.getLogger("socketio")
+        socketio_logger.addFilter(lambda record: False)
+
+        engineio_logger = logging.getLogger("engineio")
+        engineio_logger.addFilter(lambda record: False)
+
+        """ logger=socketio_logger,
+        engineio_logger=engineio_logger, """
+
+        sio = socketio.AsyncClient(
+            logger=socketio_logger,
+            engineio_logger=engineio_logger,
+            reconnection=False,
+            handle_sigint=False,
+        )
+
+        sios["owner"] = sio
+
+        @sio.on("message")
+        async def message(recipient_id, message):
+            await handle_internal_message(recipient_id, message)
+
+        @sio.event
+        def connect():
+            print("I'm connected!")
+
+        @sio.event
+        def connect_error(data):
+            print("The connection failed!")
+
+        @sio.event
+        def disconnect():
+            print("I'm disconnected!")
+
+        await sio.connect("http://localhost:4005", transports="websocket")
+        #await sio.connect('https://tb-signaling.onrender.com', transports="websocket")
+        await sio.emit("setAliases", data=[id])
 
     def send_internal_datachannel_message(message_type):
         datachannel = dcs["owner"]
@@ -202,7 +248,8 @@ async def main():
             @datachannel.on("open")
             async def on_dc_open():
                 print("DATACHANNEL OPEN")
-                await sio.disconnect()
+                await sios["owner"].disconnect()
+                
                 # datachannel.send(json.dumps({ "type": 'EXTERNAL_MESSAGE', "key": "test" }))
 
             @datachannel.on("message")
@@ -223,8 +270,24 @@ async def main():
                     )  # ERROR TO STRING, LOGGER
 
             @peer_connection.on("iceconnectionstatechange")
-            def iceconnectionstatechange():
+            async def iceconnectionstatechange():
                 print("ice state", peer_connection.iceConnectionState)
+
+                if peer_connection.iceConnectionState == "failed":
+                    # same as otherNuked
+                    if dcs.get("owner"):
+                        print("CLOSing dc")
+                        dcs["owner"].close()
+                    if pcs.get("owner"):
+                        print("CLOSing peer")
+                        await pcs["owner"].close()
+
+                    # TODO close somehow?
+                    pcs["owner"] = None
+                    dcs["owner"] = None
+
+                    # TODO reconnect sio
+                    await create_sio()
 
             @peer_connection.on("onicecandidate")
             def iceconnectionstatechange(candidate):
@@ -234,7 +297,7 @@ async def main():
                 await peer_connection.setLocalDescription(
                     await peer_connection.createOffer()
                 )
-                await sio.emit(
+                await sios["owner"].emit(
                     "message",
                     (
                         "browser",
@@ -292,49 +355,16 @@ async def main():
             # TODO close somehow?
             pcs["owner"] = None
             dcs["owner"] = None
+
+            await create_sio()
         else:
             print("Unknown internal message", message)
 
     # id = str(f"{uuid.uuid4()}_BOT")
-    id = "bot"
     # asyncio
-    import logging
-
-    socketio_logger = logging.getLogger("socketio")
-    socketio_logger.addFilter(lambda record: False)
-
-    engineio_logger = logging.getLogger("engineio")
-    engineio_logger.addFilter(lambda record: False)
-
-    """ logger=socketio_logger,
-    engineio_logger=engineio_logger, """
-
-    sio = socketio.AsyncClient(
-        logger=socketio_logger,
-        engineio_logger=engineio_logger,
-        reconnection=False,
-        handle_sigint=False,
-    )
-
-    @sio.on("message")
-    async def message(recipient_id, message):
-        await handle_internal_message(recipient_id, message)
-
-    @sio.event
-    def connect():
-        print("I'm connected!")
-
-    @sio.event
-    def connect_error(data):
-        print("The connection failed!")
-
-    @sio.event
-    def disconnect():
-        print("I'm disconnected!")
-
-    await sio.connect("http://localhost:4005", transports="websocket")
-    # await sio.connect('https://tb-signaling.onrender.com', transports="websocket")
-    await sio.emit("setAliases", data=[id])
+    
+    
+    await create_sio()
 
     try:
         print("PRE AWAITING")
@@ -364,7 +394,7 @@ async def main():
                 print("Cole fail")
         _stop.set()
         print("CLOSED")
-        await sio.disconnect()
+        await sios["owner"].disconnect()
     print("END")
 
     """ try:
@@ -381,9 +411,9 @@ if __name__ == "__main__":
     import signal
     import sys
 
-    async def _signal_handler():
+    """ async def _signal_handler():
         print("SIGNAL")
-        await asyncio.sleep(3)
+        #await asyncio.sleep(1)
         try:
             tasks = asyncio.all_tasks(loop)
             for task in tasks:
@@ -391,11 +421,11 @@ if __name__ == "__main__":
         except RuntimeError as err:
             print("SIGINT or SIGTSTP raised")
             print("cleaning and exiting")
-            sys.exit(1)
+            sys.exit(1) """
 
     def signal_handler(*args):
         loop.call_soon_threadsafe(_stop.set)
-        loop.create_task(_signal_handler())
+        #loop.create_task(_signal_handler())
 
     signal.signal(signal.SIGINT, signal_handler)
 
