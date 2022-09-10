@@ -1,5 +1,5 @@
-from ast import excepthandler
 import asyncio
+from ast import excepthandler
 from asyncio import constants
 from asyncio.log import logger
 from time import sleep
@@ -19,6 +19,7 @@ import warnings
 from secrets import choice
 from uuid import uuid4
 
+import aiortc.sdp as sdp
 import socketio
 from aiortc import (
     RTCConfiguration,
@@ -27,9 +28,6 @@ from aiortc import (
     RTCSessionDescription,
 )
 from aiortc.sdp import candidate_from_sdp, candidate_to_sdp
-
-import aiortc.sdp as sdp
-
 from cryptography.utils import CryptographyDeprecationWarning
 
 # Removes a wrning from logs
@@ -153,7 +151,6 @@ class Timer:
         self._task.cancel()
 
 
-
 async def main():
     pcs = {}
     dcs = {}
@@ -203,9 +200,8 @@ async def main():
             print("I'm disconnected!")
 
         #await sio.connect("http://localhost:4005", transports="websocket")
-        await sio.connect('https://tb-signaling.onrender.com', transports="websocket")
+        await sio.connect("https://tb-signaling.onrender.com", transports="websocket")
         await sio.emit("setAliases", data=[id])
-
 
     def stop_timer():
         if timers["owner"] is not None:
@@ -216,8 +212,7 @@ async def main():
             except:
                 pass """
 
-            
-            #timers["owner"] = None
+            # timers["owner"] = None
 
     def start_timer(t):
         async def times_up():
@@ -237,7 +232,6 @@ async def main():
             await create_sio()
 
         timers["owner"] = Timer(t, times_up)
-
 
     def send_internal_datachannel_message(message_type):
         datachannel = dcs["owner"]
@@ -305,7 +299,6 @@ async def main():
             pcs["owner"] = None
             dcs["owner"] = None
 
-
             (
                 peer_connection,
                 datachannel,
@@ -323,8 +316,6 @@ async def main():
                 print("DATACHANNEL OPEN")
                 stop_timer()
                 start_timer(3)
-                await asyncio.sleep(10) # Same on other side TODO reset if disconnect
-                await sios["owner"].disconnect()
 
                 # datachannel.send(json.dumps({ "type": 'EXTERNAL_MESSAGE', "key": "test" }))
 
@@ -433,6 +424,8 @@ async def main():
             dcs["owner"] = None
 
             await create_sio()
+        elif message_type == "connectionStable":
+            await sios["owner"].disconnect()
         else:
             print("Unknown internal message", message)
 
