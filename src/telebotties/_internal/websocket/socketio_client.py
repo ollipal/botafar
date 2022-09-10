@@ -1,3 +1,4 @@
+from ast import excepthandler
 import asyncio
 from asyncio import constants
 from asyncio.log import logger
@@ -140,6 +141,7 @@ async def main():
     dcs = {}
     reqs = {}
     sios = {}
+    timers = {"owner": None}
 
     async def create_sio():
         if sios.get("owner"):
@@ -182,9 +184,41 @@ async def main():
         def disconnect():
             print("I'm disconnected!")
 
-        await sio.connect("http://localhost:4005", transports="websocket")
-        #await sio.connect('https://tb-signaling.onrender.com', transports="websocket")
+        #await sio.connect("http://localhost:4005", transports="websocket")
+        await sio.connect('https://tb-signaling.onrender.com', transports="websocket")
         await sio.emit("setAliases", data=[id])
+
+
+    def stop_timer():
+        if timers["owner"] is not None:
+            print("Cancel")
+            try:
+                timers["owner"].cancel()
+            except:
+                pass
+
+            
+            #timers["owner"] = None
+
+    def start_timer(t):
+        async def times_up():
+            print("Time's up")
+            stop_timer()
+
+            if dcs.get("owner"):
+                print("CLOSing dc")
+                dcs["owner"].close()
+            if pcs.get("owner"):
+                print("CLOSing peer")
+                await pcs["owner"].close()
+            # TODO close somehow?
+            pcs["owner"] = None
+            dcs["owner"] = None
+
+            await create_sio()
+
+        timers["owner"] = loop.call_later(t, lambda: asyncio.ensure_future(times_up()))
+
 
     def send_internal_datachannel_message(message_type):
         datachannel = dcs["owner"]
@@ -221,6 +255,9 @@ async def main():
         reqs["owner"] = request_id
 
         if message_type == "ping":
+            print("PING")
+            stop_timer()
+            start_timer(2.5)
             datachannel = dcs["owner"]
             try:
                 datachannel.send(
@@ -237,6 +274,19 @@ async def main():
                 )  # ERROR TO STRING, LOGGER
 
         elif message_type == "requestOffer":
+            # destroy old
+            if dcs.get("owner"):
+                print("CLOSing dc")
+                dcs["owner"].close()
+            if pcs.get("owner"):
+                print("CLOSing peer")
+                await pcs["owner"].close()
+
+            # TODO close somehow?
+            pcs["owner"] = None
+            dcs["owner"] = None
+
+
             (
                 peer_connection,
                 datachannel,
@@ -248,8 +298,11 @@ async def main():
             @datachannel.on("open")
             async def on_dc_open():
                 print("DATACHANNEL OPEN")
+                stop_timer()
+                start_timer(3)
+                await asyncio.sleep(10) # Same on other side
                 await sios["owner"].disconnect()
-                
+
                 # datachannel.send(json.dumps({ "type": 'EXTERNAL_MESSAGE', "key": "test" }))
 
             @datachannel.on("message")
@@ -362,8 +415,7 @@ async def main():
 
     # id = str(f"{uuid.uuid4()}_BOT")
     # asyncio
-    
-    
+
     await create_sio()
 
     try:
@@ -386,6 +438,7 @@ async def main():
                 dcs["owner"].close()
             except:
                 print("Cole fail")
+            stop_timer()
         if pcs.get("owner"):
             print("CLOSing peer")
             try:
@@ -425,7 +478,7 @@ if __name__ == "__main__":
 
     def signal_handler(*args):
         loop.call_soon_threadsafe(_stop.set)
-        #loop.create_task(_signal_handler())
+        # loop.create_task(_signal_handler())
 
     signal.signal(signal.SIGINT, signal_handler)
 
