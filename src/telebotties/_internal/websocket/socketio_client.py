@@ -27,6 +27,9 @@ from aiortc import (
     RTCSessionDescription,
 )
 from aiortc.sdp import candidate_from_sdp, candidate_to_sdp
+
+import aiortc.sdp as sdp
+
 from cryptography.utils import CryptographyDeprecationWarning
 
 # Removes a wrning from logs
@@ -135,6 +138,21 @@ def parse_message(message):
     def connected(self):
         return self._connected """
 
+# From: https://stackoverflow.com/a/45430833
+class Timer:
+    def __init__(self, timeout, callback):
+        self._timeout = timeout
+        self._callback = callback
+        self._task = asyncio.ensure_future(self._job())
+
+    async def _job(self):
+        await asyncio.sleep(self._timeout)
+        await self._callback()
+
+    def cancel(self):
+        self._task.cancel()
+
+
 
 async def main():
     pcs = {}
@@ -192,10 +210,11 @@ async def main():
     def stop_timer():
         if timers["owner"] is not None:
             print("Cancel")
-            try:
+            timers["owner"].cancel()
+            """ try:
                 timers["owner"].cancel()
             except:
-                pass
+                pass """
 
             
             #timers["owner"] = None
@@ -217,7 +236,7 @@ async def main():
 
             await create_sio()
 
-        timers["owner"] = loop.call_later(t, lambda: asyncio.ensure_future(times_up()))
+        timers["owner"] = Timer(t, times_up)
 
 
     def send_internal_datachannel_message(message_type):
@@ -295,12 +314,16 @@ async def main():
             pcs["owner"] = peer_connection
             dcs["owner"] = datachannel
 
+            @datachannel.on("close")
+            async def on_dc_close():
+                print("DATACHANNEL CLOSE")
+
             @datachannel.on("open")
             async def on_dc_open():
                 print("DATACHANNEL OPEN")
                 stop_timer()
                 start_timer(3)
-                await asyncio.sleep(10) # Same on other side
+                await asyncio.sleep(10) # Same on other side TODO reset if disconnect
                 await sios["owner"].disconnect()
 
                 # datachannel.send(json.dumps({ "type": 'EXTERNAL_MESSAGE', "key": "test" }))
