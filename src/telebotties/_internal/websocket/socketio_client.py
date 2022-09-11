@@ -156,82 +156,62 @@ async def main():
     dcs = {}
     reqs = {}
     sios = {}
+    has_been_connected = {"owner": False}
     timers = {"owner": None}
+    url = "https://tb-signaling.onrender.com"
+    # url = "http://localhost:4005"
+
+    lock = asyncio.Lock()
 
     async def create_sio():
-        if sios.get("owner"):
-            await sios["owner"].disconnect()
+        async with lock:
+            if sios.get("owner"):
+                print("Disconnect1")
+                await sios["owner"].disconnect()
 
-        id = "bot"
-        import logging
+            has_been_connected["owner"] = False
 
-        socketio_logger = logging.getLogger("socketio")
-        socketio_logger.addFilter(lambda record: False)
+            id = "bot"
+            import logging
 
-        engineio_logger = logging.getLogger("engineio")
-        engineio_logger.addFilter(lambda record: False)
+            socketio_logger = logging.getLogger("socketio")
+            socketio_logger.addFilter(lambda record: False)
 
-        """ logger=socketio_logger,
-        engineio_logger=engineio_logger, """
+            engineio_logger = logging.getLogger("engineio")
+            engineio_logger.addFilter(lambda record: False)
 
-        sio = socketio.AsyncClient(
-            logger=socketio_logger,
-            engineio_logger=engineio_logger,
-            reconnection=False,
-            handle_sigint=False,
-        )
+            """ logger=socketio_logger,
+            engineio_logger=engineio_logger, """
 
-        sios["owner"] = sio
+            sio = socketio.AsyncClient(
+                logger=socketio_logger,
+                engineio_logger=engineio_logger,
+                reconnection=False,
+                handle_sigint=False,
+            )
 
-        @sio.on("message")
-        async def message(recipient_id, message):
-            await handle_internal_message(recipient_id, message)
+            sios["owner"] = sio
 
-        @sio.event
-        def connect():
-            print("I'm connected!")
+            @sio.on("message")
+            async def message(recipient_id, message):
+                await handle_internal_message(recipient_id, message)
 
-        @sio.event
-        def connect_error(data):
-            print("The connection failed!")
+            @sio.event
+            def connect():
+                print("I'm connected!")
 
-        @sio.event
-        def disconnect():
-            print("I'm disconnected!")
+            @sio.event
+            def connect_error(data):
+                print("The connection failed!")
 
-        #await sio.connect("http://localhost:4005", transports="websocket")
-        await sio.connect("https://tb-signaling.onrender.com", transports="websocket")
-        await sio.emit("setAliases", data=[id])
+            @sio.event
+            def disconnect():
+                print("I'm disconnected!")
 
-    def stop_timer():
-        if timers["owner"] is not None:
-            print("Cancel")
-            timers["owner"].cancel()
-            """ try:
-                timers["owner"].cancel()
-            except:
-                pass """
-
-            # timers["owner"] = None
-
-    def start_timer(t):
-        async def times_up():
-            print("Time's up")
-            stop_timer()
-
-            if dcs.get("owner"):
-                print("CLOSing dc")
-                dcs["owner"].close()
-            if pcs.get("owner"):
-                print("CLOSing peer")
-                await pcs["owner"].close()
-            # TODO close somehow?
-            pcs["owner"] = None
-            dcs["owner"] = None
-
-            await create_sio()
-
-        timers["owner"] = Timer(t, times_up)
+            # await sio.connect("http://localhost:4005", transports="websocket")
+            await sio.connect(url, transports="websocket")
+            await sio.emit("setAliases", data=[id])
+            print("New connected")
 
     def send_internal_datachannel_message(message_type):
         datachannel = dcs["owner"]
@@ -268,9 +248,16 @@ async def main():
         reqs["owner"] = request_id
 
         if message_type == "ping":
+
+            async def cb():
+                print("CALLBACK")
+                await create_sio()
+
             print("PING")
-            stop_timer()
-            start_timer(2.5)
+            if timers["owner"]:
+                timers["owner"].cancel()
+            timers["owner"] = Timer(3, cb)
+
             datachannel = dcs["owner"]
             try:
                 datachannel.send(
@@ -314,8 +301,6 @@ async def main():
             @datachannel.on("open")
             async def on_dc_open():
                 print("DATACHANNEL OPEN")
-                stop_timer()
-                start_timer(3)
 
                 # datachannel.send(json.dumps({ "type": 'EXTERNAL_MESSAGE', "key": "test" }))
 
@@ -339,10 +324,16 @@ async def main():
             @peer_connection.on("iceconnectionstatechange")
             async def iceconnectionstatechange():
                 print("ice state", peer_connection.iceConnectionState)
+                if peer_connection.iceConnectionState == "completed":
+                    has_been_connected["owner"] = True
 
-                if peer_connection.iceConnectionState == "failed":
+                if (
+                    peer_connection.iceConnectionState == "failed"
+                    or has_been_connected["owner"] == True
+                    and peer_connection.iceConnectionState == "closed"
+                ):
                     # same as otherNuked
-                    if dcs.get("owner"):
+                    """if dcs.get("owner"):
                         print("CLOSing dc")
                         dcs["owner"].close()
                     if pcs.get("owner"):
@@ -351,10 +342,15 @@ async def main():
 
                     # TODO close somehow?
                     pcs["owner"] = None
-                    dcs["owner"] = None
+                    dcs["owner"] = None"""
 
                     # TODO reconnect sio
-                    await create_sio()
+                    print("Creat1")
+                    try:
+                        # await sios["owner"].connect(url, transports="websocket")
+                        await create_sio()
+                    except socketio.exceptions.ConnectionError:
+                        pass  # Already connected
 
             @peer_connection.on("onicecandidate")
             def iceconnectionstatechange(candidate):
@@ -423,8 +419,10 @@ async def main():
             pcs["owner"] = None
             dcs["owner"] = None
 
+            # await sios["owner"].connect(url, transports="websocket")
             await create_sio()
         elif message_type == "connectionStable":
+            print("Disconnect2")
             await sios["owner"].disconnect()
         else:
             print("Unknown internal message", message)
@@ -432,6 +430,7 @@ async def main():
     # id = str(f"{uuid.uuid4()}_BOT")
     # asyncio
 
+    print("Creating main")
     await create_sio()
 
     try:
@@ -454,7 +453,6 @@ async def main():
                 dcs["owner"].close()
             except:
                 print("Cole fail")
-            stop_timer()
         if pcs.get("owner"):
             print("CLOSing peer")
             try:
