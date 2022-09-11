@@ -18,7 +18,7 @@ def underlined(string):
 
 
 def key(string):
-    return f"\033[1;7m {string} \033[0m"
+    return f"\033[1;30;47m {string} \033[0m"
 
 
 def blue_key(string):
@@ -77,22 +77,8 @@ def control_list_string(control_datas):
     return ret + "\n" if ret != "" else dim("(no controls created)\n")
 
 
-def get_welcome_message(ip, port, is_windows, pynput_supported):
-    ip_url = "-".join(ip.split(".") + [port])
-
-    second_connection_help = (
-        f"\n\n(or press {key('ENTER')} to start listening "
-        "to local keyboard events) "
-        if pynput_supported and not is_windows
-        else "\n"
-    )
-
-    # TODO: add these advanced instructions to the docs?
-    # f'\n\n(or run "{bold(f"telebotties --connect {ip}:{port}")}" '
-    # "from an another machine)"
-
+def get_welcome_message(id):
     return (
         "\nBot running, connect at "
-        f"{cyan_bold('http://bot.telebotties.com/create?address=' + ip_url)}"
-        f"{second_connection_help}"
+        f"{cyan_bold(f'http://bot.telebotties.com/create?address={id}')}\n"
     )

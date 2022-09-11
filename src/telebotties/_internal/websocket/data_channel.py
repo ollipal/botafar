@@ -7,12 +7,12 @@ from time import sleep
 
 import websockets
 
-""" from ..events import SystemEvent
+from ..events import SystemEvent
 from ..log_formatter import get_logger
 from ..string_utils import error_to_string
 from .json_utils import parse_event
 
-logger = get_logger() """
+logger = get_logger()
 
 import json
 import string
@@ -93,8 +93,9 @@ class DataChannel:
         self._stop = asyncio.Event()
         self._connected = False
         self.url = "http://localhost:4005"
+        self.has_connected = False
 
-    def send_internal_datachannel_message(self, message_type):
+    def _send_internal_datachannel_message(self, message_type):
         if self.data_channel is not None and self.request_id is not None:
             try:
                 self.data_channel.send(
@@ -115,7 +116,7 @@ class DataChannel:
         else:
             print(f"Not sending {message_type}")
 
-    async def create_sio(self):
+    async def _create_sio(self):
         async with self.create_sio_lock:
             if self.sio is not None:
                 print("Sio disconnected")
@@ -138,7 +139,7 @@ class DataChannel:
 
             @self.sio.on("message")
             async def message(recipient_id, message):
-                await self.handle_internal_message(recipient_id, message)
+                await self._handle_internal_message(recipient_id, message)
 
             @self.sio.event
             def connect():
@@ -156,7 +157,7 @@ class DataChannel:
             await self.sio.emit("setAliases", data=[self.id])
             print("New connected")
 
-    async def handle_internal_message(self, recipient_id, message):
+    async def _handle_internal_message(self, recipient_id, message):
         message_type, request_id, data = parse_message(message)
 
         # Check types, data type can be anything
@@ -188,7 +189,7 @@ class DataChannel:
 
             async def cb():
                 print("CALLBACK")
-                await self.create_sio()
+                await self._create_sio()
 
             print("PING")
             if self.timer is not None:
@@ -234,6 +235,7 @@ class DataChannel:
             @self.data_channel.on("open")
             async def on_dc_open():
                 print("DATACHANNEL OPEN")
+                self.has_connected = True
 
                 # datachannel.send(json.dumps({ "type": 'EXTERNAL_MESSAGE', "key": "test" }))
 
@@ -244,11 +246,17 @@ class DataChannel:
                     message = json.loads(message)
                     if message["type"] == "INTERNAL_MESSAGE":
                         # print(message)
-                        await self.handle_internal_message(
+                        await self._handle_internal_message(
                             recipient_id, message["data"]
                         )
                     else:
-                        print("Not handled message", message)
+                        print("Parsing event", message)
+                        event = parse_event(data)
+                        if event is not None:
+                            self.process_event(event)
+                        else:
+                            print("Event was None")
+                        
                 except Exception as e:
                     print(
                         "Could not handle datachannel message", e
@@ -275,7 +283,7 @@ class DataChannel:
                     print("Creat1")
                     try:
                         # await sios["owner"].connect(url, transports="websocket")
-                        await self.create_sio()
+                        await self._create_sio()
                     except socketio.exceptions.ConnectionError:
                         pass  # Already connected
 
@@ -346,7 +354,7 @@ class DataChannel:
             self.peer_connection = None
 
             # await sios["owner"].connect(url, transports="websocket")
-            await self.create_sio()
+            await self._create_sio()
         elif message_type == "connectionStable":
             print("Disconnect2")
             if self.sio is not None:
@@ -354,10 +362,10 @@ class DataChannel:
         else:
             print("Unknown internal message", message)
 
-    async def run(self):
+    async def serve(self):
         print("Creating main")
         self.loop = asyncio.get_running_loop()
-        await self.create_sio()
+        await self._create_sio()
 
         try:
             print("AWAITNG")
@@ -365,22 +373,39 @@ class DataChannel:
         except KeyboardInterrupt:
             print("KEYBOARD")
         finally:
-            await self.close_async()
+            await self.stop_async()
         print("END")
+
+    async def send(self, event):
+        assert (
+            self.loop is not None
+        ), "serve() not called before .send()"
+
+        if self.data_channel is None:
+            print("No datachannel")
+            return
+
+        try:
+            self.data_channel.send.send(event._to_json())
+        except Exception as e:
+            logger.error(
+                f"Unecpected send() error:\n{error_to_string(e)}"
+            )
 
     @property
     def connected(self):
         return self._connected
 
-    async def close_async(self):
+    async def stop_async(self):
         self._stop.set()
-        await self.sio.disconnect()
+        if self.sio is not None:
+            await self.sio.disconnect()
         self._connected = False
 
         if self.data_channel is not None:
             print("CLOSing dc")
             try:
-                # self.send_internal_datachannel_message("otherNuked")
+                # self._send_internal_datachannel_message("otherNuked")
                 self.data_channel.close()
             except:
                 print("Cole fail")
@@ -392,7 +417,7 @@ class DataChannel:
                 print("Cole fail")
         self._stop.set()
 
-    def close(self):
+    def stop(self):
         if self._stop is None:
             logger.debug("Server.stop skipped, serving not started?")
             return
@@ -409,8 +434,8 @@ if __name__ == "__main__":
 
     def signal_handler(_signal, frame):
         signal.signal(signal.SIGINT, original_sigint_handler)  # Reset
-        dc.close()
+        dc.stop()
 
     signal.signal(signal.SIGINT, signal_handler)
 
-    asyncio.run(dc.run())
+    asyncio.run(dc.serve())

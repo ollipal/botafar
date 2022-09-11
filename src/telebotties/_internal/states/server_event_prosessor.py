@@ -17,13 +17,9 @@ class ServerEventProsessor:
         self.send_event = send_event
         self.callback_executor = callback_executor
         self.on_remote_host_connect = on_remote_host_connect
-        self.local = False  # Can be changed
         state_machine.reinit(
             self.inform, self.notify_state_change, callback_executor
         )
-
-    def set_to_local(self):
-        self.local = True
 
     def process_event(self, event):
         if event._type == SYSTEM_EVENT:
@@ -69,14 +65,10 @@ class ServerEventProsessor:
 
     def inform(self, message):
         logger.info(message)
-        if not self.local:
-            self.send_event(SystemEvent("info", None, message))
+        self.send_event(SystemEvent("info", None, message))
 
     def notify_state_change(self, state):
-        if not self.local:
-            self.send_event(SystemEvent("state_change", state, ""))
-        elif state == "waiting_host":
-            self.process_event(SystemEvent("player_connect", "player"))
+        self.send_event(SystemEvent("state_change", state, ""))
 
     def on_host_connect(self, name):
         if state_machine.host.is_connected:
