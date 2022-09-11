@@ -156,10 +156,11 @@ async def main():
     dcs = {}
     reqs = {}
     sios = {}
+    reqIds = {"owner": None}
     has_been_connected = {"owner": False}
     timers = {"owner": None}
-    url = "https://tb-signaling.onrender.com"
-    # url = "http://localhost:4005"
+    # url = "https://tb-signaling.onrender.com"
+    url = "http://localhost:4005"
 
     lock = asyncio.Lock()
 
@@ -208,7 +209,6 @@ async def main():
             def disconnect():
                 print("I'm disconnected!")
 
-            # await sio.connect("http://localhost:4005", transports="websocket")
             await sio.connect(url, transports="websocket")
             await sio.emit("setAliases", data=[id])
             print("New connected")
@@ -235,6 +235,22 @@ async def main():
 
     async def handle_internal_message(recipient_id, message):
         message_type, request_id, data = parse_message(message)
+
+        # print(request_id)
+        if reqIds["owner"] is not None and request_id != reqIds["owner"]:
+            await sios["owner"].emit(
+                "message",
+                (
+                    request_id,
+                    {
+                        "data": "Bot occupied",
+                        "type": "requestDenied",
+                        "requestId": request_id,
+                    },
+                ),
+            )
+            print("DENIED")
+            return
 
         # Check types, data type can be anything
         if not (
@@ -281,6 +297,8 @@ async def main():
             if pcs.get("owner"):
                 print("CLOSing peer")
                 await pcs["owner"].close()
+
+            reqIds["owner"] = request_id
 
             # TODO close somehow?
             pcs["owner"] = None
@@ -363,14 +381,14 @@ async def main():
                 await sios["owner"].emit(
                     "message",
                     (
-                        "browser",
+                        request_id,
                         {
                             "data": {
                                 "sdp": peer_connection.localDescription.sdp,
                                 "type": peer_connection.localDescription.type,
                             },
                             "type": "offer",
-                            "requestId": message["requestId"],
+                            "requestId": request_id,
                         },
                     ),
                 )
