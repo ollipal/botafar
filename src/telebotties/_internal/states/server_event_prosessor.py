@@ -40,6 +40,16 @@ class ServerEventProsessor:
                 if state_machine.player.is_connected:
                     self.on_player_disconnect()
                     state_machine.on_player_disconnect()
+            elif event.name == "owner_start_controlling":
+                if not state_machine.owner.is_controlling:
+                    state_machine.owner._is_controlling = True
+                    self.inform("owner started controlling")
+                    # TODO owner took controls from 'name'
+            elif event.name == "owner_stop_controlling":
+                if state_machine.owner.is_controlling:
+                    state_machine.owner._is_controlling = False
+                    self.inform("owner stopped controlling")
+                    # TODO owner released controls back to 'name'
             elif event.name == "info":
                 pass
             else:
@@ -104,11 +114,11 @@ class ServerEventProsessor:
             state_machine.on_owner_connect()
             logger.warning("Player connected while owner disconnected... ")
 
-        self.inform(f"{name} connected")
+        self.inform(f"'{name}' started controlling")
 
     def on_player_disconnect(self):
         if not state_machine.player.is_connected:
             logger.debug("Player already disconnected")
             return
 
-        self.inform("player disconnected")
+        self.inform(f"'{state_machine.player.name}' stopped controlling")

@@ -310,7 +310,7 @@ class DataChannel:
         elif message_type == "candidate":
             try:
                 if data is None or data["candidate"] == "":
-                    logger.debug("skipped candidate:", data)
+                    logger.debug(f"skipped candidate: {data}")
                     return
 
                 candidate = candidate_from_sdp(

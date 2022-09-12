@@ -38,10 +38,15 @@ SIMPLIFIED_STATES = {
 class Owner:
     def __init__(self):
         self._is_connected = False
+        self._is_controlling = False
 
     @property
     def is_connected(self):
         return self._is_connected
+
+    @property
+    def is_controlling(self):
+        return self._is_controlling
 
     def __repr__(self):
         return f"Owner(is_connected={self.is_connected})"
@@ -295,12 +300,14 @@ class ServerStateMachine:
         with self.rlock:
             self.player._name = name
             self.player._is_connected = True
+            self.player._is_controlling = True
             self.safe_state_change(self.start, "start", "player_connect")
 
     def on_player_disconnect(self):
         with self.rlock:
             self.player._name = ""
             self.player._is_connected = False
+            self.player._is_controlling = False
             if self.state != EXIT_IMMEDIATE:
                 self.safe_state_change(
                     self.stop_immediate, "stop_immediate", "player_disconnect"
