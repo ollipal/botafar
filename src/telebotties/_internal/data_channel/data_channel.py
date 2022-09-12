@@ -37,7 +37,13 @@ def get_id():
     full_path = path.abspath(path.dirname(argv[0]))
     mac = str(getnode())
     rand = Random(full_path + mac)
-    return "".join([rand.choice(string.ascii_lowercase) for _ in range(16)])
+    id = "".join(
+        [
+            rand.choice(string.ascii_lowercase + string.digits)
+            for _ in range(18)
+        ]
+    )
+    return f"{id[:6]}-{id[6:12]}-{id[12:]}"
 
 
 def get_peer_connection_and_datachannel():
@@ -86,8 +92,8 @@ class DataChannel:
         self.timer = None
         self._stop = asyncio.Event()
         self._connected = False
-        self.url = "http://localhost:4005"
-        # self.url = "https://tb-signaling.onrender.com"
+        # self.url = "http://localhost:4005"
+        self.url = "https://tb-signaling.onrender.com"
         self.has_connected = False  # is read directly from outside
 
     def _send_internal_datachannel_message(self, message_type):
