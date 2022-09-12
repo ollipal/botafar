@@ -93,6 +93,7 @@ class DataChannel:
         self._stop = asyncio.Event()
         self._connected = False
         self.url = "http://localhost:4005"
+        #self.url = "https://tb-signaling.onrender.com"
         self.has_connected = False
 
     def _send_internal_datachannel_message(self, message_type):
@@ -153,7 +154,13 @@ class DataChannel:
             def disconnect():
                 print("I'm disconnected!")
 
-            await self.sio.connect(self.url, transports="websocket")
+            try:
+                await self.sio.connect(self.url, wait=True, wait_timeout=5, transports="websocket")
+            except socketio.exceptions.ConnectionError as e:
+                logger.error(f"Could not connect to server")
+                await self.stop_async()
+                return
+            
             await self.sio.emit("setAliases", data=[self.id])
             print("New connected")
 
@@ -236,6 +243,7 @@ class DataChannel:
             async def on_dc_open():
                 print("DATACHANNEL OPEN")
                 self.has_connected = True
+                self._connected = True
 
                 # datachannel.send(json.dumps({ "type": 'EXTERNAL_MESSAGE', "key": "test" }))
 
@@ -243,15 +251,15 @@ class DataChannel:
             async def on_message(message):
                 # print("DATACHANNEL MESSAGE")
                 try:
-                    message = json.loads(message)
-                    if message["type"] == "INTERNAL_MESSAGE":
+                    loaded_message = json.loads(message)
+                    if loaded_message["type"] == "INTERNAL_MESSAGE":
                         # print(message)
                         await self._handle_internal_message(
-                            recipient_id, message["data"]
+                            recipient_id, loaded_message["data"]
                         )
                     else:
                         print("Parsing event", message)
-                        event = parse_event(data)
+                        event = parse_event(message)
                         if event is not None:
                             self.process_event(event)
                         else:
@@ -377,6 +385,7 @@ class DataChannel:
         print("END")
 
     async def send(self, event):
+        print("------------------------- SENDING")
         assert (
             self.loop is not None
         ), "serve() not called before .send()"
@@ -386,7 +395,7 @@ class DataChannel:
             return
 
         try:
-            self.data_channel.send.send(event._to_json())
+            self.data_channel.send(event._to_json())
         except Exception as e:
             logger.error(
                 f"Unecpected send() error:\n{error_to_string(e)}"

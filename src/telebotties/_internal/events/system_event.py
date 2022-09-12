@@ -5,11 +5,11 @@ from ..constants import SYSTEM_EVENT
 
 class SystemEvent:
     def __init__(self, name, value, text="", data=None):
+        self._type = SYSTEM_EVENT
         self._name = name
         self._value = value
         self._text = text
         self._data = data
-        self._type = SYSTEM_EVENT
 
     def set_value(self, value):
         self._value = value
@@ -33,11 +33,11 @@ class SystemEvent:
     def _to_json(self):
         return json.dumps(
             {
+                "type": self._type,
                 "name": self.name,
                 "value": self.value,
                 "text": self.text,
                 "data": self.data,
-                "type": self._type,
             }
         )
 

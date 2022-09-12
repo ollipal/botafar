@@ -22,8 +22,10 @@ class ServerEventProsessor:
         )
 
     def process_event(self, event):
+        print("PRCOSSING_EVENT")
         if event._type == SYSTEM_EVENT:
             if event.name == "host_connect":
+                print("CONNECTING HOST")
                 if not state_machine.host.is_connected:
                     name = event.value
                     self.on_host_connect(name)

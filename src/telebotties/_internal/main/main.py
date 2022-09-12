@@ -49,6 +49,7 @@ class Main(TelebottiesBase):
             logger.debug("server was not connected, not sending")
 
     async def _send_event_async(self, event):
+        print("SENDING", event)
         await self.server.send(event)
 
     def print(self, string):
@@ -93,21 +94,27 @@ class Main(TelebottiesBase):
                     flush=True,
                 )
 
-            async def timeout():
+            async def timeout(t):
                 try:
-                    await asyncio.sleep(3)
+                    await asyncio.sleep(t)
                     if not self.server.has_connected:
                         if not self.prints_removed:
-                            print("\nDid not connect in 60 seconds. Did you try to open the link above?\n")
+                            print(f"\nDid not connect in {t} seconds. Did you try to open the link above?\n")
                         self.server.stop()
                 except asyncio.exceptions.CancelledError:
                     logger.debug("Timeout cancelled")
+
+            async def serve():
+                await self.server.serve()
+                if self.timeout_task is not None:
+                    self.timeout_task.cancel()
             
-            self.timeout_task = asyncio.create_task(timeout())
+            self.timeout_task = asyncio.create_task(timeout(60))
+            self.server_task = asyncio.create_task(serve())
 
             await asyncio.gather(
                 self.timeout_task,
-                self.server.serve(),
+                self.server_task,
             )
         except Exception as e:
             logger.error(f"Unexpected internal error: {error_to_string(e)}")
