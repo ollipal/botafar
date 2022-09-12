@@ -48,7 +48,7 @@ KEYS = {
     "RIGHT",
 }
 
-SENDERS = {"player", "host"}
+SENDERS = {"player", "owner"}
 ORIGINS = {"keyboard", "screen"}
 
 INPUT_EVENT = "INPUT_EVENT"

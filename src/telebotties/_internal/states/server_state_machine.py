@@ -17,7 +17,7 @@ logger = get_logger()
 
 PRE_INIT = "pre_init"
 INIT = "on_init"
-WAITING_HOST = "waiting_host"
+WAITING_OWNER = "waiting_owner"
 PREPARE = "on_prepare"
 WAITING_PLAYER = "waiting_player"
 START = "on_start"
@@ -35,21 +35,16 @@ SIMPLIFIED_STATES = {
 }
 
 
-class Host:
+class Owner:
     def __init__(self):
         self._is_connected = False
-        self._name = ""
 
     @property
     def is_connected(self):
         return self._is_connected
 
-    @property
-    def name(self):
-        return self._name
-
     def __repr__(self):
-        return f"Host(name='{self.name}', is_connected={self.is_connected})"
+        return f"Owner(is_connected={self.is_connected})"
 
 
 class Player:
@@ -86,8 +81,8 @@ class State:
         return self._state_machine._state() == INIT
 
     @property
-    def is_waiting_host(self):
-        return self._state_machine._state() == WAITING_HOST
+    def is_waiting_owner(self):
+        return self._state_machine._state() == WAITING_OWNER
 
     @property
     def is_preparing(self):
@@ -112,8 +107,8 @@ class State:
     def __repr__(self):
         if self.is_initializing:
             return "State(is_initializing=True)"
-        elif self.is_waiting_host:
-            return "State(is_waiting_host=True)"
+        elif self.is_waiting_owner:
+            return "State(is_waiting_owner=True)"
         elif self.is_preparing:
             return "State(is_preparing=True)"
         elif self.is_waiting_player:
@@ -132,7 +127,7 @@ class ServerStateMachine:
     states = [
         PRE_INIT,
         INIT,
-        WAITING_HOST,
+        WAITING_OWNER,
         PREPARE,
         WAITING_PLAYER,
         START,
@@ -144,7 +139,7 @@ class ServerStateMachine:
     ]
 
     def __init__(self):
-        self.host = Host()
+        self.owner = Owner()
         self.player = Player()
         self.start_time = -1
         self.machine = Machine(
@@ -173,17 +168,17 @@ class ServerStateMachine:
             after="after_init",
         )
         self.machine.add_transition(
-            "wait_host",
+            "wait_owner",
             [INIT, STOP],
-            WAITING_HOST,
+            WAITING_OWNER,
             conditions="all_finished",
-            after="after_waiting_host",
+            after="after_waiting_owner",
         )
         self.machine.add_transition(
             "prepare",
-            WAITING_HOST,
+            WAITING_OWNER,
             PREPARE,
-            conditions="host_connected",
+            conditions="owner_connected",
             after="after_prepare",
         )
         self.machine.add_transition(
@@ -196,7 +191,7 @@ class ServerStateMachine:
             "start",
             WAITING_PLAYER,
             START,
-            conditions="host_and_player_connected",
+            conditions="owner_and_player_connected",
             after="after_start",
         )
         self.machine.add_transition(
@@ -273,29 +268,27 @@ class ServerStateMachine:
             logger.debug(f"Transition '{name}' skipped (origin: {origin})")
 
     # transition conditions requires this
-    def host_connected(self):
+    def owner_connected(self):
         with self.rlock:
-            return self.host.is_connected
+            return self.owner.is_connected
 
     # transition conditions requires this
-    def host_and_player_connected(self):
+    def owner_and_player_connected(self):
         with self.rlock:
-            return self.host.is_connected and self.player.is_connected
+            return self.owner.is_connected and self.player.is_connected
 
-    def on_host_connect(self, name):
+    def on_owner_connect(self):
         with self.rlock:
-            self.host._name = name
-            self.host._is_connected = True
-            self.safe_state_change(self.prepare, "prepare", "host_connect")
-            self.safe_state_change(self.start, "start", "host_connect")
+            self.owner._is_connected = True
+            self.safe_state_change(self.prepare, "prepare", "owner_connect")
+            self.safe_state_change(self.start, "start", "owner_connect")
 
-    def on_host_disconnect(self):
+    def on_owner_disconnect(self):
         with self.rlock:
-            self.host._name = ""
-            self.host._is_connected = False
+            self.owner._is_connected = False
             if self.state != EXIT_IMMEDIATE:
                 self.safe_state_change(
-                    self.stop_immediate, "stop_immediate", "host_disconnect"
+                    self.stop_immediate, "stop_immediate", "owner_disconnect"
                 )
 
     def on_player_connect(self, name):
@@ -318,12 +311,12 @@ class ServerStateMachine:
         # NOTE: not notify_state_change, no one connected yet
         # "on_init" executed from main
 
-    def after_waiting_host(self):
-        logger.debug("STATE: waiting_host")
+    def after_waiting_owner(self):
+        logger.debug("STATE: waiting_owner")
         # with self.rlock:
-        self.notify_state_change("waiting_host")
+        self.notify_state_change("waiting_owner")
         self.start_time = -1
-        self.safe_state_change(self.prepare, "prepare", "waiting_host")
+        self.safe_state_change(self.prepare, "prepare", "waiting_owner")
 
     def after_prepare(self):
         logger.debug("STATE: on_prepare")
@@ -417,10 +410,10 @@ class ServerStateMachine:
 
         # with self.rlock:
         def wrapper():
-            self.safe_state_change(self.wait_host, "wait_host", "on_stop")
+            self.safe_state_change(self.wait_owner, "wait_owner", "on_stop")
             self.safe_state_change(self.exit, "exit", "on_stop")
 
-        self.execute("on_stop", wrapper, "wait_host")
+        self.execute("on_stop", wrapper, "wait_owner")
 
     def after_exit_immediate(self):
         logger.debug("STATE: exit_immediate")
@@ -433,10 +426,10 @@ class ServerStateMachine:
 
         if self.player.is_connected:
             self.inform("player disconnected")
-        if self.host.is_connected:
-            self.inform("host disconnected")
+        if self.owner.is_connected:
+            self.inform("owner disconnected")
         self.on_player_disconnect()
-        self.on_host_disconnect()
+        self.on_owner_disconnect()
 
         def exit_wrapper():
             self.exit_immediate_finished = True
@@ -466,7 +459,7 @@ class ServerStateMachine:
             ), "exit_event should be awailable here..."
             self.loop.call_soon_threadsafe(self.exit_event.set)
 
-        self.execute("on_exit", set_exit_event, "wait_host")
+        self.execute("on_exit", set_exit_event, "wait_owner")
 
     def on_control_finished_callback(self):
         # Perf reasons, this is executed a lot
@@ -628,7 +621,7 @@ state_machine = ServerStateMachine()
 
 state = State(state_machine)
 time = state_machine.time
-host = state_machine.host
+owner = state_machine.owner
 player = state_machine.player
 enable_controls = state_machine.enable_controls
 disable_controls = state_machine.disable_controls

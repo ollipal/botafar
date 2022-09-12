@@ -115,7 +115,9 @@ class DataChannel:
                 await self.sio.disconnect()
 
             self._connected = False
-            event = SystemEvent("host_disconnect", "server", text="create sio")
+            event = SystemEvent(
+                "owner_disconnect", "server", text="create sio"
+            )
             self.process_event(event)
 
             # Silence all logging
@@ -255,10 +257,6 @@ class DataChannel:
 
             @self.peer_connection.on("iceconnectionstatechange")
             async def iceconnectionstatechange():
-                logger.debug(
-                    "ice state", self.peer_connection.iceConnectionState
-                )
-
                 if self.peer_connection.iceConnectionState == "failed":
                     # same as otherNuked
                     """if dcs.get("owner"):

@@ -6,7 +6,7 @@ from ..function_utils import get_params, takes_parameter
 
 SENDER_REPR = {
     "any": "",
-    "host": ", host_only=True",
+    "owner": ", owner_only=True",
 }
 
 
@@ -18,7 +18,7 @@ class ControlBase(ABC):
         self,
         type,
         keys,
-        host_only,
+        owner_only,
         start_event,
         alternatives,
         amount,
@@ -27,7 +27,7 @@ class ControlBase(ABC):
         # Make sure makes sense
 
         self._keys = keys
-        self._sender = "host" if host_only else "any"
+        self._sender = "owner" if owner_only else "any"
         self._state = start_event.name
         self._latest_event = start_event
         self._alternative_map = {}
@@ -165,12 +165,12 @@ class ControlBase(ABC):
     def _get_event_callback_keys(self, key, sender):
         if sender == "any":
             return [
-                (key, "host"),
+                (key, "owner"),
                 (key, "player"),
             ]
-        elif sender == "host":
+        elif sender == "owner":
             return [
-                (key, "host"),
+                (key, "owner"),
             ]
         else:
             RuntimeError("This should not happen")

@@ -27,7 +27,7 @@ class Main(TelebottiesBase):
         self.event_prosessor = ServerEventProsessor(
             self.send_event,
             self.callback_executor,
-            self.on_remote_host_connect,
+            self.on_remote_owner_connect,
         )
         super().__init__(suppress_keys, prints_removed)
         self.server = DataChannel(self.event_prosessor.process_event)
@@ -58,7 +58,7 @@ class Main(TelebottiesBase):
             # logger.debug("Server not connected, print not sent")
             pass
 
-    def on_remote_host_connect(self):
+    def on_remote_owner_connect(self):
         if not self.prints_removed and not self.help_printed:
             print(LISTEN_BROWSER_MESSAGE)
             self.help_printed = True
@@ -76,7 +76,7 @@ class Main(TelebottiesBase):
         state_machine.set_loop(self.loop)
         try:
             state_machine.init()
-            await self.run_callbacks("on_init", state_machine.wait_host)
+            await self.run_callbacks("on_init", state_machine.wait_owner)
 
             if state_machine._state() == "on_exit":
                 return  # triggers 'finally:'
@@ -153,7 +153,7 @@ class Main(TelebottiesBase):
         if self.server.connected:
             self.send_event(
                 SystemEvent(
-                    "host_disconnect",
+                    "owner_disconnect",
                     "server",
                 )
             )

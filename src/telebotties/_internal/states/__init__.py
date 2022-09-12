@@ -2,7 +2,7 @@ from .server_state_machine import (  # noqa: F401 isort: skip
     PRE_INIT,
     disable_controls,
     enable_controls,
-    host,
+    owner,
     player,
     sleep,
     sleep_async,

@@ -19,13 +19,13 @@ class KeyboardClientState:
         if event._type == SYSTEM_EVENT:
             if event.name == "already_connected":
                 return
-            elif event.name == "host_disconnect":
+            elif event.name == "owner_disconnect":
                 if self.player_connected:
                     # Blocks forwarded messages
                     self.player_connected = False
                     # Write them yourself
                     logger.info("player disconnected")
-                    logger.info("host disconnected")
+                    logger.info("owner disconnected")
                 self.end_callback()
                 return
             elif event.name == "print":
@@ -53,5 +53,5 @@ class KeyboardClientState:
 
         # And potentially send more
         if event._type == SYSTEM_EVENT:
-            if event.name == "host_connect":
-                logger.debug("Host connected")
+            if event.name == "owner_connect":
+                logger.debug("owner connected")

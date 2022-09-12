@@ -9,10 +9,10 @@ class Button(ControlBase):
         self,
         key,
         alternative=None,
-        host_only=False,
+        owner_only=False,
         amount=1,
     ):
-        start_event = Event("on_release", "host", key)
+        start_event = Event("on_release", "owner", key)
         start_event._set_time(-1)
         start_event._set_active_method(lambda: False)
 
@@ -75,7 +75,7 @@ class Button(ControlBase):
         super().__init__(
             "button",
             [key],
-            host_only,
+            owner_only,
             start_event,
             alternative,
             amount,
