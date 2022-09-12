@@ -93,7 +93,7 @@ class DataChannel:
         self._stop = asyncio.Event()
         self._connected = False
         self.url = "http://localhost:4005"
-        #self.url = "https://tb-signaling.onrender.com"
+        # self.url = "https://tb-signaling.onrender.com"
         self.has_connected = False
 
     def _send_internal_datachannel_message(self, message_type):
@@ -124,6 +124,10 @@ class DataChannel:
                 await self.sio.disconnect()
 
             self._connected = False
+            event = SystemEvent(
+                "host_disconnect", "server", text="create sio"
+            )
+            self.process_event(event)
 
             # Silence all logging
             socketio_logger = logging.getLogger("socketio")
@@ -155,12 +159,14 @@ class DataChannel:
                 print("I'm disconnected!")
 
             try:
-                await self.sio.connect(self.url, wait=True, wait_timeout=5, transports="websocket")
+                await self.sio.connect(
+                    self.url, wait=True, wait_timeout=5, transports="websocket"
+                )
             except socketio.exceptions.ConnectionError as e:
                 logger.error(f"Could not connect to server")
                 await self.stop_async()
                 return
-            
+
             await self.sio.emit("setAliases", data=[self.id])
             print("New connected")
 
@@ -264,7 +270,7 @@ class DataChannel:
                             self.process_event(event)
                         else:
                             print("Event was None")
-                        
+
                 except Exception as e:
                     print(
                         "Could not handle datachannel message", e
@@ -386,9 +392,7 @@ class DataChannel:
 
     async def send(self, event):
         print("------------------------- SENDING")
-        assert (
-            self.loop is not None
-        ), "serve() not called before .send()"
+        assert self.loop is not None, "serve() not called before .send()"
 
         if self.data_channel is None:
             print("No datachannel")
@@ -397,9 +401,7 @@ class DataChannel:
         try:
             self.data_channel.send(event._to_json())
         except Exception as e:
-            logger.error(
-                f"Unecpected send() error:\n{error_to_string(e)}"
-            )
+            logger.error(f"Unecpected send() error:\n{error_to_string(e)}")
 
     @property
     def connected(self):

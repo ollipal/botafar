@@ -8,10 +8,7 @@ from telebotties._internal.events.system_event import SystemEvent
 from telebotties._internal.websocket import DataChannel
 
 from ..callback_executor import CallbackExecutor
-from ..constants import (
-    LISTEN_WEB_MESSAGE_NO_PYNPUT,
-    SIGINT_MESSAGE,
-)
+from ..constants import LISTEN_WEB_MESSAGE_NO_PYNPUT, SIGINT_MESSAGE
 from ..decorators import DecoratorBase
 from ..log_formatter import get_logger, setup_logging
 from ..states import PRE_INIT, ServerEventProsessor, state_machine
@@ -99,7 +96,9 @@ class Main(TelebottiesBase):
                     await asyncio.sleep(t)
                     if not self.server.has_connected:
                         if not self.prints_removed:
-                            print(f"\nDid not connect in {t} seconds. Did you try to open the link above?\n")
+                            print(
+                                f"\nDid not connect in {t} seconds. Did you try to open the link above?\n"
+                            )
                         self.server.stop()
                 except asyncio.exceptions.CancelledError:
                     logger.debug("Timeout cancelled")
@@ -108,7 +107,7 @@ class Main(TelebottiesBase):
                 await self.server.serve()
                 if self.timeout_task is not None:
                     self.timeout_task.cancel()
-            
+
             self.timeout_task = asyncio.create_task(timeout(60))
             self.server_task = asyncio.create_task(serve())
 
@@ -179,6 +178,7 @@ class Main(TelebottiesBase):
             print(SIGINT_MESSAGE)
         state_machine.exit_immediate()
         self.error_callback(None, sigint=True)
+
 
 def _print(string, print_locally=True):
     global main
