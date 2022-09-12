@@ -55,10 +55,10 @@ INPUT_EVENT = "INPUT_EVENT"
 SYSTEM_EVENT = "SYSTEM_EVENT"
 
 LISTEN_BROWSER_MESSAGE = (
-    f"Browser connected, press " f"{key('Ctrl')} + {key('C')} to exit.\n"
+    f"Browser connected, press " f"{key('Ctrl')} + {key('C')} to exit."
 )
 
 SIGINT_MESSAGE = (
-    f"\n\n{key('Ctrl')} + {key('C')} received, "
+    f"\n{key('Ctrl')} + {key('C')} received, "
     f"shutting down gracefully... {dim('(Press again to exit immediately)')}"
 )

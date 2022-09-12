@@ -358,7 +358,7 @@ class DataChannel:
         try:
             self.data_channel.send(event._to_json())
         except Exception as e:
-            logger.error(f"Unecpected send() error:\n{error_to_string(e)}")
+            logger.debug(f"Unecpected send() error:\n{error_to_string(e)}")
 
     @property
     def connected(self):

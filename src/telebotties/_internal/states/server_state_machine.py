@@ -424,10 +424,10 @@ class ServerStateMachine:
         # with self.rlock:
         self.notify_state_change("on_exit")
 
-        if self.player.is_connected:
-            self.inform("player disconnected")
-        if self.owner.is_connected:
-            self.inform("owner disconnected")
+        # if self.player.is_connected:
+        #    self.inform("player disconnected")
+        # if self.owner.is_connected:
+        #    self.inform("owner disconnected")
         self.on_player_disconnect()
         self.on_owner_disconnect()
 

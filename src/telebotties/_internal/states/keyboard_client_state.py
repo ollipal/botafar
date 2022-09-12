@@ -24,8 +24,8 @@ class KeyboardClientState:
                     # Blocks forwarded messages
                     self.player_connected = False
                     # Write them yourself
-                    logger.info("player disconnected")
-                    logger.info("owner disconnected")
+                    # logger.info("player disconnected")
+                    # logger.info("owner disconnected")
                 self.end_callback()
                 return
             elif event.name == "print":

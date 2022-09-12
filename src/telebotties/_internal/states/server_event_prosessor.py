@@ -81,7 +81,7 @@ class ServerEventProsessor:
                 "connect_ok", None, data=ControlBase._get_control_datas()
             )
         )
-        self.inform("owner connected")
+        # self.inform("owner connected")
 
     def on_owner_disconnect(self):
         if not state_machine.owner.is_connected:
@@ -92,7 +92,7 @@ class ServerEventProsessor:
             self.on_player_disconnect()
             state_machine.on_player_disconnect()
 
-        self.inform("owner disconnected")
+        # self.inform("owner disconnected")
 
     def on_player_connect(self, name):
         if state_machine.player.is_connected:
