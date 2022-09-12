@@ -1,24 +1,13 @@
 import asyncio
-import logging
-from ast import excepthandler
-from asyncio import constants
-from asyncio.log import logger
-from time import sleep
-
-import websockets
-
-from ..events import SystemEvent
-from ..log_formatter import get_logger
-from ..string_utils import error_to_string
-from .json_utils import parse_event
-
-logger = get_logger()
-
 import json
-import warnings
+import logging
 import string
+import warnings
+from os import path
+from random import Random
+from sys import argv
+from uuid import getnode
 
-import aiortc.sdp as sdp
 import socketio
 from aiortc import (
     RTCConfiguration,
@@ -26,13 +15,15 @@ from aiortc import (
     RTCPeerConnection,
     RTCSessionDescription,
 )
-from aiortc.sdp import candidate_from_sdp, candidate_to_sdp
+from aiortc.sdp import candidate_from_sdp
 from cryptography.utils import CryptographyDeprecationWarning
-from os import path
-from uuid import getnode
-from random import Random
-from sys import argv
 
+from ..events import SystemEvent
+from ..log_formatter import get_logger
+from ..string_utils import error_to_string
+from .json_utils import parse_event
+
+logger = get_logger()
 
 # Removes a wrning from logs
 # For some reason, updating relevant modules did to help...
@@ -46,12 +37,10 @@ def get_id():
     full_path = path.abspath(path.dirname(argv[0]))
     mac = str(getnode())
     rand = Random(full_path + mac)
-    return "".join(
-        [rand.choice(string.ascii_lowercase) for _ in range(16)]
-    )
+    return "".join([rand.choice(string.ascii_lowercase) for _ in range(16)])
+
 
 def get_peer_connection_and_datachannel():
-    print("pc, dc created")
     pc = RTCPeerConnection(
         RTCConfiguration([RTCIceServer("stun:stun.l.google.com:19302")])
     )
@@ -88,7 +77,7 @@ class DataChannel:
     def __init__(self, process_event):
         self.process_event = process_event  # TODO use
         self.loop = None
-        self.id = get_id() # is read directly from outside
+        self.id = get_id()  # is read directly from outside
         self.peer_connection = None
         self.data_channel = None
         self.request_id = None
@@ -99,7 +88,7 @@ class DataChannel:
         self._connected = False
         self.url = "http://localhost:4005"
         # self.url = "https://tb-signaling.onrender.com"
-        self.has_connected = False # is read directly from outside
+        self.has_connected = False  # is read directly from outside
 
     def _send_internal_datachannel_message(self, message_type):
         if self.data_channel is not None and self.request_id is not None:
@@ -116,22 +105,17 @@ class DataChannel:
                     )
                 )
             except Exception as e:
-                print(
-                    "Could not send datachannel message", e
-                )  # ERROR TO STRING, LOGGER
+                logger.debug("Could not send datachannel message", e)
         else:
-            print(f"Not sending {message_type}")
+            logger.debug(f"Not sending {message_type}")
 
     async def _create_sio(self):
         async with self.create_sio_lock:
             if self.sio is not None:
-                print("Sio disconnected")
                 await self.sio.disconnect()
 
             self._connected = False
-            event = SystemEvent(
-                "host_disconnect", "server", text="create sio"
-            )
+            event = SystemEvent("host_disconnect", "server", text="create sio")
             self.process_event(event)
 
             # Silence all logging
@@ -153,29 +137,30 @@ class DataChannel:
 
             @self.sio.event
             def connect():
-                print("I'm connected!")
+                logger.debug("sio connected")
 
             @self.sio.event
             def connect_error(data):
-                print("The connection failed!")
+                logger.debug("sio error", data)
 
             @self.sio.event
             def disconnect():
-                print("I'm disconnected!")
+                logger.debug("sio disconnected")
 
             try:
                 await self.sio.connect(
                     self.url, wait=True, wait_timeout=5, transports="websocket"
                 )
-            except socketio.exceptions.ConnectionError as e:
-                logger.error(f"Could not connect to server")
+            except socketio.exceptions.ConnectionError:
+                logger.error("Could not connect to server")
                 await self.stop_async()
                 return
 
             await self.sio.emit("setAliases", data=[self.id])
-            print("New connected")
 
-    async def _handle_internal_message(self, recipient_id, message):
+    async def _handle_internal_message(  # noqa: C901
+        self, recipient_id, message
+    ):
         message_type, request_id, data = parse_message(message)
 
         # Check types, data type can be anything
@@ -184,10 +169,9 @@ class DataChannel:
             and isinstance(request_id, str)
             and isinstance(recipient_id, str)
         ):
-            print("Malformed internal message", recipient_id, message)
+            logger.debug("Malformed internal message", recipient_id, message)
             return
 
-        # print(request_id)
         if self.request_id is not None and request_id != self.request_id:
             await self.sio.emit(
                 "message",
@@ -200,16 +184,15 @@ class DataChannel:
                     },
                 ),
             )
-            print("DENIED")
+            logger.debug("Browser denied")
             return
 
         if message_type == "ping":
 
             async def cb():
-                print("CALLBACK")
+                logger.debug("Ping timeout")
                 await self._create_sio()
 
-            print("PING")
             if self.timer is not None:
                 self.timer.cancel()
             self.timer = Timer(3, cb)
@@ -224,17 +207,13 @@ class DataChannel:
                     )
                 )
             except Exception as e:
-                print(
-                    "Could not send datachannel message", e
-                )  # ERROR TO STRING, LOGGER
+                logger.debug("Could not send datachannel message", e)
 
         elif message_type == "requestOffer":
             # destroy old
             if self.data_channel is not None:
-                print("CLOSing dc")
                 self.data_channel.close()
             if self.peer_connection is not None:
-                print("CLOSing peer")
                 await self.peer_connection.close()
 
             self.data_channel = None
@@ -248,42 +227,37 @@ class DataChannel:
 
             @self.data_channel.on("close")
             async def on_dc_close():
-                print("DATACHANNEL CLOSE")
+                logger.debug("dc close")
 
             @self.data_channel.on("open")
             async def on_dc_open():
-                print("DATACHANNEL OPEN")
+                logger.debug("dc open")
                 self.has_connected = True
                 self._connected = True
 
-                # datachannel.send(json.dumps({ "type": 'EXTERNAL_MESSAGE', "key": "test" }))
-
             @self.data_channel.on("message")
             async def on_message(message):
-                # print("DATACHANNEL MESSAGE")
                 try:
                     loaded_message = json.loads(message)
                     if loaded_message["type"] == "INTERNAL_MESSAGE":
-                        # print(message)
                         await self._handle_internal_message(
                             recipient_id, loaded_message["data"]
                         )
                     else:
-                        print("Parsing event", message)
                         event = parse_event(message)
                         if event is not None:
                             self.process_event(event)
                         else:
-                            print("Event was None")
+                            logger.debug("Could not parse event")
 
                 except Exception as e:
-                    print(
-                        "Could not handle datachannel message", e
-                    )  # ERROR TO STRING, LOGGER
+                    logger.debug("Could not handle datachannel message", e)
 
             @self.peer_connection.on("iceconnectionstatechange")
             async def iceconnectionstatechange():
-                print("ice state", self.peer_connection.iceConnectionState)
+                logger.debug(
+                    "ice state", self.peer_connection.iceConnectionState
+                )
 
                 if self.peer_connection.iceConnectionState == "failed":
                     # same as otherNuked
@@ -298,55 +272,47 @@ class DataChannel:
                     pcs["owner"] = None
                     dcs["owner"] = None"""
 
-                    # TODO reconnect sio
-                    print("Creat1")
                     try:
-                        # await sios["owner"].connect(url, transports="websocket")
                         await self._create_sio()
                     except socketio.exceptions.ConnectionError:
                         pass  # Already connected
 
             @self.peer_connection.on("onicecandidate")
-            def iceconnectionstatechange(candidate):
-                print("ice candidate", candidate)
+            def onicecandidate(candidate):
+                logger.debug("ice candidate", candidate)
 
             try:
                 await self.peer_connection.setLocalDescription(
                     await self.peer_connection.createOffer()
                 )
+                offer_data = {
+                    "sdp": self.peer_connection.localDescription.sdp,
+                    "type": self.peer_connection.localDescription.type,
+                }
                 await self.sio.emit(
                     "message",
                     (
                         request_id,
                         {
-                            "data": {
-                                "sdp": self.peer_connection.localDescription.sdp,
-                                "type": self.peer_connection.localDescription.type,
-                            },
+                            "data": offer_data,
                             "type": "offer",
                             "requestId": request_id,
                         },
                     ),
                 )
             except Exception as e:
-                print(
-                    "Could not create or send offer", e
-                )  # ERROR TO STRING, LOGGER
+                logger.debug("Could not create or send offer", e)
         elif message_type == "answer":
             try:
                 await self.peer_connection.setRemoteDescription(
                     RTCSessionDescription(data["sdp"], data["type"])
                 )
             except Exception as e:
-                print(
-                    "Could not set remote description", e
-                )  # ERROR TO STRING, LOGGER
+                logger.debug("Could not set remote description", e)
         elif message_type == "candidate":
-            # print("CANDIDATE")
-            # print(pcs["owner"])
             try:
                 if data is None or data["candidate"] == "":
-                    print("skipped candidate:", data)
+                    logger.debug("skipped candidate:", data)
                     return
 
                 candidate = candidate_from_sdp(
@@ -356,17 +322,12 @@ class DataChannel:
                 candidate.sdpMLineIndex = data["sdpMLineIndex"]
                 await self.peer_connection.addIceCandidate(candidate)
             except Exception as e:
-                print(
-                    "Could not add ice candidate", e
-                )  # ERROR TO STRING, LOGGER
-                print(data)
+                logger.debug("Could not add ice candidate", e)
         elif message_type == "otherNuked":
             # destroy old
             if self.data_channel is not None:
-                print("CLOSing dc")
                 self.data_channel.close()
             if self.peer_connection is not None:
-                print("CLOSing peer")
                 await self.peer_connection.close()
 
             self.data_channel = None
@@ -375,32 +336,25 @@ class DataChannel:
             # await sios["owner"].connect(url, transports="websocket")
             await self._create_sio()
         elif message_type == "connectionStable":
-            print("Disconnect2")
             if self.sio is not None:
                 await self.sio.disconnect()
         else:
-            print("Unknown internal message", message)
+            logger.debug("Unknown internal message", message)
 
     async def serve(self):
-        print("Creating main")
         self.loop = asyncio.get_running_loop()
         await self._create_sio()
 
         try:
-            print("AWAITNG")
             await self._stop.wait()
-        except KeyboardInterrupt:
-            print("KEYBOARD")
         finally:
             await self.stop_async()
-        print("END")
 
     async def send(self, event):
-        print("------------------------- SENDING")
         assert self.loop is not None, "serve() not called before .send()"
 
         if self.data_channel is None:
-            print("No datachannel")
+            logger.debug("No datachannel, not sending")
             return
 
         try:
@@ -419,18 +373,16 @@ class DataChannel:
         self._connected = False
 
         if self.data_channel is not None:
-            print("CLOSing dc")
             try:
                 # self._send_internal_datachannel_message("otherNuked")
                 self.data_channel.close()
-            except:
-                print("Cole fail")
+            except Exception:
+                pass
         if self.peer_connection is not None:
-            print("CLOSing peer")
             try:
                 await self.peer_connection.close()
-            except:
-                print("Cole fail")
+            except Exception:
+                pass
         self._stop.set()
 
     def stop(self):

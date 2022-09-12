@@ -3,17 +3,15 @@ import asyncio
 import click
 
 from telebotties._internal.callbacks.callback_base import CallbackBase
-from telebotties._internal.controls.control_base import ControlBase
 from telebotties._internal.events.system_event import SystemEvent
-from telebotties._internal.websocket import DataChannel
 
 from ..callback_executor import CallbackExecutor
-from ..constants import LISTEN_WEB_MESSAGE_NO_PYNPUT, SIGINT_MESSAGE
+from ..constants import LISTEN_BROWSER_MESSAGE, SIGINT_MESSAGE
+from ..data_channel import DataChannel
 from ..decorators import DecoratorBase
 from ..log_formatter import get_logger, setup_logging
 from ..states import PRE_INIT, ServerEventProsessor, state_machine
 from ..string_utils import error_to_string, get_welcome_message
-from ..websocket import DataChannel
 from .telebotties_base import TelebottiesBase
 
 logger = get_logger()
@@ -46,7 +44,6 @@ class Main(TelebottiesBase):
             logger.debug("server was not connected, not sending")
 
     async def _send_event_async(self, event):
-        print("SENDING", event)
         await self.server.send(event)
 
     def print(self, string):
@@ -63,7 +60,7 @@ class Main(TelebottiesBase):
 
     def on_remote_host_connect(self):
         if not self.prints_removed and not self.help_printed:
-            print(LISTEN_WEB_MESSAGE_NO_PYNPUT)
+            print(LISTEN_BROWSER_MESSAGE)
             self.help_printed = True
 
     async def run_callbacks(self, name, callback):
@@ -97,7 +94,8 @@ class Main(TelebottiesBase):
                     if not self.server.has_connected:
                         if not self.prints_removed:
                             print(
-                                f"\nDid not connect in {t} seconds. Did you try to open the link above?\n"
+                                f"\nDid not connect in {t} seconds. "
+                                "Did you try to open the link above?\n"
                             )
                         self.server.stop()
                 except asyncio.exceptions.CancelledError:
@@ -118,7 +116,6 @@ class Main(TelebottiesBase):
         except Exception as e:
             logger.error(f"Unexpected internal error: {error_to_string(e)}")
         finally:
-            print("Cancelling")
             if self.timeout_task is not None:
                 self.timeout_task.cancel()
             await self.server.stop_async()
