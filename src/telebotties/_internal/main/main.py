@@ -86,7 +86,7 @@ class Main(TelebottiesBase):
 
             if not self.prints_removed:
                 print(
-                    get_welcome_message("TODO_ADD_ID_HERE"),
+                    get_welcome_message(self.server.id),
                     end="",
                     flush=True,
                 )

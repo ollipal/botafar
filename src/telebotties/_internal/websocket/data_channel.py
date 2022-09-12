@@ -15,10 +15,8 @@ from .json_utils import parse_event
 logger = get_logger()
 
 import json
-import string
 import warnings
-from secrets import choice
-from uuid import uuid4
+import string
 
 import aiortc.sdp as sdp
 import socketio
@@ -30,20 +28,27 @@ from aiortc import (
 )
 from aiortc.sdp import candidate_from_sdp, candidate_to_sdp
 from cryptography.utils import CryptographyDeprecationWarning
+from os import path
+from uuid import getnode
+from random import Random
+from sys import argv
+
 
 # Removes a wrning from logs
 # For some reason, updating relevant modules did to help...
 warnings.filterwarnings("ignore", category=CryptographyDeprecationWarning)
 
 
-# _stop = asyncio.Event()
-
-
 def get_id():
+    # Get id based on device mac address and file executed
+    # As a result, restarting the program will re-connect to browser nicely
+    # With no collisions between different devices
+    full_path = path.abspath(path.dirname(argv[0]))
+    mac = str(getnode())
+    rand = Random(full_path + mac)
     return "".join(
-        [choice(string.ascii_lowercase + string.digits) for _ in range(16)]
+        [rand.choice(string.ascii_lowercase) for _ in range(16)]
     )
-
 
 def get_peer_connection_and_datachannel():
     print("pc, dc created")
@@ -83,7 +88,7 @@ class DataChannel:
     def __init__(self, process_event):
         self.process_event = process_event  # TODO use
         self.loop = None
-        self.id = "bot"  # get_id()
+        self.id = get_id() # is read directly from outside
         self.peer_connection = None
         self.data_channel = None
         self.request_id = None
@@ -94,7 +99,7 @@ class DataChannel:
         self._connected = False
         self.url = "http://localhost:4005"
         # self.url = "https://tb-signaling.onrender.com"
-        self.has_connected = False
+        self.has_connected = False # is read directly from outside
 
     def _send_internal_datachannel_message(self, message_type):
         if self.data_channel is not None and self.request_id is not None:

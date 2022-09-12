@@ -80,5 +80,5 @@ def control_list_string(control_datas):
 def get_welcome_message(id):
     return (
         "\nBot running, connect at "
-        f"{cyan_bold(f'http://bot.telebotties.com/create?address={id}')}\n"
+        f"{cyan_bold(f'https://telebotties.com/{id}')}\n"
     )
