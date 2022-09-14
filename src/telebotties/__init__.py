@@ -20,7 +20,6 @@ from ._internal.main import exit, print, run
 from ._internal.states import (
     disable_controls,
     enable_controls,
-    owner,
     player,
     sleep,
     sleep_async,

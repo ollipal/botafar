@@ -92,8 +92,8 @@ class DataChannel:
         self.timer = None
         self._stop = asyncio.Event()
         self._connected = False
-        # self.url = "http://localhost:4005"
-        self.url = "https://tb-signaling.onrender.com"
+        self.url = "http://localhost:4005"
+        # self.url = "https://tb-signaling.onrender.com"
         self.has_connected = False  # is read directly from outside
 
     def _send_internal_datachannel_message(self, message_type):
@@ -160,7 +160,7 @@ class DataChannel:
                     self.url, wait=True, wait_timeout=5, transports="websocket"
                 )
             except socketio.exceptions.ConnectionError:
-                logger.error("Could not connect to server")
+                logger.error("Could not connect to server, try again later")
                 await self.stop_async()
                 return
 

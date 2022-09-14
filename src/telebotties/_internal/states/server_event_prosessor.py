@@ -43,13 +43,23 @@ class ServerEventProsessor:
             elif event.name == "owner_start_controlling":
                 if not state_machine.owner.is_controlling:
                     state_machine.owner._is_controlling = True
-                    self.inform("owner started controlling")
-                    # TODO owner took controls from 'name'
+                    if state_machine.player._is_controlling:
+                        self.inform(
+                            "owner took controls from "
+                            f"'{state_machine.player.name}'"
+                        )
+                    else:
+                        self.inform("owner started controlling")
             elif event.name == "owner_stop_controlling":
                 if state_machine.owner.is_controlling:
                     state_machine.owner._is_controlling = False
-                    self.inform("owner stopped controlling")
-                    # TODO owner released controls back to 'name'
+                    if state_machine.player._is_controlling:
+                        self.inform(
+                            "owner released controls back to "
+                            f"'{state_machine.player.name}'"
+                        )
+                    else:
+                        self.inform("owner stopped controlling")
             elif event.name == "info":
                 pass
             else:
@@ -57,7 +67,7 @@ class ServerEventProsessor:
         else:  # INPUT_EVENT
             if (
                 event.sender == "player"
-                and not state_machine.player.is_controlling
+                and not state_machine.player._is_controlling
             ):
                 logger.debug("Player controls disabled, skipping")
                 return

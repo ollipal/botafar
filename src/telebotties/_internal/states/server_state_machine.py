@@ -63,18 +63,11 @@ class Player:
         return self._is_connected
 
     @property
-    def is_controlling(self):
-        return self._is_controlling
-
-    @property
     def name(self):
         return self._name
 
     def __repr__(self):
-        return (
-            f"Player(name='{self.name}', is_connected={self.is_connected}, "
-            f"is_controlling={self.is_controlling})"
-        )
+        return f"Player(name='{self.name}', is_connected={self.is_connected})"
 
 
 class State:
@@ -482,13 +475,13 @@ class ServerStateMachine:
     def enable_controls(self):
         with self.rlock:
             self.controls_released = False
-            if not self.player.is_controlling:
+            if not self.player._is_controlling:
                 self.player._is_controlling = True
                 logger.debug("controls enabled")
 
     def disable_controls(self, _release_cb=None):
         with self.rlock:
-            if self.player.is_controlling:
+            if self.player._is_controlling:
                 self.player._is_controlling = False
                 if self.player.is_connected:
                     logger.debug("controls disabled")
