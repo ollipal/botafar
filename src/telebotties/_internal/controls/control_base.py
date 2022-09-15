@@ -57,9 +57,13 @@ class ControlBase(ABC):
     def _get_control_datas():
         return [control_._data for control_ in ControlBase._controls]
 
+    def _change_type(self, type):
+        assert isinstance(type, str)
+        self._data["type"] = type
+
     def _add_key_to_has_callbacks(self, key, title, tier):
         if title is None:
-            tier = 0
+            tier = -1
 
         if key not in self._data["has_callbacks"]:
             self._data["has_callbacks"].append(key)
@@ -88,7 +92,6 @@ class ControlBase(ABC):
             self._data["keys"][key].append(alternative)
 
     def _register_key(self, key):
-        print(key)
         if key not in KEYS:
             if isinstance(key, str) and key.upper() in KEYS:
                 raise RuntimeError(

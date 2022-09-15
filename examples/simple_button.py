@@ -35,6 +35,26 @@ def right():
     tb.print("RIGHT")
 
 
+@j.on_up_left
+def up_left():
+    tb.print("UP LEFT")
+
+
+@j.on_down_left
+def down_left():
+    tb.print("DOWN LEFT")
+
+
+@j.on_down_right
+def down_right():
+    tb.print("DOWN RIGHT")
+
+
+@j.on_up_right
+def up_right():
+    tb.print("UP RIGHT")
+
+
 """ @j.on_any
 async def any(event):
     tb.print(f"ANY: {event}") """

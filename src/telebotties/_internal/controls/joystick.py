@@ -62,18 +62,12 @@ class Joystick(ControlBase):
 
             def wrap(self_, func):  # noqa: N805
                 title = self_.func_title
-                self._add_key_to_has_callbacks(
-                    self._keys_copy[0], f"{title} (release)", 1
-                )
-                self._add_key_to_has_callbacks(
-                    self._keys_copy[1], f"{title} (release)", 1
-                )
-                self._add_key_to_has_callbacks(
-                    self._keys_copy[2], f"{title} (release)", 1
-                )
-                self._add_key_to_has_callbacks(
-                    self._keys_copy[3], f"{title} (release)", 1
-                )
+                if title is not None:
+                    title = f"{title} (release)"
+                self._add_key_to_has_callbacks(self._keys_copy[0], title, 1)
+                self._add_key_to_has_callbacks(self._keys_copy[1], title, 1)
+                self._add_key_to_has_callbacks(self._keys_copy[2], title, 1)
+                self._add_key_to_has_callbacks(self._keys_copy[3], title, 1)
                 self._add_state_callback("on_center", func)
                 return func
 
@@ -129,6 +123,70 @@ class Joystick(ControlBase):
                 self._add_state_callback("on_right", func)
                 return func
 
+        class OnUpLeft(DecoratorBase):
+            def verify_params_and_set_flags(self_, params):  # noqa: N805
+                if takes_parameter(
+                    params, "event", error_name=self_.decorator_name
+                ):
+                    self_.takes_event = True
+
+            def wrap(self_, func):  # noqa: N805
+                self._change_type("joystick8")
+                title = self_.func_title
+                if title is not None:
+                    title = f"{title} (combination)"
+                self._add_key_to_has_callbacks(self._keys_copy[0], title, 0)
+                self._add_state_callback("on_up_left", func)
+                return func
+
+        class OnDownLeft(DecoratorBase):
+            def verify_params_and_set_flags(self_, params):  # noqa: N805
+                if takes_parameter(
+                    params, "event", error_name=self_.decorator_name
+                ):
+                    self_.takes_event = True
+
+            def wrap(self_, func):  # noqa: N805
+                self._change_type("joystick8")
+                title = self_.func_title
+                if title is not None:
+                    title = f"{title} (combination)"
+                self._add_key_to_has_callbacks(self._keys_copy[0], title, 0)
+                self._add_state_callback("on_down_left", func)
+                return func
+
+        class OnDownRight(DecoratorBase):
+            def verify_params_and_set_flags(self_, params):  # noqa: N805
+                if takes_parameter(
+                    params, "event", error_name=self_.decorator_name
+                ):
+                    self_.takes_event = True
+
+            def wrap(self_, func):  # noqa: N805
+                self._change_type("joystick8")
+                title = self_.func_title
+                if title is not None:
+                    title = f"{title} (combination)"
+                self._add_key_to_has_callbacks(self._keys_copy[0], title, 0)
+                self._add_state_callback("on_down_right", func)
+                return func
+
+        class OnUpRight(DecoratorBase):
+            def verify_params_and_set_flags(self_, params):  # noqa: N805
+                if takes_parameter(
+                    params, "event", error_name=self_.decorator_name
+                ):
+                    self_.takes_event = True
+
+            def wrap(self_, func):  # noqa: N805
+                self._change_type("joystick8")
+                title = self_.func_title
+                if title is not None:
+                    title = f"{title} (combination)"
+                self._add_key_to_has_callbacks(self._keys_copy[0], title, 0)
+                self._add_state_callback("on_up_right", func)
+                return func
+
         class OnAny(DecoratorBase):
             def verify_params_and_set_flags(self_, params):  # noqa: N805
                 if takes_parameter(
@@ -153,6 +211,10 @@ class Joystick(ControlBase):
                 self._add_state_callback("on_left", func)
                 self._add_state_callback("on_down", func)
                 self._add_state_callback("on_right", func)
+                self._add_state_callback("on_up_left", func)
+                self._add_state_callback("on_down_left", func)
+                self._add_state_callback("on_down_right", func)
+                self._add_state_callback("on_up_right", func)
                 return func
 
         self._on_center_class = OnCenter
@@ -160,6 +222,10 @@ class Joystick(ControlBase):
         self._on_left_class = OnLeft
         self._on_down_class = OnDown
         self._on_right_class = OnRight
+        self._on_up_left_class = OnUpLeft
+        self._on_down_left_class = OnDownLeft
+        self._on_down_right_class = OnDownRight
+        self._on_up_right_class = OnUpRight
         self._on_any_class = OnAny
 
         super().__init__(
@@ -171,6 +237,7 @@ class Joystick(ControlBase):
             amount,
         )
 
+        # Some keys keeps getting missing from _keys... This is a workaround.
         self._keys_copy = [up_key, left_key, down_key, right_key]
 
         # Get the initial state
@@ -199,6 +266,30 @@ class Joystick(ControlBase):
         return get_decorator(self._on_right_class, title, "on_right", True)(
             func
         )
+
+    def on_up_left(self, func):
+        title = get_function_title(func)
+        return get_decorator(
+            self._on_up_left_class, title, "on_up_left", True
+        )(func)
+
+    def on_down_left(self, func):
+        title = get_function_title(func)
+        return get_decorator(
+            self._on_down_left_class, title, "on_down_left", True
+        )(func)
+
+    def on_down_right(self, func):
+        title = get_function_title(func)
+        return get_decorator(
+            self._on_down_right_class, title, "on_down_right", True
+        )(func)
+
+    def on_up_right(self, func):
+        title = get_function_title(func)
+        return get_decorator(
+            self._on_up_right_class, title, "on_up_right", True
+        )(func)
 
     def on_any(self, func):
         title = get_function_title(func)
@@ -296,7 +387,9 @@ class Joystick(ControlBase):
         # Parse new direction
         direction = DIRECTIONS[horizontal_value, vertical_value]
 
-        if direction in DIAGONALS:
+        # Modify if diagonal and cannot be
+        has_diagonals = self._data["type"] == "joystick8"
+        if direction in DIAGONALS and not has_diagonals:
             direction = DIAGONAL_RESOLVERS[
                 self._latest_update_direction, direction
             ]
@@ -309,14 +402,15 @@ class Joystick(ControlBase):
             self._state = direction
             event._name = direction
 
-            if direction == "on_center":
-                self._latest_update_direction = None
-            elif direction in ["on_up", "on_down"]:
-                self._latest_update_direction = "vertical"
-            elif direction in ["on_left", "on_right"]:
-                self._latest_update_direction = "horizontal"
-            else:
-                raise RuntimeError("Should not happen")
+            if not has_diagonals:
+                if direction == "on_center":
+                    self._latest_update_direction = None
+                elif direction in ["on_up", "on_down"]:
+                    self._latest_update_direction = "vertical"
+                elif direction in ["on_left", "on_right"]:
+                    self._latest_update_direction = "horizontal"
+                else:
+                    raise RuntimeError("Should not happen")
 
         return ignore, event
 

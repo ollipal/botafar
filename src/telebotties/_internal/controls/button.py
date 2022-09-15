@@ -43,9 +43,9 @@ class Button(ControlBase):
 
             def wrap(self_, func):  # noqa: N805
                 title = self_.func_title
-                self._add_key_to_has_callbacks(
-                    self._key, f"{title} (release)", 1
-                )
+                if title is not None:
+                    title = f"{title} (release)"
+                self._add_key_to_has_callbacks(self._key, title, 1)
                 self._add_state_callback("on_release", func)
                 return func
 
