@@ -8,7 +8,7 @@ class Button(ControlBase):
     def __init__(
         self,
         key,
-        alternative=None,
+        alt=None,
         owner_only=False,
         amount=1,
     ):
@@ -73,15 +73,15 @@ class Button(ControlBase):
         self._on_release_class = OnRelease
         self._on_any_class = OnAny
 
-        if alternative is not None:
-            alternative = [alternative]
+        if alt is not None:
+            alt = [alt]
 
         super().__init__(
             "button",
             [key],
             owner_only,
             start_event,
-            alternative,
+            alt,
             amount,
         )
 

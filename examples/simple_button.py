@@ -5,9 +5,9 @@ and release events with tb.Button
 
 import telebotties as tb
 
-b = tb.Button("Q", alternative="C")
+b = tb.Button("Q", alt="C")
 
-j = tb.Joystick("W", "A", "S", "D", alternative=["I", "J", "K", "L"])
+j = tb.Joystick("W", "A", "S", "D", alt=["I", "J", "K", "L"])
 
 
 @j.on_center

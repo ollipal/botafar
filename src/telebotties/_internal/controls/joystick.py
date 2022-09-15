@@ -45,7 +45,7 @@ class Joystick(ControlBase):
         left_key,
         down_key,
         right_key,
-        alternative=None,
+        alt=None,
         owner_only=False,
         amount=1,
     ):
@@ -233,7 +233,7 @@ class Joystick(ControlBase):
             [up_key, left_key, down_key, right_key],
             owner_only,
             start_event,
-            alternative,
+            alt,
             amount,
         )
 
