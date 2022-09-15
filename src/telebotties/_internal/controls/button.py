@@ -15,6 +15,7 @@ class Button(ControlBase):
         start_event = Event("on_release", "owner", key)
         start_event._set_time(-1)
         start_event._set_active_method(lambda: False)
+        self._state = start_event.name
 
         # TODO why self._keys[0] was undefined inside 'on_release'
         # and this was needed?...
@@ -72,6 +73,9 @@ class Button(ControlBase):
         self._on_release_class = OnRelease
         self._on_any_class = OnAny
 
+        if alternative is not None:
+            alternative = [alternative]
+
         super().__init__(
             "button",
             [key],
@@ -101,10 +105,10 @@ class Button(ControlBase):
         if self.is_released:
             return [], None
 
+        self._state = "on_release"
         release_event = self.latest_event
         release_event._set_time(time)
         release_event._change_name("on_release")
-        print(f"here: {release_event}")
         return self._get_instance_callbacks(release_event), release_event
 
     @property
@@ -117,7 +121,9 @@ class Button(ControlBase):
 
     def _process_event(self, event):
         """Returns: ignore, updated event"""
-        return self._state == event.name, event
+        ignore = self._state == event.name
+        self._state = event.name
+        return ignore, event
 
     def __repr__(self):
         return f'Button("{self._key}"{self._sender_origin_repr()})'

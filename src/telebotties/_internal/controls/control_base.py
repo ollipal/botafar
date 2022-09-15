@@ -28,7 +28,6 @@ class ControlBase(ABC):
 
         self._keys = keys
         self._sender = "owner" if owner_only else "any"
-        self._state = start_event.name
         self._latest_event = start_event
         self._alternative_map = {}
         self._state_callbacks = {}
@@ -89,6 +88,7 @@ class ControlBase(ABC):
             self._data["keys"][key].append(alternative)
 
     def _register_key(self, key):
+        print(key)
         if key not in KEYS:
             if isinstance(key, str) and key.upper() in KEYS:
                 raise RuntimeError(
@@ -131,17 +131,20 @@ class ControlBase(ABC):
         pass
 
     def _get_instance_callbacks(self, event):
+        # Convert to not alternative
         if event._key in self._alternative_map:
             event._key = self._alternative_map[event._key]
 
+        # Process event, can change the internal state
+        # even if returns ignore
         ignore, event = self._process_event(event)
-        self._state = event.name  # Update state even if no callbacks
         if ignore or event.name not in self._state_callbacks:
             return []
 
         self._latest_event = event
         event._set_active_method(lambda: self.latest_event == event)
 
+        # print(f"Callbacks: {self._state_callbacks[event.name]}")
         return self._state_callbacks[event.name]
 
     @staticmethod

@@ -5,7 +5,39 @@ and release events with tb.Button
 
 import telebotties as tb
 
-b = tb.Button("A")
+b = tb.Button("Q", alternative="C")
+
+j = tb.Joystick("W", "A", "S", "D", alternative=["I", "J", "K", "L"])
+
+
+@j.on_center
+def center():
+    tb.print("CENTER")
+
+
+@j.on_up
+def up():
+    tb.print("UP")
+
+
+@j.on_left
+def left():
+    tb.print("LEFT")
+
+
+@j.on_down
+def down():
+    tb.print("DOWN")
+
+
+@j.on_right
+def right():
+    tb.print("RIGHT")
+
+
+""" @j.on_any
+async def any(event):
+    tb.print(f"ANY: {event}") """
 
 
 @b.on_press

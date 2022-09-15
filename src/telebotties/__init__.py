@@ -3,7 +3,7 @@
 __version__ = "0.0.3"
 
 
-from ._internal.controls import Button
+from ._internal.controls import Button, Joystick
 from ._internal.decorators import (
     on_exit,
     on_init,
