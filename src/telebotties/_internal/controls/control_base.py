@@ -20,13 +20,14 @@ class ControlBase(ABC):
         keys,
         owner_only,
         start_event,
-        alternatives,
+        alt,
         amount,
     ):
         # TODO makey assertions key makes sense, others type boolean
         # Make sure makes sense
 
         self._keys = keys
+        self._alt = alt
         self._sender = "owner" if owner_only else "any"
         self._latest_event = start_event
         self._alternative_map = {}
@@ -50,8 +51,8 @@ class ControlBase(ABC):
         }
         ControlBase._controls.append(self)
 
-        if alternatives is not None:
-            self._register_alternative_keys(alternatives)
+        if alt is not None:
+            self._register_alternative_keys(alt)
 
     @staticmethod
     def _get_control_datas():

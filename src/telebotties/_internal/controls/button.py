@@ -126,4 +126,8 @@ class Button(ControlBase):
         return ignore, event
 
     def __repr__(self):
-        return f'Button("{self._key}"{self._sender_origin_repr()})'
+        if self._alt is not None:
+            alt_text = f', alt="{self._alt[0]}"'
+        else:
+            alt_text = ""
+        return f'Button("{self._key}"{alt_text}{self._sender_origin_repr()})'

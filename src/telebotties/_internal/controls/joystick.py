@@ -49,7 +49,7 @@ class Joystick(ControlBase):
         owner_only=False,
         amount=1,
     ):
-        start_event = Event("on_release", "owner", up_key)
+        start_event = Event("on_center", "owner", up_key)
         start_event._set_time(-1)
         start_event._set_active_method(lambda: False)
 
@@ -228,6 +228,12 @@ class Joystick(ControlBase):
         self._on_up_right_class = OnUpRight
         self._on_any_class = OnAny
 
+        # Some keys keeps getting missing from _keys... This is a workaround.
+        self._keys_copy = [up_key, left_key, down_key, right_key]
+
+        # Get the initial state
+        self._reset_state()
+
         super().__init__(
             "joystick4",
             [up_key, left_key, down_key, right_key],
@@ -236,12 +242,6 @@ class Joystick(ControlBase):
             alt,
             amount,
         )
-
-        # Some keys keeps getting missing from _keys... This is a workaround.
-        self._keys_copy = [up_key, left_key, down_key, right_key]
-
-        # Get the initial state
-        self._reset_state()
 
     def on_center(self, func):
         title = get_function_title(func)
@@ -340,6 +340,22 @@ class Joystick(ControlBase):
     def is_right(self):
         return self._state == "on_right"
 
+    @property
+    def is_up_left(self):
+        return self._state == "on_up_left"
+
+    @property
+    def is_down_left(self):
+        return self._state == "on_down_left"
+
+    @property
+    def is_down_right(self):
+        return self._state == "on_down_right"
+
+    @property
+    def is_up_right(self):
+        return self._state == "on_up_right"
+
     def _process_event(self, event):  # noqa:C901
         """Returns: ignore, updated event"""
 
@@ -415,8 +431,15 @@ class Joystick(ControlBase):
         return ignore, event
 
     def __repr__(self):
+        if self._alt is not None:
+            alt_text = (
+                f', alt=["{self._alt[0]}","{self._alt[1]}",'
+                f'"{self._alt[2]}","{self._alt[3]}"]'
+            )
+        else:
+            alt_text = ""
         return (
             f'Joystick("{self._keys_copy[0]}","{self._keys_copy[1]}",'
-            f'"{self._keys_copy[2]}","{self._keys_copy[3]}"'
+            f'"{self._keys_copy[2]}","{self._keys_copy[3]}"{alt_text}'
             f"{self._sender_origin_repr()})"
         )

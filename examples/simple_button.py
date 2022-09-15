@@ -5,9 +5,20 @@ and release events with tb.Button
 
 import telebotties as tb
 
+j = tb.Joystick("W", "A", "S", "D", alt=["I", "J", "K", "L"])
 b = tb.Button("Q", alt="C")
 
-j = tb.Joystick("W", "A", "S", "D", alt=["I", "J", "K", "L"])
+s = tb.Slider("R", "V", orientation="horizontal")
+
+
+@s.on_any
+def sleft(event):
+    tb.print(event)
+
+
+@s.on_up
+def sright():
+    tb.print("SRIGHT")
 
 
 @j.on_center
