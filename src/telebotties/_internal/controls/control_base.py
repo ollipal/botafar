@@ -48,6 +48,7 @@ class ControlBase(ABC):
             "has_callbacks": [],
             "without_callbacks": keys,
             "amount": amount,
+            "uuid": f"{type}({','.join(keys)})",
         }
         ControlBase._controls.append(self)
 
@@ -61,6 +62,8 @@ class ControlBase(ABC):
     def _change_type(self, type):
         assert isinstance(type, str)
         self._data["type"] = type
+        _, keys_join = self._data["uuid"].split("(")
+        self._data["uuid"] = f"{type}({keys_join}"
 
     def _add_key_to_has_callbacks(self, key, title, tier):
         if title is None:

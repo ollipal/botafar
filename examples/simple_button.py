@@ -5,10 +5,10 @@ and release events with tb.Button
 
 import telebotties as tb
 
-j = tb.Joystick("W", "A", "S", "D", alt=["I", "J", "K", "L"])
-b = tb.Button("Q", alt="C")
+j = tb.Joystick("UP", "LEFT", "DOWN", "RIGHT", alt=["I", "J", "K", "L"])
+b = tb.Button("SPACE", alt="C")
 
-s = tb.Slider("R", "V", orientation="horizontal")
+s = tb.Slider("U", "V", alt=["P", "E"])
 
 
 @s.on_any
@@ -51,6 +51,7 @@ def up_left():
     tb.print("UP LEFT")
 
 
+"""
 @j.on_down_left
 def down_left():
     tb.print("DOWN LEFT")
@@ -64,21 +65,21 @@ def down_right():
 @j.on_up_right
 def up_right():
     tb.print("UP RIGHT")
-
+ """
 
 """ @j.on_any
 async def any(event):
     tb.print(f"ANY: {event}") """
 
 
-@b.on_press
+""" @b.on_press
 def press_callback():  # Access event: `def press_callback('event')`
     tb.print("Button pressed")
 
 
 @b.on_release
 def release_callback():  # Access event: `def release_callback('event')`
-    tb.print("Button released")
+    tb.print("Button released") """
 
 
 tb.run()
