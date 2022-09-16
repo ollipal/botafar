@@ -1,6 +1,6 @@
 """telebotties"""
 
-__version__ = "0.0.3"
+__version__ = "0.0.4"
 
 
 from ._internal.controls import Button, Joystick, Slider

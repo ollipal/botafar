@@ -8,7 +8,9 @@ import telebotties as tb
 j = tb.Joystick("UP", "LEFT", "DOWN", "RIGHT", alt=["I", "J", "K", "L"])
 b = tb.Button("SPACE", alt="C")
 
-s = tb.Slider("U", "V", alt=["P", "E"])
+s = tb.Slider("U", "V")
+
+s2 = tb.Slider("O", "E")
 
 
 @s.on_any

@@ -22,7 +22,7 @@ Check [telebotties.com](https://telebotties.com) for currently online bots!
 1. Install the library ([help](https://docs.telebotties.com/install)):
 
 ```
-pip install telebotties
+pip install --upgrade telebotties
 ```
 
 2. Create and save a **bot.py** file:
