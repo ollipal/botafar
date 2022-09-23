@@ -9,12 +9,19 @@ from sys import argv
 from uuid import getnode
 
 import socketio
-from aiortc import (
-    RTCConfiguration,
-    RTCIceServer,
-    RTCPeerConnection,
-    RTCSessionDescription,
-)
+
+# Ignore _SLOW_CRC32C_WARNING on Raspberry Pis
+# content can be found here:
+# https://github.com/googleapis/python-crc32c/blob/main/src/google_crc32c/__init__.py
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", category=RuntimeWarning)
+    from aiortc import (
+        RTCConfiguration,
+        RTCIceServer,
+        RTCPeerConnection,
+        RTCSessionDescription,
+    )
+
 from aiortc.sdp import candidate_from_sdp
 from cryptography.utils import CryptographyDeprecationWarning
 
@@ -90,10 +97,10 @@ class DataChannel:
         self.sio = None
         self.create_sio_lock = asyncio.Lock()
         self.timer = None
-        self._stop = asyncio.Event()
+        self._stop = None  # asyncio.Event()
         self._connected = False
-        self.url = "http://localhost:4005"
-        # self.url = "https://tb-signaling.onrender.com"
+        # self.url = "http://localhost:4005"
+        self.url = "https://tb-signaling.onrender.com"
         self.has_connected = False  # is read directly from outside
 
     def _send_internal_datachannel_message(self, message_type):
@@ -337,7 +344,6 @@ class DataChannel:
             self.data_channel = None
             self.peer_connection = None
 
-            # await sios["owner"].connect(url, transports="websocket")
             await self._create_sio()
         elif message_type == "connectionStable":
             if self.sio is not None:
@@ -347,6 +353,8 @@ class DataChannel:
 
     async def serve(self):
         self.loop = asyncio.get_running_loop()
+        self._stop = asyncio.Event()
+
         await self._create_sio()
 
         try:
@@ -371,6 +379,10 @@ class DataChannel:
         return self._connected
 
     async def stop_async(self):
+        if self._stop is None:
+            logger.debug("Server.stop_async skipped, serving not started?")
+            return
+
         self._stop.set()
         if self.sio is not None:
             await self.sio.disconnect()
@@ -387,7 +399,7 @@ class DataChannel:
                 await self.peer_connection.close()
             except Exception:
                 pass
-        self._stop.set()
+        # self._stop.set()
 
     def stop(self):
         if self._stop is None:
