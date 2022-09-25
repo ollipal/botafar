@@ -132,6 +132,8 @@ class Joystick(ControlBase):
 
             def wrap(self_, func):  # noqa: N805
                 self._change_type("joystick8")
+                self._has_diagonals = True
+
                 title = self_.func_title
                 if title is not None:
                     title = f"{title} (combination)"
@@ -148,6 +150,8 @@ class Joystick(ControlBase):
 
             def wrap(self_, func):  # noqa: N805
                 self._change_type("joystick8")
+                self._has_diagonals = True
+
                 title = self_.func_title
                 if title is not None:
                     title = f"{title} (combination)"
@@ -164,6 +168,8 @@ class Joystick(ControlBase):
 
             def wrap(self_, func):  # noqa: N805
                 self._change_type("joystick8")
+                self._has_diagonals = True
+
                 title = self_.func_title
                 if title is not None:
                     title = f"{title} (combination)"
@@ -180,6 +186,8 @@ class Joystick(ControlBase):
 
             def wrap(self_, func):  # noqa: N805
                 self._change_type("joystick8")
+                self._has_diagonals = True
+
                 title = self_.func_title
                 if title is not None:
                     title = f"{title} (combination)"
@@ -230,6 +238,7 @@ class Joystick(ControlBase):
 
         # Some keys keeps getting missing from _keys... This is a workaround.
         self._keys_copy = [up_key, left_key, down_key, right_key]
+        self._has_diagonals = False
 
         # Get the initial state
         self._reset_state()
@@ -359,56 +368,125 @@ class Joystick(ControlBase):
     def _process_event(self, event):  # noqa:C901
         """Returns: ignore, updated event"""
 
-        # Update is down state
-        if event.name == "on_release":
-            if event._key == self._keys_copy[0]:
-                self._is_down["up"] = False
-            elif event._key == self._keys_copy[1]:
-                self._is_down["left"] = False
-            elif event._key == self._keys_copy[2]:
-                self._is_down["down"] = False
-            elif event._key == self._keys_copy[3]:
-                self._is_down["right"] = False
+        # Update is down state, get direction
+        if event.name in ["on_release", "on_press"]:
+            if event.name == "on_release":
+                if event._key == self._keys_copy[0]:
+                    self._is_down["up"] = False
+                elif event._key == self._keys_copy[1]:
+                    self._is_down["left"] = False
+                elif event._key == self._keys_copy[2]:
+                    self._is_down["down"] = False
+                elif event._key == self._keys_copy[3]:
+                    self._is_down["right"] = False
+                else:
+                    raise RuntimeError("Should not happen")
+            elif event.name == "on_press":
+                if event._key == self._keys_copy[0]:
+                    self._is_down["up"] = True
+                elif event._key == self._keys_copy[1]:
+                    self._is_down["left"] = True
+                elif event._key == self._keys_copy[2]:
+                    self._is_down["down"] = True
+                elif event._key == self._keys_copy[3]:
+                    self._is_down["right"] = True
+                else:
+                    raise RuntimeError("Should not happen")
             else:
                 raise RuntimeError("Should not happen")
-        elif event.name == "on_press":
-            if event._key == self._keys_copy[0]:
-                self._is_down["up"] = True
-            elif event._key == self._keys_copy[1]:
-                self._is_down["left"] = True
-            elif event._key == self._keys_copy[2]:
-                self._is_down["down"] = True
-            elif event._key == self._keys_copy[3]:
-                self._is_down["right"] = True
-            else:
-                raise RuntimeError("Should not happen")
+
+            # Get horizontal, vertical values
+            if self._is_down["up"] and not self._is_down["down"]:
+                vertical_value = 1
+            elif not self._is_down["up"] and self._is_down["down"]:
+                vertical_value = -1
+            else:  # Both or neither
+                vertical_value = 0
+
+            if self._is_down["left"] and not self._is_down["right"]:
+                horizontal_value = -1
+            elif not self._is_down["left"] and self._is_down["right"]:
+                horizontal_value = 1
+            else:  # Both or neither
+                horizontal_value = 0
+
+            # Parse new direction
+            direction = DIRECTIONS[horizontal_value, vertical_value]
+
+            # Modify if diagonal and cannot be
+            if direction in DIAGONALS and not self._has_diagonals:
+                direction = DIAGONAL_RESOLVERS[
+                    self._latest_update_direction, direction
+                ]
+
         else:
-            raise RuntimeError("Should not happen")
+            if event.name == "on_center":
+                self._is_down = {
+                    "up": False,
+                    "left": False,
+                    "down": False,
+                    "right": False,
+                }
+            elif event.name == "on_up":
+                self._is_down = {
+                    "up": True,
+                    "left": False,
+                    "down": False,
+                    "right": False,
+                }
+            elif event.name == "on_left":
+                self._is_down = {
+                    "up": False,
+                    "left": True,
+                    "down": False,
+                    "right": False,
+                }
+            elif event.name == "on_down":
+                self._is_down = {
+                    "up": False,
+                    "left": False,
+                    "down": True,
+                    "right": False,
+                }
+            elif event.name == "on_right":
+                self._is_down = {
+                    "up": False,
+                    "left": False,
+                    "down": False,
+                    "right": True,
+                }
+            elif event.name == "on_up_left":
+                self._is_down = {
+                    "up": True,
+                    "left": True,
+                    "down": False,
+                    "right": False,
+                }
+            elif event.name == "on_down_left":
+                self._is_down = {
+                    "up": False,
+                    "left": True,
+                    "down": True,
+                    "right": False,
+                }
+            elif event.name == "on_down_right":
+                self._is_down = {
+                    "up": False,
+                    "left": False,
+                    "down": True,
+                    "right": True,
+                }
+            elif event.name == "on_up_right":
+                self._is_down = {
+                    "up": True,
+                    "left": False,
+                    "down": False,
+                    "right": True,
+                }
+            else:
+                raise RuntimeError("Should not happen")
 
-        # Get horizontal, vertical values
-        if self._is_down["up"] and not self._is_down["down"]:
-            vertical_value = 1
-        elif not self._is_down["up"] and self._is_down["down"]:
-            vertical_value = -1
-        else:  # Both or neither
-            vertical_value = 0
-
-        if self._is_down["left"] and not self._is_down["right"]:
-            horizontal_value = -1
-        elif not self._is_down["left"] and self._is_down["right"]:
-            horizontal_value = 1
-        else:  # Both or neither
-            horizontal_value = 0
-
-        # Parse new direction
-        direction = DIRECTIONS[horizontal_value, vertical_value]
-
-        # Modify if diagonal and cannot be
-        has_diagonals = self._data["type"] == "joystick8"
-        if direction in DIAGONALS and not has_diagonals:
-            direction = DIAGONAL_RESOLVERS[
-                self._latest_update_direction, direction
-            ]
+            direction = event.name
 
         # Ignore if the same as latest
         ignore = direction == self._state
@@ -418,7 +496,7 @@ class Joystick(ControlBase):
             self._state = direction
             event._name = direction
 
-            if not has_diagonals:
+            if not self._has_diagonals:
                 if direction == "on_center":
                     self._latest_update_direction = None
                 elif direction in ["on_up", "on_down"]:

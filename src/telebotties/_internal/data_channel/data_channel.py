@@ -99,8 +99,8 @@ class DataChannel:
         self.timer = None
         self._stop = None  # asyncio.Event()
         self._connected = False
-        # self.url = "http://localhost:4005"
-        self.url = "https://tb-signaling.onrender.com"
+        self.url = "http://localhost:4005"
+        # self.url = "https://tb-signaling.onrender.com"
         self.has_connected = False  # is read directly from outside
 
     def _send_internal_datachannel_message(self, message_type):

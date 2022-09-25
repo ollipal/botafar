@@ -497,36 +497,61 @@ class Slider(ControlBase):
     def _process_event(self, event):  # noqa:C901
         """Returns: ignore, updated event"""
 
-        # Update is down state
-        if event.name == "on_release":
-            if event._key == self._keys_copy[0]:
-                self._is_down["up_or_left"] = False
-            elif event._key == self._keys_copy[1]:
-                self._is_down["down_or_right"] = False
+        # Update is down state, get direction
+        if event.name in ["on_release", "on_press"]:
+            if event.name == "on_release":
+                if event._key == self._keys_copy[0]:
+                    self._is_down["up_or_left"] = False
+                elif event._key == self._keys_copy[1]:
+                    self._is_down["down_or_right"] = False
+                else:
+                    raise RuntimeError("Should not happen")
+            elif event.name == "on_press":
+                if event._key == self._keys_copy[0]:
+                    self._is_down["up_or_left"] = True
+                elif event._key == self._keys_copy[1]:
+                    self._is_down["down_or_right"] = True
+                else:
+                    raise RuntimeError("Should not happen")
             else:
                 raise RuntimeError("Should not happen")
-        elif event.name == "on_press":
-            if event._key == self._keys_copy[0]:
-                self._is_down["up_or_left"] = True
-            elif event._key == self._keys_copy[1]:
-                self._is_down["down_or_right"] = True
-            else:
-                raise RuntimeError("Should not happen")
+
+            # Get numerical value
+            if (
+                self._is_down["up_or_left"]
+                and not self._is_down["down_or_right"]
+            ):
+                numerical_value = -1
+            elif (
+                not self._is_down["up_or_left"]
+                and self._is_down["down_or_right"]
+            ):
+                numerical_value = 1
+            else:  # Both or neither
+                numerical_value = 0
+
+            # Parse new direction
+            direction = DIRECTIONS[self._data["type"], numerical_value]
         else:
-            raise RuntimeError("Should not happen")
+            if event.name == "on_center":
+                self._is_down = {
+                    "up_or_left": False,
+                    "down_or_right": False,
+                }
+            elif event.name in ["on_up", "on_left"]:
+                self._is_down = {
+                    "up_or_left": True,
+                    "down_or_right": False,
+                }
+            elif event.name in ["on_down", "on_right"]:
+                self._is_down = {
+                    "up_or_left": False,
+                    "down_or_right": True,
+                }
+            else:
+                raise RuntimeError("Should not happen")
 
-        # Get numerical value
-        if self._is_down["up_or_left"] and not self._is_down["down_or_right"]:
-            numerical_value = -1
-        elif (
-            not self._is_down["up_or_left"] and self._is_down["down_or_right"]
-        ):
-            numerical_value = 1
-        else:  # Both or neither
-            numerical_value = 0
-
-        # Parse new direction
-        direction = DIRECTIONS[self._data["type"], numerical_value]
+            direction = event.name
 
         # Ignore if the same as latest
         ignore = direction == self._state
