@@ -43,7 +43,7 @@ class ControlBase(ABC):
 
         self._data = {
             "type": type,
-            "keys": {key: [key] for key in keys},
+            "keys": [{"mainKey": key, "allKeys": [key]} for key in keys],
             "titles": {},
             "has_callbacks": [],
             "without_callbacks": keys,
@@ -93,7 +93,12 @@ class ControlBase(ABC):
         for key, alternative in zip(self._keys, alternatives):
             self._register_key(alternative)
             self._alternative_map[alternative] = key
-            self._data["keys"][key].append(alternative)
+            index = -1
+            for i, keys_item in enumerate(self._data["keys"]):
+                if keys_item["mainKey"] == key:
+                    index = i  # should always find
+                    break
+            self._data["keys"][index]["allKeys"].append(alternative)
 
     def _register_key(self, key):
         if key not in KEYS:
