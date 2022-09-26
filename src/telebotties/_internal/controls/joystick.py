@@ -38,6 +38,45 @@ DIAGONAL_RESOLVERS = {
 }
 
 
+# NOTE: all changes here should be reflected on frontend as well
+def parse_is_down(is_down, has_diagonals, latest_update_direction):
+    # Get horizontal, vertical values
+    if is_down["up"] and not is_down["down"]:
+        vertical_value = 1
+    elif not is_down["up"] and is_down["down"]:
+        vertical_value = -1
+    else:  # Both or neither
+        vertical_value = 0
+
+    if is_down["left"] and not is_down["right"]:
+        horizontal_value = -1
+    elif not is_down["left"] and is_down["right"]:
+        horizontal_value = 1
+    else:  # Both or neither
+        horizontal_value = 0
+
+    # Parse new direction
+    direction = DIRECTIONS[horizontal_value, vertical_value]
+
+    # Modify if diagonal and cannot be
+    if direction in DIAGONALS and not has_diagonals:
+        direction = DIAGONAL_RESOLVERS[latest_update_direction, direction]
+
+    # Update update direction state
+    new_update_direction = None
+    if not has_diagonals:
+        if direction == "on_center":
+            new_update_direction = None
+        elif direction in ["on_up", "on_down"]:
+            new_update_direction = "vertical"
+        elif direction in ["on_left", "on_right"]:
+            new_update_direction = "horizontal"
+        else:
+            raise RuntimeError("Should not happen")
+
+    return direction, new_update_direction
+
+
 class Joystick(ControlBase):
     def __init__(  # noqa: C901
         self,
@@ -395,29 +434,12 @@ class Joystick(ControlBase):
             else:
                 raise RuntimeError("Should not happen")
 
-            # Get horizontal, vertical values
-            if self._is_down["up"] and not self._is_down["down"]:
-                vertical_value = 1
-            elif not self._is_down["up"] and self._is_down["down"]:
-                vertical_value = -1
-            else:  # Both or neither
-                vertical_value = 0
-
-            if self._is_down["left"] and not self._is_down["right"]:
-                horizontal_value = -1
-            elif not self._is_down["left"] and self._is_down["right"]:
-                horizontal_value = 1
-            else:  # Both or neither
-                horizontal_value = 0
-
-            # Parse new direction
-            direction = DIRECTIONS[horizontal_value, vertical_value]
-
-            # Modify if diagonal and cannot be
-            if direction in DIAGONALS and not self._has_diagonals:
-                direction = DIAGONAL_RESOLVERS[
-                    self._latest_update_direction, direction
-                ]
+            direction, new_update_direction = parse_is_down(
+                self._is_down,
+                self._has_diagonals,
+                self._latest_update_direction,
+            )
+            self._latest_update_direction = new_update_direction
 
         else:
             if event.name == "on_center":
@@ -495,16 +517,6 @@ class Joystick(ControlBase):
         if not ignore:
             self._state = direction
             event._name = direction
-
-            if not self._has_diagonals:
-                if direction == "on_center":
-                    self._latest_update_direction = None
-                elif direction in ["on_up", "on_down"]:
-                    self._latest_update_direction = "vertical"
-                elif direction in ["on_left", "on_right"]:
-                    self._latest_update_direction = "horizontal"
-                else:
-                    raise RuntimeError("Should not happen")
 
         return ignore, event
 
