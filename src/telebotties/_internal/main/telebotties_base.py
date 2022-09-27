@@ -2,6 +2,8 @@ import asyncio
 import signal
 from abc import ABC, abstractmethod
 
+import nest_asyncio
+
 from ..log_formatter import get_logger
 
 logger = get_logger()
@@ -54,4 +56,5 @@ class TelebottiesBase(ABC):
         signal.signal(signal.SIGINT, signal_handler)
 
     def run(self):
+        nest_asyncio.apply()  # Allows calling run() inside a running loop
         asyncio.run(self._main())
