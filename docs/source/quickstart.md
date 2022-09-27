@@ -7,8 +7,8 @@
 
 Keep reading if you want to learn how to:
 
-- [Share the bot with others](https://telebotties.com)
-- [Make the bot public on telebotties.com](https://telebotties.com)
-- [Stream the bot to Twitch or Youtube](https://telebotties.com)
+- [Share the bot with others](https://botafar.com)
+- [Make the bot public on botafar.com](https://botafar.com)
+- [Stream the bot to Twitch or Youtube](https://botafar.com)
 
 and a lot more!

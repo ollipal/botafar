@@ -4,7 +4,7 @@ orphan: true
 
 # Quickstart help
 
-Help with [the quickstart](https://docs.telebotties.com/quickstart) quide:
+Help with [the quickstart](https://docs.botafar.com/quickstart) quide:
 
 ## Executing Python file
 
@@ -44,4 +44,4 @@ or
 
 ## Still stuck?
 
-If you cannot get the quickstart to work, please [raise an issue](https://github.com/ollipal/telebotties-web/issues) to get help!
+If you cannot get the quickstart to work, please [raise an issue](https://github.com/ollipal/botafar-web/issues) to get help!

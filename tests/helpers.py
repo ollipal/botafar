@@ -1,11 +1,11 @@
 import asyncio
 from collections import OrderedDict
 
-from telebotties._internal.callbacks import CallbackBase
-from telebotties._internal.controls import ControlBase
-from telebotties._internal.decorators import DecoratorBase
-from telebotties._internal.events import Event
-from telebotties._internal.states import state_machine
+from botafar._internal.callbacks import CallbackBase
+from botafar._internal.controls import ControlBase
+from botafar._internal.decorators import DecoratorBase
+from botafar._internal.events import Event
+from botafar._internal.states import state_machine
 
 # HELPERS
 

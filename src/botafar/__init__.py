@@ -1,6 +1,6 @@
-"""telebotties"""
+"""botafar"""
 
-__version__ = "0.0.5"
+__version__ = "0.0.2"
 
 
 from ._internal.controls import Button, Joystick, Slider
@@ -15,7 +15,7 @@ from ._internal.decorators import (
 from ._internal.decorators import on_time
 from ._internal.decorators import on_time as _internal_on_time
 from ._internal.exceptions import SleepCancelledError
-from ._internal.main import _cli  # This enables `telebotties` from cli
+from ._internal.main import _cli  # This enables `botafar` from cli
 from ._internal.main import exit, print, run
 from ._internal.states import (
     disable_controls,

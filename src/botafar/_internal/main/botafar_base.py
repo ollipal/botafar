@@ -9,7 +9,7 @@ from ..log_formatter import get_logger
 logger = get_logger()
 
 
-class TelebottiesBase(ABC):
+class BotafarBase(ABC):
     def __init__(self, suppress_keys, prints_removed):
         assert self.callback_executor is not None
         assert self.event_prosessor is not None

@@ -1,6 +1,6 @@
 import pytest
 
-from telebotties import Button
+from botafar import Button
 
 from .helpers import (
     fake_run,

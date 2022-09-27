@@ -1,6 +1,6 @@
 import pytest
 
-from telebotties import on_init
+from botafar import on_init
 
 from .helpers import fake_run, get_async_result, get_cb_result, reset
 

@@ -2,8 +2,8 @@ import asyncio
 
 import click
 
-from telebotties._internal.callbacks.callback_base import CallbackBase
-from telebotties._internal.events.system_event import SystemEvent
+from botafar._internal.callbacks.callback_base import CallbackBase
+from botafar._internal.events.system_event import SystemEvent
 
 from ..callback_executor import CallbackExecutor
 from ..constants import LISTEN_BROWSER_MESSAGE, SIGINT_MESSAGE
@@ -12,13 +12,13 @@ from ..decorators import DecoratorBase
 from ..log_formatter import get_logger, setup_logging
 from ..states import PRE_INIT, ServerEventProsessor, state_machine
 from ..string_utils import error_to_string, get_welcome_message
-from .telebotties_base import TelebottiesBase
+from .botafar_base import BotafarBase
 
 logger = get_logger()
 main = None
 
 
-class Main(TelebottiesBase):
+class Main(BotafarBase):
     def __init__(self, suppress_keys, prints_removed):
         self.prints_removed = prints_removed
         self.callback_executor = CallbackExecutor(
@@ -203,7 +203,7 @@ def _main(log_level, suppress_keys, prints_removed):
 
 
 @click.command(
-    help="telebotties bot cli",
+    help="botafar bot cli",
     context_settings=dict(help_option_names=["-h", "--help"]),
 )
 # @click.option(

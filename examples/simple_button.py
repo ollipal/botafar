@@ -3,7 +3,7 @@ A simple example on how to react to key press
 and release events with tb.Button
 """
 
-import telebotties as tb
+import botafar as tb
 
 b = tb.Button("SPACE", alt="C")
 j = tb.Joystick("W", "A", "S", "D", alt=["I", "J", "K", "L"])
@@ -68,9 +68,9 @@ def up_right():
     tb.print("UP RIGHT")
 
 
-""" @j.on_any
+@j.on_any
 async def any(event):
-    tb.print(f"ANY: {event}") """
+    tb.print(f"ANY: {event}")
 
 
 @b.on_press
@@ -89,7 +89,7 @@ tb.run()
 """
 An alternative with a single callback:
 
-import telebotties as tb
+import botafar as tb
 
 b = tb.Button("A")
 

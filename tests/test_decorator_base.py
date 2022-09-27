@@ -1,7 +1,7 @@
 import pytest
 
-from telebotties._internal.callbacks import CallbackBase
-from telebotties._internal.decorators import DecoratorBase, get_decorator
+from botafar._internal.callbacks import CallbackBase
+from botafar._internal.decorators import DecoratorBase, get_decorator
 
 from .helpers import fake_run, get_async_result, get_cb_result, get_cbs, reset
 

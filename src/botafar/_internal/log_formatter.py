@@ -38,7 +38,7 @@ def setup_logging(level):
 
 
 def get_logger():
-    return colorlog.getLogger("telebotties")
+    return colorlog.getLogger("botafar")
 
 
 if __name__ == "__main__":

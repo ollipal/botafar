@@ -1,6 +1,6 @@
 import pytest
 
-import telebotties as tb
+import botafar as tb
 
 from .helpers import reset
 

@@ -4,7 +4,7 @@ build-backend = "flit_core.buildapi"
 
 # if versions changed, change also on .pre-commit-config.yaml and .github/workflows/main.yaml
 [project]
-name = "telebotties"
+name = "botafar"
 authors = [{name = "Olli Paloviita"}]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -20,7 +20,7 @@ classifiers = [
 readme = "README.md"
 requires-python = ">=3.7"
 dynamic = ["version", "description"]
-keywords = ["telebotties"]
+keywords = ["botafar"]
 dependencies = [
     "aiohttp==3.8.1",
     "aiortc-datachannel-only==1.3.2.post3",
@@ -54,10 +54,10 @@ dev = [
 ]
 
 [project.urls]
-Home = "https://github.com/ollipal/telebotties"
+Home = "https://github.com/ollipal/botafar"
 
 [project.scripts]
-telebotties = "telebotties:_cli"
+botafar = "botafar:_cli"
 
 [tool.tox]
 legacy_tox_ini = """
@@ -105,6 +105,6 @@ max-complexity = 18
 select = "B,C,E,F,W,T4,B9,N"
 exclude = ".git,.tox,.venv,.env,docs,dist,.github,__pycache__"
 per-file-ignores = '''
-    ./src/telebotties/_internal/constants.py: E501
+    ./src/botafar/_internal/constants.py: E501
     */__init__.py:F401
 '''

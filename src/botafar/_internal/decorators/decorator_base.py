@@ -150,15 +150,13 @@ class DecoratorBase(ABC):
             self.params = params
 
         # Save instance init callbacks
-        if not hasattr(owner, "__telebotties_instance_init_callbacks__"):
-            owner.__telebotties_instance_init_callbacks__ = {
-                self: init_callback
-            }
+        if not hasattr(owner, "__botafar_instance_init_callbacks__"):
+            owner.__botafar_instance_init_callbacks__ = {self: init_callback}
         elif (
-            hasattr(owner, "__telebotties_instance_init_callbacks__")
-            and self not in owner.__telebotties_instance_init_callbacks__
+            hasattr(owner, "__botafar_instance_init_callbacks__")
+            and self not in owner.__botafar_instance_init_callbacks__
         ):
-            owner.__telebotties_instance_init_callbacks__[self] = init_callback
+            owner.__botafar_instance_init_callbacks__[self] = init_callback
 
         if owner not in DecoratorBase._wihtout_instance:
             DecoratorBase._wihtout_instance.add(owner)
@@ -176,17 +174,15 @@ class DecoratorBase(ABC):
         def new_init(*args, **kwargs):
             logger.debug(f"Custom init running for {owner.__name__}")
 
-            for (
-                callback
-            ) in owner.__telebotties_instance_init_callbacks__.values():
+            for callback in owner.__botafar_instance_init_callbacks__.values():
                 callback(args[0])
 
             if owner in DecoratorBase._wihtout_instance:
                 DecoratorBase._wihtout_instance.remove(owner)
-            owner.__telebotties_original_init__(*args, **kwargs)
+            owner.__botafar_original_init__(*args, **kwargs)
 
-        if not hasattr(owner, "__telebotties_original_init__"):
-            setattr(owner, "__telebotties_original_init__", owner.__init__)
+        if not hasattr(owner, "__botafar_original_init__"):
+            setattr(owner, "__botafar_original_init__", owner.__init__)
             setattr(owner, "__init__", new_init)
 
         # DecoratorBase._wrap_ones_without_wrapping()
@@ -247,9 +243,7 @@ class DecoratorBase(ABC):
             ):
                 continue
 
-            if DecoratorBase.requires_only_self(
-                cls.__telebotties_original_init__
-            ):
+            if DecoratorBase.requires_only_self(cls.__botafar_original_init__):
                 logger.warning(
                     f"No {cls.__name__} instances created. Callbacks '"
                     f"{join_str.join(DecoratorBase._instance_callbacks[cls])}"

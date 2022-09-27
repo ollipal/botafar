@@ -17,7 +17,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = "Telebotties"
+project = "Botafar"
 copyright = "2022, ollipal"
 author = "ollipal"
 
@@ -48,14 +48,14 @@ exclude_patterns = []
 # a list of builtin themes.
 #
 html_theme = "furo"
-html_title = "Telebotties documentation"
+html_title = "Botafar documentation"
 
 html_theme_options = {
     "navigation_with_keys": True,
     "footer_icons": [
         {
             "name": "GitHub",
-            "url": "https://github.com/ollipal/telebotties/",
+            "url": "https://github.com/ollipal/botafar/",
             "html": """
                 <svg
                     stroke="currentColor"
@@ -72,7 +72,7 @@ html_theme_options = {
             "class": "",
         },
     ],
-    "source_repository": "https://github.com/ollipal/telebotties/",
+    "source_repository": "https://github.com/ollipal/botafar/",
     "source_branch": "main",
     "source_directory": "docs/source",
 }

@@ -1,4 +1,4 @@
-# Telebotties
+# Botafar
 
 ```{include} ../../README.md
 :start-after: <!-- start intro -->
