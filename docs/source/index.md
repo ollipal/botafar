@@ -1,4 +1,4 @@
-# Botafar
+# botafar
 
 ```{include} ../../README.md
 :start-after: <!-- start intro -->
