@@ -1,8 +1,8 @@
 import traceback
 
 
-def dim(string):
-    return f"\033[2m{string}\033[0m"
+def dim(string):  # Also do italic, dim is not widely supported
+    return f"\033[3;2m{string}\033[0m"
 
 
 def bold(string):
