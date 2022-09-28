@@ -70,6 +70,6 @@ Bot running, connect at https://botafar.com/abcde-fghij-klmno
 
 **Keep reading if you want to learn how to:**
 
-- Use more botafar features such as [printing text to livestream directly](basics)
+- Use more botafar features such as [printing text to livestream directly](https://docs.botafar.com/basics.html#print)
 - Remote control servo motors and LEDs with [Arduino](arduino) or [Raspberry Pi](raspi)
 - [Forward the livestream to Twitch or Youtube through OBS](sharing_and_streaming)

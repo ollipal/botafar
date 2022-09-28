@@ -9,24 +9,23 @@ Add **global remote controls** and **a real time livestream** to your project
 - No hardware required, a phone can be used as a camera
 - [Arduino](https://docs.botafar.com/arduino) and [Raspberry Pi](https://docs.botafar.com/raspi) tutorials available
 - Desktop and mobile browser support, no apps, no signups
-- 100% free to use, open-source Python library
 
 It works by decorating existing functions and class methods to respond to user input:
 
 ```python
 import botafar
 
-steering = botafar.Joystick("W","A","S","D")
+j = botafar.Joystick("W","A","S","D")
 
-@steering.on_left
+@j.on_left
 def turn_left():
     print("left!")
 
-@steering.on_right
+@j.on_right
 def turn_right():
     print("right!")
 
-# ...@on_up, on_down, on_center
+# ...@j.on_up, on_down, on_center
 
 botafar.run() 
 ```

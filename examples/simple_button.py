@@ -1,98 +1,98 @@
 """
 A simple example on how to react to key press
-and release events with tb.Button
+and release events with botafar.Button
 """
 
 
-import botafar as tb
+import botafar
 
-b = tb.Button("SPACE", alt="C")
-j = tb.Joystick("W", "A", "S", "D", alt=["I", "J", "K", "L"])
+b = botafar.Button("SPACE", alt="C")
+j = botafar.Joystick("W", "A", "S", "D", alt=["I", "J", "K", "L"])
 
-s = tb.Slider("U", "V")
+s = botafar.Slider("U", "V")
 
-s2 = tb.Slider("O", "E")
+s2 = botafar.Slider("O", "E")
 
 
 @s.on_any
 def sleft(event):
-    tb.print(event)
+    botafar.print(event)
 
 
 @s.on_up
 def sright():
-    tb.print("SRIGHT")
+    botafar.print("SRIGHT")
 
 
 @j.on_center
 def center():
-    tb.print("CENTER")
+    botafar.print("CENTER")
 
 
 @j.on_up
 def up():
-    tb.print("UP")
+    botafar.print("UP")
 
 
 @j.on_left
 def left():
-    tb.print("LEFT")
+    botafar.print("LEFT")
 
 
 @j.on_down
 def down():
-    tb.print("DOWN")
+    botafar.print("DOWN")
 
 
 @j.on_right
 def right():
-    tb.print("RIGHT")
+    botafar.print("RIGHT")
 
 
 @j.on_up_left
 def up_left():
-    tb.print("UP LEFT")
+    botafar.print("UP LEFT")
 
 
 @j.on_down_left
 def down_left():
-    tb.print("DOWN LEFT")
+    botafar.print("DOWN LEFT")
 
 
 @j.on_down_right
 def down_right():
-    tb.print("DOWN RIGHT")
+    botafar.print("DOWN RIGHT")
 
 
 @j.on_up_right
 def up_right():
-    tb.print("UP RIGHT")
+    botafar.print("UP RIGHT")
 
 
 @j.on_any
 async def any(event):
-    tb.print(f"ANY: {event}")
+    botafar.print(f"ANY: {event}")
 
 
 @b.on_press
-def press_callback():  # Access event: `def press_callback('event')`
-    tb.print("Button pressed")
+def press_callback(event):  # Access event: `def press_callback('event')`
+    botafar.print(event)
 
 
 @b.on_release
 def release_callback():  # Access event: `def release_callback('event')`
-    tb.print("Button released")
+    botafar.print("Button released")
 
 
-tb.run()
+botafar.run()
 
 
 """
 An alternative with a single callback:
 
-import botafar as tb
+import botafar as botafar
 
-b = tb.Button("A")
+b = botafar.Button("A")
 
 @b.on_any
 def release_button(event):
@@ -101,5 +101,5 @@ def release_button(event):
     elif event.name == "release":
         print("Button released")
 
-tb.run()
+botafar.run()
 """

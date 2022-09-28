@@ -9,10 +9,11 @@ Check [botafar.com](https://botafar.com) for currently online bots!
 
 ```{toctree}
 :hidden:
-:caption: Basics
+:caption: Tutorial
 
 get_started
 basics
+advanced
 arduino
 raspi
 sharing_and_streaming
