@@ -3,6 +3,7 @@ A simple example on how to react to key press
 and release events with tb.Button
 """
 
+
 import botafar as tb
 
 b = tb.Button("SPACE", alt="C")

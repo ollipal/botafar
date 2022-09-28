@@ -19,7 +19,7 @@ _botafar_ enables you to do all these things.
 
 ## botafar setup
 
-1. Install the library ([help](https://docs.botafar.com/install))
+1. Install the library ([help](install))
 
 ```
 pip install --upgrade botafar
@@ -48,7 +48,7 @@ def target():
 botafar.run()
 ```
 
-3. Execute the **main.py** file, and open the returned link in browser. _Note that this browser can be on other device, for example Python program can run on a [Raspberry Pi](https://en.wikipedia.org/wiki/Raspberry_Pi) and the browser setup is done on a desktop PC_ ([help](https://docs.botafar.com/get_started_help)).
+3. Execute the **main.py** file, and open the returned link in browser. _Note that this browser can be on other device, for example Python program can run on a [Raspberry Pi](https://en.wikipedia.org/wiki/Raspberry_Pi) and the browser setup is done on a desktop PC_ ([help](get_started_help)).
 
 ```
 $ python main.py
@@ -56,7 +56,7 @@ $ python main.py
 Bot running, connect at https://botafar.com/abcde-fghij-klmno
 ```
 
-4. From the browser, press the **Try controls** -button. Now when you press **A** and **D** keys from a keyboard or a touch screen, texts "hello" and "world" get printed on terminal.
+4. From the browser, press the **Try controls** -button. Now when you press <kbd>A</kbd> and <kbd>D</kbd> keys from a keyboard or a touch screen, texts "hello" and "world" get printed on terminal.
 
 5. Choose a stream source from the browser. It can be a webcam, a phone or a screen share.
 
@@ -64,14 +64,12 @@ Bot running, connect at https://botafar.com/abcde-fghij-klmno
 
 7. **The browser now shows a direct link to your bot you can share with anyone in the world!**
 
-<img src="https://docs-assets.botafar.com/get_started_result.png" border="1px solid red"/>
-<!-- ![result](https://docs-assets.botafar.com/get_started_result.png)
- -->
+<img src="https://docs-assets.botafar.com/get_started_result.png"/>
 
 > If you got stuck, have an idea or you found a bug, write about it on the [GitHub discussions forum](https://github.com/ollipal/botafar/discussions). This tool is still under development, and all feedback is appreciated.
 
 **Keep reading if you want to learn how to:**
 
-- Use more botafar features such as [printing text to livestream directly](https://botafar.com)
-- Remote control servo motors and LEDs with [Raspberry Pi](https://botafar.com) or [Arduino](https://botafar.com)
-- [Forward the livestream to Twitch or Youtube through OBS](https://botafar.com)
+- Use more botafar features such as [printing text to livestream directly](basics)
+- Remote control servo motors and LEDs with [Arduino](arduino) or [Raspberry Pi](raspi)
+- [Forward the livestream to Twitch or Youtube through OBS](sharing_and_streaming)
