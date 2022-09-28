@@ -1,6 +1,6 @@
 # Development
 
-More info coming.
+More info coming
 
 ## Use pre-commit hooks
 

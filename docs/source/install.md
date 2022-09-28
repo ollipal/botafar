@@ -32,7 +32,7 @@ python -m pip install botafar
 
 If the command fails, check instructions on [installing pip](https://pip.pypa.io/en/stable/installation/).
 
-(Most likely simpler `pip install botafar` would have worked as well as seen in the [quickstart guide](quickstart.md), but the commands above specify the Python installation as well, which can help with some rare error cases)
+(Most likely simpler `pip install botafar` would have worked as well as seen in the [Get started guide](get_started.md), but the commands above specify the Python installation as well, which can help with some rare error cases)
 
 Verify working botafar installation with:
 
