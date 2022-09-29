@@ -4,19 +4,19 @@ This tutorial tells how to remotely control LEDs and [servo motors](https://en.w
 
 botafar does **not** require a lot of resources, so cheaper/older models such as [Raspberry Pi Zero](https://www.raspberrypi.com/products/raspberry-pi-zero/) should work well (For Raspberry Pi Zero I recommend Raspberry Pi OS Lite instead of Desktop version).
 
-## Operating system and IDE installation
+## OS and IDE installation
 
 ### Raspberry Pi OS
 
-The first step is to install the operating system. I recommend using [Raspberry Pi OS Desktop](https://www.raspberrypi.com/documentation/computers/os.html#introduction), and installing it using [Raspberry Pi Imager](https://www.raspberrypi.com/software/) (or Raspberry Pi OS Lite for more experienced users) and following [these instructions](https://www.raspberrypi.com/documentation/computers/getting-started.html#installing-the-operating-system). 
+The first step is to install the operating system. I recommend using [Raspberry Pi OS Desktop](https://www.raspberrypi.com/documentation/computers/os.html#introduction) (or Raspberry Pi OS Lite for more experienced users), and installing it using [Raspberry Pi Imager](https://www.raspberrypi.com/software/) by following [these instructions](https://www.raspberrypi.com/documentation/computers/getting-started.html#installing-the-operating-system). 
 
 ### Writing and running code on Raspberry Pi OS
 
 If you are not comfortable in writing code in terminal directly, there are many good options:
 
-- [Thonny](https://thonny.org/) is simple and lightwieight IDE that comes pre-intalled on Raspberry Pi OS Desktop, [simple video explaining how to use](https://www.youtube.com/watch?v=GssM7hkwJrc) (This is the easiest of these options)
-- You can install popular [Visual Studio Code](https://code.visualstudio.com/docs/setup/raspberry-pi) (I recommend this only to the latest Raspberry Pis, it requires quite a lot of resources)
-- If you have your Raspberry Pi SSH connection working, and you like to use Visual Studio Code on your desktop to code remotely, you can use the [Remote SSH extension](https://cloudbytes.dev/snippets/develop-remotely-on-raspberry-pi-using-vscode-remote-ssh). (This can be hard to setup if you are not familiar with SSH!)
+- [Thonny](https://thonny.org/) is simple and lightwieight IDE that comes pre-intalled on Raspberry Pi OS Desktop, [here is a simple video explaining how to use it](https://www.youtube.com/watch?v=GssM7hkwJrc) (This is the easiest of these options)
+- You can install popular [Visual Studio Code](https://code.visualstudio.com/docs/setup/raspberry-pi) on Raspberry Pi (I recommend this only to the latest Raspberry Pis, it requires quite a lot of resources)
+- If you have SSH connection working to your Pi and you'd like to use Visual Studio Code on your desktop to code remotely, you can use the [Remote SSH extension](https://cloudbytes.dev/snippets/develop-remotely-on-raspberry-pi-using-vscode-remote-ssh). (This can be hard to setup if you are not familiar with SSH)
 
 ## Python library installation
 
@@ -34,9 +34,9 @@ Raspberry Pi has multiple good Python libraries for accessing hardware through i
 
 - gpiozero comes pre-installed with Raspberry Pi OS Desktop image
 - gpiozero is simpler to use than libraries like [RPi.GPIO](https://pypi.org/project/RPi.GPIO/) or [pigpio](http://abyz.me.uk/rpi/pigpio/), especially for beginners
-- gpiozero with pigpio "pin factory" allows using [hardware PWM](https://raspberrypi.stackexchange.com/a/100644), which means that servo motors do not stutter like when using gpiozero without pigpio or Rpi.GPIO
+- gpiozero with pigpio "pin factory" allows using [hardware PWM](https://raspberrypi.stackexchange.com/a/100644), which means that servo motors do not stutter like when using Rpi.GPIO or gpiozero without pigpio pin factory
 
-If you have a recent Raspberry Pi OS Desktop image installed (it is the default one), you should have both the gpiozero and pigpio installed. If you used some other operating system such as Raspberry Pi OS Lite, run these commands:
+If you have a recent Raspberry Pi OS Desktop image installed, you should have both the gpiozero and pigpio installed. If you used some other operating system such as Raspberry Pi OS Lite, run these commands:
 
 ```
 sudo apt update
@@ -44,14 +44,14 @@ sudo apt install python3-gpiozero pigpio
 ```
 (More info [here](https://gpiozero.readthedocs.io/en/stable/installing.html) and [here](https://gpiozero.readthedocs.io/en/stable/remote_gpio.html#preparing-the-raspberry-pi))
 
-The next step is to enable and start pigpio's daemon. It allows accessing hardware PWM.
+The next step is to enable and start pigpio's daemon. This allows accessing hardware PWM.
 
 ```
 sudo systemctl enable pigpiod --now
 ```
 (More info [here](https://gpiozero.readthedocs.io/en/stable/remote_gpio.html#command-line-systemctl))
 
-Now you should havbe gpiozero and pigpio installled, and pigpio daemon running.
+Now you should have gpiozero and pigpio installled, and pigpio daemon running.
 
 ## Blinking an LED remotely
 
@@ -59,9 +59,7 @@ Now you should havbe gpiozero and pigpio installled, and pigpio daemon running.
 
 ![led](https://gpiozero.readthedocs.io/en/stable/_images/led_bb.svg)
 
-(Image from the same tutorial, [licence](https://github.com/gpiozero/gpiozero/blob/master/LICENSE.rst))
-
-[Raspberry Pi pins here](https://pinout.xyz).
+(Image from the same tutorial, [licence](https://github.com/gpiozero/gpiozero/blob/master/LICENSE.rst)) [Raspberry Pi pins here](https://pinout.xyz).
 
 To turn the LED on for one second, let's create and run a **main.py** file
 

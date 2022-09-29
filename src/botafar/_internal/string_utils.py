@@ -1,3 +1,4 @@
+import os
 import traceback
 
 
@@ -78,8 +79,15 @@ def control_list_string(control_datas):
 
 
 def get_welcome_message(id):
-    return (
-        "\nBot running, connect at "
-        f"{cyan_bold(f'https://botafar.com/{id}')} "
-        f"{dim('(ctrl + click to open)')}\n"
-    )
+    if os.environ["BOTAFAR_ENV"] != "dev":
+        return (
+            "\nBot running, connect at "
+            f"{cyan_bold(f'https://botafar.com/{id}')} "
+            f"{dim('(ctrl + click to open)')}\n"
+        )
+    else:
+        return (
+            "\nBot running, connect at "
+            f"{cyan_bold(f'http://localhost:5173/{id}')} "
+            f"{dim('(ctrl + click to open)')}\n"
+        )

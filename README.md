@@ -35,3 +35,5 @@ botafar.run()
 <!-- end intro -->
 
 **[GET STARTED](https://docs.botafar.com/get_started)**
+
+(Check [botafar.com](https://botafar.com/) for currently online bots)

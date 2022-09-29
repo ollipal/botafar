@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import os
 import string
 import warnings
 from os import path
@@ -99,8 +100,11 @@ class DataChannel:
         self.timer = None
         self._stop = None  # asyncio.Event()
         self._connected = False
-        # self.url = "http://localhost:4005"
-        self.url = "https://tb-signaling.onrender.com"
+        if os.environ["BOTAFAR_ENV"] == "dev":
+            logger.info("BOTAFAR_ENV=dev detected")
+            self.url = "http://localhost:4005"
+        else:
+            self.url = "https://tb-signaling.onrender.com"
         self.has_connected = False  # is read directly from outside
 
     def _send_internal_datachannel_message(self, message_type):
