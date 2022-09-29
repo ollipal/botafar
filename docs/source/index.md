@@ -13,10 +13,12 @@ Check [botafar.com](https://botafar.com) for currently online bots!
 
 get_started
 basics
-advanced
 arduino
 raspi
-sharing_and_streaming
+twitch_and_youtube
+advanced
+advanced_arduino_raspi
+reference
 ```
 
 <!-- ```{toctree}
@@ -27,10 +29,10 @@ controls
 bot_lifecycle
 ``` -->
 
-```{toctree}
+<!-- ```{toctree}
 :hidden:
 :caption: Other
 
 reference
 development
-```
+``` -->

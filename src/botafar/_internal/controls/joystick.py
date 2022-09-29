@@ -84,6 +84,7 @@ class Joystick(ControlBase):
         left_key,
         down_key,
         right_key,
+        diagonals=False,
         alt=None,
         owner_only=False,
         amount=1,
@@ -290,6 +291,10 @@ class Joystick(ControlBase):
             alt,
             amount,
         )
+
+        if diagonals:
+            self._change_type("joystick8")
+            self._has_diagonals = True
 
     def on_center(self, func):
         title = get_function_title(func)

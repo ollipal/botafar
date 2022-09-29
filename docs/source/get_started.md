@@ -72,4 +72,4 @@ Bot running, connect at https://botafar.com/abcde-fghij-klmno
 
 - Use more botafar features such as [printing text to livestream directly](https://docs.botafar.com/basics.html#print)
 - Remote control servo motors and LEDs with [Arduino](arduino) or [Raspberry Pi](raspi)
-- [Forward the livestream to Twitch or Youtube through OBS](sharing_and_streaming)
+- [Forward the livestream to Twitch or Youtube through OBS](twitch_and_youtube)

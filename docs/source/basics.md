@@ -72,6 +72,11 @@ Vertical slider states are: `on_up`, `on_down` and `on_center`.
 ```python
 s = botafar.Slider("J","L")
 
+@s.on_center
+def center():
+    botafar.print("center")
+
+# A horizontal Slider:
 @s.on_left
 def left():
     botafar.print("left")
@@ -80,9 +85,7 @@ def left():
 def right():
     botafar.print("right")
 
-@s.on_center
-def center():
-    botafar.print("center")
+# If you want a vertical Slider, use @s.on_up/@s.on_down instead
 ```
 
 ### Joystick
@@ -97,6 +100,10 @@ Joystick with diagonals has 4 _additional_ callbacks: `on_up_left`, `on_down_lef
 
 ```python
 j = botafar.Joystick("W","A","S","D")
+
+@j.on_center
+def center():
+    botafar.print("center")
 
 @j.on_up
 def up():
@@ -113,10 +120,6 @@ def down():
 @j.on_right
 def right():
     botafar.print("right")
-
-@j.on_center
-def center():
-    botafar.print("center")
 
 # Diagonals:
 
@@ -179,7 +182,7 @@ TANK_MOTOR_SPEEDS = {
     "on_up_right":   ( 1.0, 0.5), 
 }
 
-j = botafar.Joystick("W","A","S","D")
+j = botafar.Joystick("W","A","S","D", diagonals=True)
 
 @j.on_any
 def any(event):
