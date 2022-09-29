@@ -21,18 +21,26 @@ advanced_arduino_raspi
 reference
 ```
 
-<!-- ```{toctree}
+<!--
+
+```{toctree}
 :hidden:
 :caption: Advanced
 
 controls
 bot_lifecycle
-``` -->
+```
 
-<!-- ```{toctree}
+-->
+
+<!--
+
+```{toctree}
 :hidden:
 :caption: Other
 
 reference
 development
-``` -->
+```
+
+-->

@@ -27,7 +27,7 @@ def turn_right():
 
 # ...@j.on_up, on_down, on_center
 
-botafar.run() 
+botafar.run()
 ```
 
 ![result](https://docs-assets.botafar.com/readme.png)

@@ -25,11 +25,13 @@ If you have prints you want to show to the user
 ```python
 print("You won!")
 ```
+
 You can print it directly to the livestream by using `botafar.print`
 
 ```python
 botafar.print("You won!")
 ```
+
 If you want to show all prints from a file to a user, you can override the default print
 
 ```python
@@ -43,7 +45,7 @@ print("You won!")
 
 _Controls_ bind one or more keyboard keys. When those keys are pressed on a keyboard or touch screen, they change the contorl's state which will trigger callbacks.
 
-Available keyboard keys are <kbd>A-Z</kbd>, <kbd>UP</kbd>, <kbd>LEFT</kbd>, <kbd>DOWN</kbd>, <kbd>RIGHT</kbd> and <kbd>SPACE</kbd> 
+Available keyboard keys are <kbd>A-Z</kbd>, <kbd>UP</kbd>, <kbd>LEFT</kbd>, <kbd>DOWN</kbd>, <kbd>RIGHT</kbd> and <kbd>SPACE</kbd>
 
 ### Button
 
@@ -165,6 +167,7 @@ Event(name='on_press', is_active=True, sender='owner', time=-1)
 ```
 
 (on [class method callbacks](https://docs.botafar.com/basics.html#class-method-callbacks), the event parameter comes after "self")
+
 ### on_any
 
 In addition to the regular state callbacks, all controls have a special callback `on_any` that triggers on all state changes, and **requires** an event parameter. In many cases this allows making more readable code.
@@ -174,12 +177,12 @@ TANK_MOTOR_SPEEDS = {
     "on_center":     ( 0.0, 0.0)
     "on_up":         ( 1.0, 1.0),
     "on_up_left":    ( 0.5, 1.0),
-    "on_left":       ( 0.0, 1.0), 
-    "on_down_left":  (-0.5,-1.0), 
-    "on_down":       (-1.0,-1.0), 
+    "on_left":       ( 0.0, 1.0),
+    "on_down_left":  (-0.5,-1.0),
+    "on_down":       (-1.0,-1.0),
     "on_down_right": (-1.0,-0.5),
     "on_right":      ( 1.0, 0.0),
-    "on_up_right":   ( 1.0, 0.5), 
+    "on_up_right":   ( 1.0, 0.5),
 }
 
 j = botafar.Joystick("W","A","S","D", diagonals=True)
@@ -240,6 +243,7 @@ class Bot:
 bot = Bot("Bob") # Important
 botafar.run()
 ```
+
 ### Async callbacks
 
 botafar supports Python's [asyncio](https://docs.python.org/3/library/asyncio.html), if you need it.

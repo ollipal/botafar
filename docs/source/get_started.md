@@ -29,7 +29,7 @@ pip install --upgrade botafar
 
 - Import botafar
 - Create a control, `Joystick` in this example, and bind 4 keys from keyboard to it
-- Use decorators (@-symbol) to select functions to call on user input 
+- Use decorators (@-symbol) to select functions to call on user input
 - Call `botafar.run()`
 
 ```python

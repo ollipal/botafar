@@ -8,7 +8,7 @@ botafar does **not** require a lot of resources, so cheaper/older models such as
 
 ### Raspberry Pi OS
 
-The first step is to install the operating system. I recommend using [Raspberry Pi OS Desktop](https://www.raspberrypi.com/documentation/computers/os.html#introduction) (or Raspberry Pi OS Lite for more experienced users), and installing it using [Raspberry Pi Imager](https://www.raspberrypi.com/software/) by following [these instructions](https://www.raspberrypi.com/documentation/computers/getting-started.html#installing-the-operating-system). 
+The first step is to install the operating system. I recommend using [Raspberry Pi OS Desktop](https://www.raspberrypi.com/documentation/computers/os.html#introduction) (or Raspberry Pi OS Lite for more experienced users), and installing it using [Raspberry Pi Imager](https://www.raspberrypi.com/software/) by following [these instructions](https://www.raspberrypi.com/documentation/computers/getting-started.html#installing-the-operating-system).
 
 ### Writing and running code on Raspberry Pi OS
 
@@ -42,6 +42,7 @@ If you have a recent Raspberry Pi OS Desktop image installed, you should have bo
 sudo apt update
 sudo apt install python3-gpiozero pigpio
 ```
+
 (More info [here](https://gpiozero.readthedocs.io/en/stable/installing.html) and [here](https://gpiozero.readthedocs.io/en/stable/remote_gpio.html#preparing-the-raspberry-pi))
 
 The next step is to enable and start pigpio's daemon. This allows accessing hardware PWM.
@@ -49,6 +50,7 @@ The next step is to enable and start pigpio's daemon. This allows accessing hard
 ```
 sudo systemctl enable pigpiod --now
 ```
+
 (More info [here](https://gpiozero.readthedocs.io/en/stable/remote_gpio.html#command-line-systemctl))
 
 Now you should have gpiozero and pigpio installled, and pigpio daemon running.
@@ -80,7 +82,7 @@ led.off()
 
 - Import botafar
 - Create a control, `Button` in this example, and bind a key from keyboard to it
-- Use decorators (@-symbol) to select functions to call on user input 
+- Use decorators (@-symbol) to select functions to call on user input
 - Call `botafar.run()`
 
 In this case we also create separate functions `led_on` and `led_off` and add `botafar.print` calls to make debugging easier.
@@ -184,7 +186,7 @@ servo.value = 0
 2. Similar to [Blinking an LED remotely](https://docs.botafar.com/raspi.html#blinking-an-led-remotely) above, the steps to make this code remote controllable are:
 - Import botafar
 - Create a control, `Joystick` in this example, and bind 4 keys from keyboard to it
-- Use decorators (@-symbol) to select functions to call on user input 
+- Use decorators (@-symbol) to select functions to call on user input
 - Call `botafar.run()`
 
 Let's also create wrapper angles to for each wanted position
