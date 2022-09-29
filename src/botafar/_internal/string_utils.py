@@ -79,7 +79,7 @@ def control_list_string(control_datas):
 
 
 def get_welcome_message(id):
-    if os.environ["BOTAFAR_ENV"] != "dev":
+    if os.environ.get("BOTAFAR_ENV") != "dev":
         return (
             "\nBot running, connect at "
             f"{cyan_bold(f'https://botafar.com/{id}')} "

@@ -100,7 +100,7 @@ class DataChannel:
         self.timer = None
         self._stop = None  # asyncio.Event()
         self._connected = False
-        if os.environ["BOTAFAR_ENV"] == "dev":
+        if os.environ.get("BOTAFAR_ENV") == "dev":
             logger.info("BOTAFAR_ENV=dev detected")
             self.url = "http://localhost:4005"
         else:
