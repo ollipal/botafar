@@ -37,7 +37,7 @@ Before you start, [download](https://obsproject.com/download) and install OBS. I
 
 ![obs_success](https://docs-assets.botafar.com/obs_success.png)
 
-**You are now ready to move to [Streaming to Twitch](https://docs.botafar.com/twitch_and_youtube.html#streaming-to-twitch) or [Streaming to YouTube](https://docs.botafar.com/twitch_and_youtube.html#streaming-to-youtube) below.**
+**You are now ready to move to [Streaming to Twitch](https://docs.botafar.com/twitch_and_youtube.html#twitch-streaming) or [Streaming to YouTube](https://docs.botafar.com/twitch_and_youtube.html#youtube-streaming) below.**
 
 >In some rare cases, the livestream does not connect immediately. In that case, click "reset stream" from the browser and select stream source again. Then from OBS, activate the browser source by clicking it, and then click "Refresh".
 
@@ -45,12 +45,12 @@ Before you start, [download](https://obsproject.com/download) and install OBS. I
 
 ![refresh_interact](https://docs-assets.botafar.com/refresh_interact.png)
 
-## Streaming to Twitch
+## Twitch streaming
 
 The next step is to connect OBS to Twitch and start the livestream. Chris' Tutorials YouTube channel has a really nice video [OBS Stream to Twitch 5 Minute Setup Guide 2022](https://www.youtube.com/watch?v=9HYB9N7_cZc) which goes through this process.
 
 _If you are familiar with Twitch livestreaming and want to give tips on setting up a remote controlling/robotics related livestream, write to [Github Discussions](https://github.com/ollipal/botafar/discussions/categories/general)!_
-## Streaming to YouTube
+## YouTube streaming
 
 The next step is to connect OBS to YouTube and start the livestream.
 
