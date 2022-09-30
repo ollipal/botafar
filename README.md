@@ -36,8 +36,11 @@ Check [botafar.com](https://botafar.com/) for currently online bots!
 
 <!-- end intro -->
 
-<!-- start get_started -->
 ## Get started
+
+<!-- start get_started -->
+
+### Starting scenario
 
 Let's suppose you have a [Python](https://en.wikipedia.org/wiki/Python_(programming_language)) project, **main.py**, which has two functions `greet` and `target`:
 
@@ -56,7 +59,7 @@ You want be able to share a link through which people can **remotely call these 
 
 _botafar_ enables you to do all these things.
 
-## botafar setup
+### Add remote controls and livestreaming
 
 1. Install the library ([help](install))
 
@@ -64,7 +67,7 @@ _botafar_ enables you to do all these things.
 pip install --upgrade botafar
 ```
 
-On some Debian based operating systems such as Raspberry Pi OS, on you need to have [libSRTP](https://github.com/cisco/libsrtp) and the other related network dependencies installed to be installed as well: `sudo apt install libnss3 libnspr4 libsrtp2-1 -y`
+On some Debian based operating systems such as Raspberry Pi OS, on you need to have [libSRTP](https://github.com/cisco/libsrtp) and other related network dependencies installed to be installed as well: `sudo apt install libnss3 libnspr4 libsrtp2-1 -y`
 
 2. Modify **main.py**:
 
@@ -89,7 +92,7 @@ def target():
 botafar.run()
 ```
 
-3. Execute the **main.py** file, and open the returned link in browser. _Note that this browser can be on other device, for example Python program can run on a [Raspberry Pi](https://en.wikipedia.org/wiki/Raspberry_Pi) and the browser setup is done on a desktop PC_ ([help](get_started_help)).
+3. Execute the **main.py** file, and open the returned link in browser. _Note that this browser can be on other device, for example the Python program can run on a [Raspberry Pi](https://en.wikipedia.org/wiki/Raspberry_Pi) and the browser setup is done on a desktop PC's browser_ ([help](get_started_help)).
 
 ```
 $ python main.py

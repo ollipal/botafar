@@ -34,7 +34,7 @@ First let's make sure you have [pip](https://en.wikipedia.org/wiki/Pip_(package_
 sudo apt install python3-pip -y
 ```
 
-Also, on you need to have [libSRTP](https://github.com/cisco/libsrtp) and the other related network dependencies installed:
+Also, on you need to have [libSRTP](https://github.com/cisco/libsrtp) and other related network dependencies installed:
 
 ```
 sudo apt install libnss3 libnspr4 libsrtp2-1 -y
