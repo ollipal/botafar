@@ -61,7 +61,7 @@ _botafar_ enables you to do all these things.
 
 ### Add remote controls and livestreaming
 
-1. Install the library ([help](install))
+1. Install the library ([help](https://docs.botafar.com/install))
 
 ```
 pip install --upgrade botafar
@@ -92,7 +92,7 @@ def target():
 botafar.run()
 ```
 
-3. Execute the **main.py** file, and open the returned link in browser. _Note that this browser can be on other device, for example the Python program can run on a [Raspberry Pi](https://en.wikipedia.org/wiki/Raspberry_Pi) and the browser setup is done on a desktop PC's browser_ ([help](get_started_help)).
+3. Execute the **main.py** file, and open the returned link in browser. _Note that this browser can be on other device, for example the Python program can run on a [Raspberry Pi](https://en.wikipedia.org/wiki/Raspberry_Pi) and the browser setup is done on a desktop PC's browser_ ([help](https://docs.botafar.com/get_started_help)).
 
 ```
 $ python main.py
@@ -125,7 +125,7 @@ world
 **Keep reading if you want to learn how to:**
 
 - Use more botafar features such as [printing text to livestream directly](https://docs.botafar.com/basics.html#print)
-- Remote control servo motors and LEDs with [Arduino](arduino) or [Raspberry Pi](raspi)
-- [Forward the livestream to Twitch or Youtube through OBS](twitch_and_youtube)
+- Remote control servo motors and LEDs with [Arduino](https://docs.botafar.com/arduino) or [Raspberry Pi](https://docs.botafar.com/raspi)
+- [Forward the livestream to Twitch or Youtube through OBS](https://docs.botafar.com/twitch_and_youtube)
 
 <!-- end get_started -->
