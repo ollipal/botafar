@@ -10,18 +10,6 @@ An example that combines a servo and four LEDs
 with botafar.Joystick and botafar.Button
 """
 
-SERVO_VALUES = {
-    "on_left": -1,
-    "on_up_left": -0.5,
-    "on_up": 0,
-    "on_center": 0,
-    "on_up_right": 0.5,
-    "on_right": 1,
-    "on_down_left": None,  # Not in use
-    "on_down": None,  # Not in use
-    "on_down_right": None,  # Not in use
-}
-
 b = botafar.Button("L", alt="SPACE")
 j = botafar.Joystick(
     "W", "A", "S", "D", alt=["UP", "LEFT", "DOWN", "RIGHT"], diagonals=True
@@ -31,6 +19,13 @@ red = LED(27)
 yellow = LED(9)
 green = LED(10)
 blue = LED(22)
+
+
+def turn_green_yellow_red_off():
+    red.off()
+    yellow.off()
+    green.off()
+
 
 servo = Servo(
     17,
@@ -42,35 +37,77 @@ servo = Servo(
 
 @b.on_press
 def blue_on():
+    botafar.print("blue on")
     blue.on()
 
 
 @b.on_release
 def blue_off():
+    botafar.print("blue off")
     blue.off()
 
 
-@j.on_any
-def move_servo(event):
-    servo_value = SERVO_VALUES[event.name]
-    if servo_value is not None:
-        botafar.print(f"servo value {servo_value}")
-        servo.value = servo_value
-        red.off()
-        yellow.off()
-        green.off()
-    elif event.name == "on_down_left":
-        red.off()
-        yellow.off()
-        green.on()
-    elif event.name == "on_down":
-        red.off()
-        yellow.on()
-        green.off()
-    elif event.name == "on_down_right":
-        red.on()
-        yellow.off()
-        green.off()
+@j.on_left
+def servo_left():
+    botafar.print("servo value 1")
+    servo.value = 1
+    turn_green_yellow_red_off()
+
+
+@j.on_up_left
+def servo_up_left():
+    botafar.print("servo value 0.5")
+    servo.value = 0.5
+    turn_green_yellow_red_off()
+
+
+@j.on_up
+@j.on_center
+def servo_middle():
+    botafar.print("servo value 0")
+    servo.value = 0
+    turn_green_yellow_red_off()
+
+
+@j.on_up_right
+def servo_up_right():
+    botafar.print("servo value -0.5")
+    servo.value = -0.5
+    turn_green_yellow_red_off()
+
+
+@j.on_right
+def servo_right():
+    botafar.print("servo value -1")
+    servo.value = -1
+    turn_green_yellow_red_off()
+
+
+@j.on_down_left
+def green_on():
+    botafar.print("green on")
+    servo.value = 0
+    red.off()
+    yellow.off()
+    green.on()
+
+
+@j.on_down
+def yellow_on():
+    botafar.print("yellow on")
+    servo.value = 0
+    red.off()
+    yellow.on()
+    green.off()
+
+
+@j.on_down_right
+def red_on():
+    botafar.print("red on")
+    servo.value = 0
+    red.on()
+    yellow.off()
+    green.off()
 
 
 botafar.run()

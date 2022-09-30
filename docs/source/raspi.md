@@ -228,13 +228,13 @@ servo = Servo(
 
 @j.on_left
 def servo_left():
-    botafar.print("servo value -1")
-    servo.value = -1
+    botafar.print("servo value 1")
+    servo.value = 1
 
 @j.on_up_left
 def servo_up_left():
-    botafar.print("servo value -0.5")
-    servo.value = -0.5
+    botafar.print("servo value 0.5")
+    servo.value = 0.5
 
 @j.on_up
 @j.on_center
@@ -244,13 +244,13 @@ def servo_middle():
 
 @j.on_up_right
 def servo_up_right():
-    botafar.print("servo value 0.5")
-    servo.value = 0.5
+    botafar.print("servo value -0.5")
+    servo.value = -0.5
 
 @j.on_right
 def servo_right():
-    botafar.print("servo value 1")
-    servo.value = 1
+    botafar.print("servo value -1")
+    servo.value = -1
 
 # @j.on_down_left, @j.on_down, @j.on_down_right not used currently!
 
@@ -292,12 +292,12 @@ from gpiozero import Servo
 from gpiozero.pins.pigpio import PiGPIOFactory # Optional, removes servo stutter!
 
 SERVO_VALUES = {
-    "on_left":       -1,
-    "on_up_left":    -0.5,
+    "on_left":       1,
+    "on_up_left":    0.5,
     "on_up":         0,
     "on_center":     0,
-    "on_up_right":   0.5,
-    "on_right":      1,
+    "on_up_right":   -0.5,
+    "on_right":      -1,
     "on_down_left":  None, # Not in use
     "on_down":       None, # Not in use
     "on_down_right": None, # Not in use
