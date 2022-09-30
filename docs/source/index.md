@@ -5,8 +5,6 @@
 :end-before: <!-- end intro -->
 ```
 
-Check [botafar.com](https://botafar.com) for currently online bots!
-
 ```{toctree}
 :hidden:
 :caption: Tutorial

@@ -50,7 +50,7 @@ pip install --upgrade botafar
 
 ### GPIO library installation
 
-Raspberry Pi has multiple good Python libraries for accessing hardware through its GPIO pins. In this tutorial we are going to use [gpiozero](https://gpiozero.readthedocs.io/en/stable/) library with [pigpio](http://abyz.me.uk/rpi/pigpio/) as a "[pin factory](https://gpiozero.readthedocs.io/en/stable/api_pins.html?highlight=pigpio#module-gpiozero.pins.pigpio)". In my experience, this a good combination for creating bots because:
+Raspberry Pi has multiple good Python libraries for accessing hardware through its GPIO pins. In this tutorial we are going to use [gpiozero](https://gpiozero.readthedocs.io/en/stable/) library with [pigpio](http://abyz.me.uk/rpi/pigpio/) as a "[pin factory](https://gpiozero.readthedocs.io/en/stable/api_pins.html#module-gpiozero.pins.pigpio)". In my experience, this a good combination for creating bots because:
 
 - gpiozero comes pre-installed with Raspberry Pi OS Desktop and Lite
 - gpiozero is simpler to use than libraries like [RPi.GPIO](https://pypi.org/project/RPi.GPIO/) or [pigpio](http://abyz.me.uk/rpi/pigpio/), especially for beginners
