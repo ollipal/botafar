@@ -10,6 +10,12 @@ botafar does **not** require a lot of resources, so cheaper/older models such as
 
 The first step is to install the operating system. I recommend using [Raspberry Pi OS Desktop](https://www.raspberrypi.com/documentation/computers/os.html#introduction) (or Raspberry Pi OS Lite for more experienced users), and installing it using [Raspberry Pi Imager](https://www.raspberrypi.com/software/) by following [these instructions](https://www.raspberrypi.com/documentation/computers/getting-started.html#installing-the-operating-system).
 
+When you have your system running, it is a good idea to update the list of available software and upgrade the ones that are out of date by opening terminal and running
+
+```
+sudo apt update && sudo apt upgrade -y
+```
+
 ### Writing and running code on Raspberry Pi OS
 
 If you are not comfortable in writing code in terminal directly, there are many good options:
@@ -22,25 +28,40 @@ If you are not comfortable in writing code in terminal directly, there are many 
 
 ### botafar installation
 
-Like in [get started](https://docs.botafar.com/get_started.html#botafar-setup), the installation should work by opening the terminal and running
+First let's make sure you have [pip](https://en.wikipedia.org/wiki/Pip_(package_manager)) installed, which allows you to install Python packages.
+
+```
+sudo apt install python3-pip -y
+```
+
+Also, on you need to have [libSRTP](https://github.com/cisco/libsrtp) and the other related network dependencies installed:
+
+```
+sudo apt install libnss3 libnspr4 libsrtp2-1 -y
+```
+
+Then, like in [get started](https://docs.botafar.com/get_started.html#botafar-setup), the installation should work by running
 
 ```
 pip install --upgrade botafar
 ```
 
+(Note that this command will take some time before anything gets printed to the terminal, in most cases it is working)
+
 ### GPIO library installation
 
 Raspberry Pi has multiple good Python libraries for accessing hardware through its GPIO pins. In this tutorial we are going to use [gpiozero](https://gpiozero.readthedocs.io/en/stable/) library with [pigpio](http://abyz.me.uk/rpi/pigpio/) as a "[pin factory](https://gpiozero.readthedocs.io/en/stable/api_pins.html?highlight=pigpio#module-gpiozero.pins.pigpio)". In my experience, this a good combination for creating bots because:
 
-- gpiozero comes pre-installed with Raspberry Pi OS Desktop image
+- gpiozero comes pre-installed with Raspberry Pi OS Desktop and Lite
 - gpiozero is simpler to use than libraries like [RPi.GPIO](https://pypi.org/project/RPi.GPIO/) or [pigpio](http://abyz.me.uk/rpi/pigpio/), especially for beginners
 - gpiozero with pigpio "pin factory" allows using [hardware PWM](https://raspberrypi.stackexchange.com/a/100644), which means that servo motors do not stutter like when using Rpi.GPIO or gpiozero without pigpio pin factory
 
-If you have a recent Raspberry Pi OS Desktop image installed, you should have both the gpiozero and pigpio installed. If you used some other operating system such as Raspberry Pi OS Lite, run these commands:
+If you have a recent Raspberry Pi OS Desktop image installed, you should have gpiozero already indtalled.
+
+To install pigpio daemon and its Python library, run
 
 ```
-sudo apt update
-sudo apt install python3-gpiozero pigpio
+sudo apt install pigpio python3-pigpio -y
 ```
 
 (More info [here](https://gpiozero.readthedocs.io/en/stable/installing.html) and [here](https://gpiozero.readthedocs.io/en/stable/remote_gpio.html#preparing-the-raspberry-pi))
@@ -57,7 +78,7 @@ Now you should have gpiozero and pigpio installled, and pigpio daemon running.
 
 ## Blinking an LED remotely
 
-1. Let's now follow the official [gpiozero LED tutorial](https://gpiozero.readthedocs.io/en/stable/recipes.html#led)'s wiring and connect an LED to GPIO pin 17 with a 330 ohm resistor:
+1. Let's now follow the official [gpiozero LED tutorial](https://gpiozero.readthedocs.io/en/stable/recipes.html#led)'s wiring and connect an LED to GPIO pin 17 with a 330 ohm resistor, note that LED's shorter leg should be connected to ground pin:
 
 ![led](https://gpiozero.readthedocs.io/en/stable/_images/led_bb.svg)
 
@@ -168,7 +189,7 @@ from time import sleep
 
 servo = Servo(
     17,
-    pin_factory=PiGPIOFacotory(),
+    pin_factory=PiGPIOFactory(),
     min_pulse_width=0.544/1000, # Adjust if needed
     max_pulse_width=2.4/1000, # Adjust if needed
 )
@@ -200,7 +221,7 @@ j = botafar.Joystick("W","A","S","D")
 
 servo = Servo(
     17,
-    pin_factory=PiGPIOFacotory(),
+    pin_factory=PiGPIOFactory(),
     min_pulse_width=0.544/1000, # Adjust if needed
     max_pulse_width=2.4/1000, # Adjust if needed
 )
@@ -286,7 +307,7 @@ j = botafar.Joystick("W","A","S","D", diagonals=True)
 
 servo = Servo(
     17,
-    pin_factory=PiGPIOFacotory(),
+    pin_factory=PiGPIOFactory(),
     min_pulse_width=0.544/1000, # Adjust if needed
     max_pulse_width=2.4/1000, # Adjust if needed
 )
@@ -295,7 +316,7 @@ servo = Servo(
 def move_servo(event):
     servo_value = SERVO_VALUES[event.name]
     if servo_value is not None:
-        botafar.print("servo value " + servo_value)
+        botafar.print(f"servo value {servo_value}")
         servo.value = servo_value
 
 botafar.run()

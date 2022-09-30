@@ -6,11 +6,11 @@ Most likely you should read this before going through [Arduino](arduino) or [Ras
 
 ## Project status
 
-This tool is still under development. The current aim is to make creating remote controllable bots simple, enjoyable and bug free experience. The communication about project happens on [GitHub discussions](https://github.com/ollipal/botafar/discussions).
+Botafar is still under development. The current aim is to make creating remote controllable bots a simple, enjoyable and bug free experience. The communication about project happens on [GitHub discussions](https://github.com/ollipal/botafar/discussions).
 
 If you got stuck or need help with botafar library or website, please write to [Q&A](https://github.com/ollipal/botafar/discussions/categories/q-a).
 
-If you experience bugs on botafar library or website that make creating bots harder, please write about it to [Bug Tracking](https://github.com/ollipal/botafar/discussions/categories/bug-tracking), even if you are not sure if its a bug or not. Alternatively you can raise [an issue](https://github.com/ollipal/botafar/issues) on purely library related matters (or even create [a pull request](https://github.com/ollipal/botafar/pulls) if you think you have the bug figured out).
+If you experience bugs on botafar library or website, please write about it to [Bug Tracking](https://github.com/ollipal/botafar/discussions/categories/bug-tracking), even if you are not sure if its a bug or not. Alternatively you can raise [an issue](https://github.com/ollipal/botafar/issues) on purely library related matters (or even create [a pull request](https://github.com/ollipal/botafar/pulls) if you think you have the bug figured out).
 
 If you want to tell about your creations, get involved or anything else, write about it to [General](https://github.com/ollipal/botafar/discussions/categories/general). There is also a separate category for new [Ideas](https://github.com/ollipal/botafar/discussions/categories/q-a).
 

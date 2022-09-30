@@ -6,6 +6,8 @@ orphan: true
 
 Botafar library should work at least on Windows, Mac and Linux (tested on Debian/Ubuntu/Raspberry Pi OS).
 
+On some operating systems such as Raspberry Pi OS, on you need to have [libSRTP](https://github.com/cisco/libsrtp) and the other related network dependencies installed as well: `sudo apt install libnss3 libnspr4 libsrtp2-1 -y`
+
 > **NOTE:** every command below starts with a word `python`. You might need to replace it with `python3` (Windows WSL/Mac/Linux) or `py` (Windows) depending on your operating system and how you have Python installed.
 
 ## Checking Python version
