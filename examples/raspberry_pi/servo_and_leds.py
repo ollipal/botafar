@@ -11,9 +11,7 @@ with botafar.Joystick and botafar.Button
 """
 
 b = botafar.Button("L", alt="SPACE")
-j = botafar.Joystick(
-    "W", "A", "S", "D", alt=["UP", "LEFT", "DOWN", "RIGHT"], diagonals=True
-)
+j = botafar.Joystick("W", "A", "S", "D", alt=["UP", "LEFT", "DOWN", "RIGHT"])
 
 red = LED(27)
 yellow = LED(9)
