@@ -170,8 +170,11 @@ class DataChannel:
                 await self.sio.connect(
                     self.url, wait=True, wait_timeout=5, transports="websocket"
                 )
-            except socketio.exceptions.ConnectionError:
-                logger.error("Could not connect to server, try again later")
+            except socketio.exceptions.ConnectionError as e:
+                logger.error(
+                    "Could not connect to server, try again later.\n\n"
+                    f"Reason: {error_to_string(e)}"
+                )
                 await self.stop_async()
                 return
 
