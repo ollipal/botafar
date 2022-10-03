@@ -13,17 +13,28 @@ IDENTITIES = [
 
 
 class ServerEventProsessor:
-    def __init__(self, send_event, callback_executor, on_remote_owner_connect):
+    def __init__(
+        self, send_event, callback_executor, on_initial_browser_connect
+    ):
         self.send_event = send_event
         self.callback_executor = callback_executor
-        self.on_remote_owner_connect = on_remote_owner_connect
+        self.on_initial_browser_connect = on_initial_browser_connect
         state_machine.reinit(
             self.inform, self.notify_state_change, callback_executor
         )
+        self.browser_has_been_conected = False
 
     def process_event(self, event):
         if event._type == SYSTEM_EVENT:
-            if event.name == "owner_connect":
+            if event.name == "browser_connect":
+                if not state_machine.browser_connected:
+                    self.on_browser_connect()
+                    state_machine.on_browser_connect()
+            elif event.name == "browser_disconnect":
+                if state_machine.browser_connected:
+                    self.on_browser_disconnect()
+                    state_machine.on_browser_disconnect()
+            elif event.name == "owner_connect":
                 if not state_machine.owner.is_connected:
                     self.on_owner_connect()
                     state_machine.on_owner_connect()
@@ -40,26 +51,6 @@ class ServerEventProsessor:
                 if state_machine.player.is_connected:
                     self.on_player_disconnect()
                     state_machine.on_player_disconnect()
-            elif event.name == "owner_start_controlling":
-                if not state_machine.owner.is_controlling:
-                    state_machine.owner._is_controlling = True
-                    if state_machine.player._is_controlling:
-                        self.inform(
-                            "owner took controls from "
-                            f"'{state_machine.player.name}'"
-                        )
-                    else:
-                        self.inform("owner started controlling")
-            elif event.name == "owner_stop_controlling":
-                if state_machine.owner.is_controlling:
-                    state_machine.owner._is_controlling = False
-                    if state_machine.player._is_controlling:
-                        self.inform(
-                            "owner released controls back to "
-                            f"'{state_machine.player.name}'"
-                        )
-                    else:
-                        self.inform("owner stopped controlling")
             elif event.name == "info":
                 pass
             else:
@@ -89,40 +80,69 @@ class ServerEventProsessor:
     def notify_state_change(self, state):
         self.send_event(SystemEvent("state_change", state, ""))
 
+    def on_browser_connect(self):
+        if not self.browser_has_been_conected:
+            self.on_initial_browser_connect()
+            self.browser_has_been_conected = True
+        else:
+            self.inform("browser connected")
+        self.send_event(
+            SystemEvent(
+                "connect_ok", None, data=ControlBase._get_control_datas()
+            )
+        )
+
+    def on_browser_disconnect(self):
+        if state_machine.owner.is_connected:
+            self.on_owner_disconnect()
+            state_machine.on_owner_disconnect()
+
+        if state_machine.player.is_connected:
+            self.on_player_disconnect()
+            state_machine.on_player_disconnect()
+
+        self.inform("browser disconnected")
+
     def on_owner_connect(self):
         if state_machine.owner.is_connected:
             logger.debug("owner already connected")
             self.send_event(SystemEvent("already_connected", None))
             return
 
-        self.on_remote_owner_connect()
-        self.send_event(
-            SystemEvent(
-                "connect_ok", None, data=ControlBase._get_control_datas()
-            )
-        )
-        # self.inform("owner connected")
+        if not state_machine.owner.is_controlling:
+            state_machine.owner._is_controlling = True
+            if state_machine.player._is_controlling:
+                self.inform(
+                    "owner took controls from "
+                    f"'{state_machine.player.name}'"
+                )
+            else:
+                self.inform("owner started controlling")
 
     def on_owner_disconnect(self):
         if not state_machine.owner.is_connected:
             logger.debug("owner already disconnected")
             return
 
-        if state_machine.player.is_connected:
-            self.on_player_disconnect()
-            state_machine.on_player_disconnect()
-
-        # self.inform("owner disconnected")
+        if state_machine.owner.is_controlling:
+            state_machine.owner._is_controlling = False
+            if state_machine.player._is_controlling:
+                self.inform(
+                    "owner released controls back to "
+                    f"'{state_machine.player.name}'"
+                )
+            else:
+                self.inform("owner stopped controlling")
 
     def on_player_connect(self, name):
         if state_machine.player.is_connected:
             logger.debug("Player already connected")
             return
 
-        if not state_machine.owner.is_connected:
-            self.on_owner_connect()
-            state_machine.on_owner_connect()
-            logger.warning("Player connected while owner disconnected... ")
+        if not state_machine.browser_connected:
+            # self.on_owner_connect()
+            # state_machine.on_owner_connect()
+            logger.warning("Player connected while browser disconnected... ")
 
         self.inform(f"'{name}' started controlling")
 

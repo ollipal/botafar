@@ -128,6 +128,11 @@ class DataChannel:
 
     async def _create_sio(self):
         async with self.create_sio_lock:
+            browser_disconnect_event = SystemEvent(
+                "browser_disconnect", "library"
+            )
+            self.process_event(browser_disconnect_event)
+
             if self.sio is not None:
                 await self.sio.disconnect()
 

@@ -17,9 +17,9 @@ logger = get_logger()
 
 PRE_INIT = "pre_init"
 INIT = "on_init"
-WAITING_OWNER = "waiting_owner"
+WAITING_BROWSER = "waiting_browser"
 PREPARE = "on_prepare"
-WAITING_PLAYER = "waiting_player"
+WAITING_OWNER_OR_PLAYER = "waiting_owner_or_player"
 START = "on_start"
 WAITING_STOP = "waiting_stop"
 STOP_IMMEDIATE = "stop_immediate"
@@ -79,16 +79,16 @@ class State:
         return self._state_machine._state() == INIT
 
     @property
-    def is_waiting_owner(self):
-        return self._state_machine._state() == WAITING_OWNER
+    def is_waiting_browser(self):
+        return self._state_machine._state() == WAITING_BROWSER
 
     @property
     def is_preparing(self):
         return self._state_machine._state() == PREPARE
 
     @property
-    def is_waiting_player(self):
-        return self._state_machine._state() == WAITING_PLAYER
+    def is_waiting_owner_or_player(self):
+        return self._state_machine._state() == WAITING_OWNER_OR_PLAYER
 
     @property
     def is_starting(self):
@@ -105,12 +105,12 @@ class State:
     def __repr__(self):
         if self.is_initializing:
             return "State(is_initializing=True)"
-        elif self.is_waiting_owner:
-            return "State(is_waiting_owner=True)"
+        elif self.is_waiting_browser:
+            return "State(is_waiting_browser=True)"
         elif self.is_preparing:
             return "State(is_preparing=True)"
-        elif self.is_waiting_player:
-            return "State(is_waiting_player=True)"
+        elif self.is_waiting_owner_or_player:
+            return "State(is_waiting_owner_or_player=True)"
         elif self.is_starting:
             return "State(is_starting=True)"
         elif self.is_stopping:
@@ -125,9 +125,9 @@ class ServerStateMachine:
     states = [
         PRE_INIT,
         INIT,
-        WAITING_OWNER,
+        WAITING_BROWSER,
         PREPARE,
-        WAITING_PLAYER,
+        WAITING_OWNER_OR_PLAYER,
         START,
         WAITING_STOP,
         State_(STOP_IMMEDIATE, ignore_invalid_triggers=True),
@@ -157,6 +157,8 @@ class ServerStateMachine:
         self.controls_released = False
         self.stop_immediate_finished = False
         self.exit_immediate_finished = False
+        self.browser_connected = False
+        self.start_reason = None  # None | "owner" | "player"
 
         # add_transition params: trigger, source, destination
         self.machine.add_transition(
@@ -166,30 +168,30 @@ class ServerStateMachine:
             after="after_init",
         )
         self.machine.add_transition(
-            "wait_owner",
+            "wait_browser",
             [INIT, STOP],
-            WAITING_OWNER,
+            WAITING_BROWSER,
             conditions="all_finished",
-            after="after_waiting_owner",
+            after="after_waiting_browser",
         )
         self.machine.add_transition(
             "prepare",
-            WAITING_OWNER,
+            WAITING_BROWSER,
             PREPARE,
-            conditions="owner_connected",
+            conditions="browser_connected",
             after="after_prepare",
         )
         self.machine.add_transition(
-            "wait_player",
+            "wait_owner_or_player",
             PREPARE,
-            WAITING_PLAYER,
-            after="after_waiting_player",
+            WAITING_OWNER_OR_PLAYER,
+            after="after_waiting_owner_or_player",
         )
         self.machine.add_transition(
             "start",
-            WAITING_PLAYER,
+            WAITING_OWNER_OR_PLAYER,
             START,
-            conditions="owner_and_player_connected",
+            conditions="owner_or_player_connected",
             after="after_start",
         )
         self.machine.add_transition(
@@ -271,9 +273,23 @@ class ServerStateMachine:
             return self.owner.is_connected
 
     # transition conditions requires this
-    def owner_and_player_connected(self):
+    def owner_or_player_connected(self):
         with self.rlock:
-            return self.owner.is_connected and self.player.is_connected
+            return self.owner.is_connected or self.player.is_connected
+
+    def on_browser_connect(self):
+        with self.rlock:
+            self.browser_connected = True
+            self.safe_state_change(self.prepare, "prepare", "browser_connect")
+            self.safe_state_change(self.start, "start", "browser_connect")
+
+    def on_browser_disconnect(self):
+        with self.rlock:
+            self.browser_connected = False
+            if self.state != EXIT_IMMEDIATE:
+                self.safe_state_change(
+                    self.stop_immediate, "stop_immediate", "browser_disconnect"
+                )
 
     def on_owner_connect(self):
         with self.rlock:
@@ -284,7 +300,7 @@ class ServerStateMachine:
     def on_owner_disconnect(self):
         with self.rlock:
             self.owner._is_connected = False
-            if self.state != EXIT_IMMEDIATE:
+            if self.start_reason == "owner" and self.state != EXIT_IMMEDIATE:
                 self.safe_state_change(
                     self.stop_immediate, "stop_immediate", "owner_disconnect"
                 )
@@ -301,7 +317,7 @@ class ServerStateMachine:
             self.player._name = ""
             self.player._is_connected = False
             self.player._is_controlling = False
-            if self.state != EXIT_IMMEDIATE:
+            if self.start_reason == "player" and self.state != EXIT_IMMEDIATE:
                 self.safe_state_change(
                     self.stop_immediate, "stop_immediate", "player_disconnect"
                 )
@@ -311,12 +327,12 @@ class ServerStateMachine:
         # NOTE: not notify_state_change, no one connected yet
         # "on_init" executed from main
 
-    def after_waiting_owner(self):
-        logger.debug("STATE: waiting_owner")
+    def after_waiting_browser(self):
+        logger.debug("STATE: waiting_browser")
         # with self.rlock:
-        self.notify_state_change("waiting_owner")
+        self.notify_state_change("waiting_browser")
         self.start_time = -1
-        self.safe_state_change(self.prepare, "prepare", "waiting_owner")
+        self.safe_state_change(self.prepare, "prepare", "waiting_browser")
 
     def after_prepare(self):
         logger.debug("STATE: on_prepare")
@@ -327,10 +343,11 @@ class ServerStateMachine:
         self.controls_released = False
         self.stop_immediate_finished = False
         self.exit_immediate_finished = False
+        self.start_reason = None
 
         def safe_on_prepare_callback():
             self.safe_state_change(
-                self.wait_player, "wait_player", "on_prepare"
+                self.wait_owner_or_player, "wait_owner_or_player", "on_prepare"
             )
             self.safe_state_change(self.stop, "stop", "on_prepare")
             self.safe_state_change(self.exit, "exit", "on_prepare")
@@ -341,15 +358,22 @@ class ServerStateMachine:
             safe_on_prepare_callback,
         )
 
-    def after_waiting_player(self):
-        logger.debug("STATE: waiting_player")
+    def after_waiting_owner_or_player(self):
+        logger.debug("STATE: waiting_owner_or_player")
         # with self.rlock:
-        self.notify_state_change("waiting_player")
-        self.safe_state_change(self.start, "start", "waiting_player")
+        self.notify_state_change("waiting_owner_or_player")
+        self.safe_state_change(self.start, "start", "waiting_owner_or_player")
 
     def after_start(self):
         logger.debug("STATE: on_start")
         # with self.rlock:
+        if self.player.is_connected:
+            self.start_reason = "player"
+        elif self.owner.is_connected:
+            self.start_reason = "owner"
+        else:
+            logger.warning("start without player or owner")
+
         self.notify_state_change("on_start")
         self.enable_controls()
         self.start_time = _time()
@@ -410,10 +434,12 @@ class ServerStateMachine:
 
         # with self.rlock:
         def wrapper():
-            self.safe_state_change(self.wait_owner, "wait_owner", "on_stop")
+            self.safe_state_change(
+                self.wait_browser, "wait_browser", "on_stop"
+            )
             self.safe_state_change(self.exit, "exit", "on_stop")
 
-        self.execute("on_stop", wrapper, "wait_owner")
+        self.execute("on_stop", wrapper, "wait_browser")
 
     def after_exit_immediate(self):
         logger.debug("STATE: exit_immediate")
@@ -459,7 +485,7 @@ class ServerStateMachine:
             ), "exit_event should be awailable here..."
             self.loop.call_soon_threadsafe(self.exit_event.set)
 
-        self.execute("on_exit", set_exit_event, "wait_owner")
+        self.execute("on_exit", set_exit_event, "wait_browser")
 
     def on_control_finished_callback(self):
         # Perf reasons, this is executed a lot
@@ -475,16 +501,16 @@ class ServerStateMachine:
     def enable_controls(self):
         with self.rlock:
             self.controls_released = False
-            if not self.player._is_controlling:
+            if self.player._is_connected and not self.player._is_controlling:
                 self.player._is_controlling = True
-                logger.debug("controls enabled")
+                logger.debug("player controls enabled")
 
     def disable_controls(self, _release_cb=None):
         with self.rlock:
-            if self.player._is_controlling:
+            if self.player._is_connected and self.player._is_controlling:
                 self.player._is_controlling = False
                 if self.player.is_connected:
-                    logger.debug("controls disabled")
+                    logger.debug("player controls disabled")
             self.reset_controls(_release_cb)
 
     def execute_on_time_from_outside(self, callback):

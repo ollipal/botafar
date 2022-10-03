@@ -10,27 +10,27 @@ j = botafar.Joystick("W", "A", "S", "D")
 
 
 @j.on_center
-def center():
+def joystick_center():
     botafar.print("center")
 
 
 @j.on_up
-def up():
+def joystick_up():
     botafar.print("up")
 
 
 @j.on_left
-def left():
+def joystick_left():
     botafar.print("left")
 
 
 @j.on_down
-def down():
+def joystick_down():
     botafar.print("down")
 
 
 @j.on_right
-def right():
+def joystick_right():
     botafar.print("right")
 
 
@@ -38,22 +38,22 @@ def right():
 
 
 @j.on_up_left
-def up_left():
+def joystick_up_left():
     botafar.print("up_left")
 
 
 @j.on_down_left
-def down_left():
+def joystick_down_left():
     botafar.print("down_left")
 
 
 @j.on_down_right
-def down_right():
+def joystick_down_right():
     botafar.print("down_right")
 
 
 @j.on_up_right
-def up_right():
+def joystick_up_right():
     botafar.print("up_right")
 
 

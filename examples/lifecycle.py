@@ -1,26 +1,28 @@
 import botafar
 
 """
-A simple example how to react to key press
-and release events with botafar.Button
+A simple example how to use the main lifecycle
+functions: on_prepare, on_start and on_stop
 """
 
-b = botafar.Button("SPACE")
+
+# This runs before each remote control
+@botafar.on_prepare
+def lifecycle_prepare():
+    botafar.print("prepare")
 
 
+# This runs when remote controlling starts
 @botafar.on_start
-def start():
+def lifecycle_start():
     botafar.print("start")
 
 
-@b.on_press
-def button_press():
-    botafar.print("press")
+# This runs when remote controlling stops
+@botafar.on_stop
+def lifecycle_stop():
+    botafar.print("stop")
 
 
-@b.on_release
-def button_release():
-    botafar.print("release")
-
-
+b = botafar.Button("SPACE")  # This enables remote controlling
 botafar.run()

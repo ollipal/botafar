@@ -27,12 +27,11 @@ class Main(BotafarBase):
         self.event_prosessor = ServerEventProsessor(
             self.send_event,
             self.callback_executor,
-            self.on_remote_owner_connect,
+            self.on_initial_browser_connect,
         )
         super().__init__(suppress_keys, prints_removed)
         self.server = DataChannel(self.event_prosessor.process_event)
         self.callback_executor.add_to_takes_event(self._send_event_async)
-        self.help_printed = False
         self.timeout_task = None
 
     def send_event(self, event):
@@ -58,10 +57,9 @@ class Main(BotafarBase):
             # logger.debug("Server not connected, print not sent")
             pass
 
-    def on_remote_owner_connect(self):
-        if not self.prints_removed and not self.help_printed:
+    def on_initial_browser_connect(self):
+        if not self.prints_removed:
             print(LISTEN_BROWSER_MESSAGE)
-            self.help_printed = True
 
     async def run_callbacks(self, name, callback):
         self.callback_executor.execute_callbacks(
@@ -76,7 +74,7 @@ class Main(BotafarBase):
         state_machine.set_loop(self.loop)
         try:
             state_machine.init()
-            await self.run_callbacks("on_init", state_machine.wait_owner)
+            await self.run_callbacks("on_init", state_machine.wait_browser)
 
             if state_machine._state() == "on_exit":
                 return  # triggers 'finally:'
