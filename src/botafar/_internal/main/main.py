@@ -98,7 +98,7 @@ class Main(BotafarBase):
                                 "Did you try to open the link above?\n"
                             )
                         self.server.stop()
-                except asyncio.exceptions.CancelledError:
+                except asyncio.CancelledError:
                     logger.debug("Timeout cancelled")
 
             async def serve():
