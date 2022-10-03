@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.0.4] - 2022-10-03
+
+### Added
+
+- More info added to 'could not connetct to server'
+
+### Fixed
+
+- CancelledError read from correct place now
+
 ## [0.0.3] - 2022-09-29
 
 ### Fixed
