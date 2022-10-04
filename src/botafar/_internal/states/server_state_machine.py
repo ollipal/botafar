@@ -177,7 +177,7 @@ class ServerStateMachine:
             "wait_browser",
             [INIT, STOP],
             WAITING_BROWSER,
-            conditions="all_finished",
+            conditions="all_finished_and_no_one_connected",
             after="after_waiting_browser",
         )
         self.machine.add_transition(
@@ -259,6 +259,13 @@ class ServerStateMachine:
                 logger.debug(f"Running: {running_names}")
             return len(running_names) == 0
 
+    def all_finished_and_no_one_connected(self):
+        return (
+            self.all_finished()
+            and not self.owner.is_connected
+            and not self.player.is_connected
+        )
+
     def execute(self, name, callback, callback_name):
         def safe_callback():
             self.safe_state_change(callback, callback_name, name)
@@ -310,6 +317,9 @@ class ServerStateMachine:
                 self.safe_state_change(
                     self.stop_immediate, "stop_immediate", "owner_disconnect"
                 )
+            self.safe_state_change(
+                self.wait_browser, "wait_browser", "owner_disconnect"
+            )
 
     def on_player_connect(self, name):
         with self.rlock:
@@ -327,6 +337,9 @@ class ServerStateMachine:
                 self.safe_state_change(
                     self.stop_immediate, "stop_immediate", "player_disconnect"
                 )
+            self.safe_state_change(
+                self.wait_browser, "wait_browser", "player_disconnect"
+            )
 
     def on_bot_behavior_update(self, bot_behavior):
         assert isinstance(bot_behavior, dict)
@@ -470,7 +483,6 @@ class ServerStateMachine:
                         if self.owner.is_connected:
                             diff = now - self.latest_owner_control_time
                             if diff > inactive_time:
-                                print(diff)
                                 self.inform(
                                     "controlling stopped due to inactivity"
                                 )
