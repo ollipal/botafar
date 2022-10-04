@@ -88,8 +88,8 @@ class ServerEventProsessor:
         logger.info(message)
         self.send_event(SystemEvent("info", None, message))
 
-    def notify_state_change(self, state):
-        self.send_event(SystemEvent("state_change", state, ""))
+    def notify_state_change(self, state, text=""):
+        self.send_event(SystemEvent("state_change", state, text=text))
 
     def on_browser_connect(self):
         if not self.browser_has_been_conected:

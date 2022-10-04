@@ -155,6 +155,7 @@ class ServerStateMachine:
         self.exit_immediate_finished = False
         self.browser_connected = False
         self.start_reason = None  # None | "owner" | "player"
+        self.stop_reason = None  # None | string
         self.latest_player_control_time = _time()
         self.latest_owner_control_time = _time()
 
@@ -371,6 +372,7 @@ class ServerStateMachine:
         self.stop_immediate_finished = False
         self.exit_immediate_finished = False
         self.start_reason = None
+        self.stop_reason = None
 
         def safe_on_prepare_callback():
             self.safe_state_change(
@@ -422,6 +424,7 @@ class ServerStateMachine:
             ):
                 self.internal_sleep(self.bot_behavior["controlTime"])
                 self.inform("control time ended")
+                self.stop_reason = "control time ended"
                 self.safe_state_change(
                     self.stop_immediate, "stop_immediate", "control_time"
                 )
@@ -452,6 +455,9 @@ class ServerStateMachine:
                                 self.inform(
                                     "controlling stopped due to inactivity"
                                 )
+                                self.stop_reason = (
+                                    "controlling stopped due to inactivity"
+                                )
                                 self.safe_state_change(
                                     self.stop_immediate,
                                     "stop_immediate",
@@ -466,6 +472,9 @@ class ServerStateMachine:
                             if diff > inactive_time:
                                 print(diff)
                                 self.inform(
+                                    "controlling stopped due to inactivity"
+                                )
+                                self.stop_reason = (
                                     "controlling stopped due to inactivity"
                                 )
                                 self.safe_state_change(
@@ -509,7 +518,8 @@ class ServerStateMachine:
         self.internal_sleep_event_sync.set()
 
         # with self.rlock:
-        self.notify_state_change("on_stop")
+        text = self.stop_reason if self.stop_reason is not None else ""
+        self.notify_state_change("on_stop", text=text)
 
         def wrapper():
             self.stop_immediate_finished = True
