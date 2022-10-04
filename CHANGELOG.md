@@ -1,10 +1,22 @@
 # Changelog
 
+## [0.0.5] - 2022-10-04
+
+### Added
+
+- on_init, on_prepare, on_start, on_stop, on_exit now working
+- time() working
+- setting control time and inactive time from browser is now supported
+
+### Fixed
+
+- Info removed from 'could not connect to server', was not helpful
+
 ## [0.0.4] - 2022-10-03
 
 ### Added
 
-- More info added to 'could not connetct to server'
+- More info added to 'could not connect to server'
 
 ### Fixed
 
