@@ -51,6 +51,8 @@ class ServerEventProsessor:
                 if state_machine.player.is_connected:
                     self.on_player_disconnect()
                     state_machine.on_player_disconnect()
+            elif event.name == "config_update":
+                print("CONFIG_UPDATE")
             elif event.name == "info":
                 pass
             else:
