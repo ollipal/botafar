@@ -12,13 +12,13 @@ def once_second():
     botafar.print(f"repeating {botafar.time()}")
 
 
-# Triggers after 5 seconds, if player has not disconnected before
+# Triggers after 3 seconds, if player has not disconnected before
 @botafar.on_time(3)
 def after_3_seconds():
     botafar.print("3 seconds passed")
 
 
-# Triggers after 10 and 12 seconds, if player has not disconnected before
+# Triggers after 5 and 8 seconds, if player has not disconnected before
 # Note the optional 'time' parameter that gets filled automatically
 @botafar.on_time(5, 8)
 def after_5_and_8_seconds(time):
