@@ -44,10 +44,6 @@ class Owner:
     def is_connected(self):
         return self._is_connected
 
-    @property
-    def is_controlling(self):
-        return self._is_controlling
-
     def __repr__(self):
         return f"Owner(is_connected={self.is_connected})"
 
@@ -159,6 +155,15 @@ class ServerStateMachine:
         self.exit_immediate_finished = False
         self.browser_connected = False
         self.start_reason = None  # None | "owner" | "player"
+        self.latest_player_control_time = _time()
+        self.latest_owner_control_time = _time()
+
+        self.bot_behavior = {
+            "controlTime": 60,
+            "controlTimeUsed": False,
+            "inactiveTime": 15,
+            "inactiveTimeUsed": False,
+        }
 
         # add_transition params: trigger, source, destination
         self.machine.add_transition(
@@ -322,6 +327,27 @@ class ServerStateMachine:
                     self.stop_immediate, "stop_immediate", "player_disconnect"
                 )
 
+    def on_bot_behavior_update(self, bot_behavior):
+        assert isinstance(bot_behavior, dict)
+
+        if bot_behavior.get("controlTime") is not None:
+            self.bot_behavior["controlTime"] = bot_behavior.get("controlTime")
+
+        if bot_behavior.get("controlTimeUsed") is not None:
+            self.bot_behavior["controlTimeUsed"] = bot_behavior.get(
+                "controlTimeUsed"
+            )
+
+        if bot_behavior.get("inactiveTime") is not None:
+            self.bot_behavior["inactiveTime"] = bot_behavior.get(
+                "inactiveTime"
+            )
+
+        if bot_behavior.get("inactiveTimeUsed") is not None:
+            self.bot_behavior["inactiveTimeUsed"] = bot_behavior.get(
+                "inactiveTimeUsed"
+            )
+
     def after_init(self):
         logger.debug("STATE: on_init")
         # NOTE: not notify_state_change, no one connected yet
@@ -338,6 +364,7 @@ class ServerStateMachine:
         logger.debug("STATE: on_prepare")
         # with self.rlock:
         self.notify_state_change("on_prepare")
+        self.internal_sleep_event_sync.clear()
 
         # Reset state flags
         self.controls_released = False
@@ -386,6 +413,77 @@ class ServerStateMachine:
             CallbackBase.get_by_name("on_repeat"),
             "on_repeat",
             self.on_repeat_or_time_finished_callback,
+        )
+
+        # Handle controlTime
+        def control_time():
+            if self.bot_behavior["controlTimeUsed"] is True and isinstance(
+                self.bot_behavior["controlTime"], int
+            ):
+                self.internal_sleep(self.bot_behavior["controlTime"])
+                self.inform("control time ended")
+                self.safe_state_change(
+                    self.stop_immediate, "stop_immediate", "control_time"
+                )
+
+        self.callback_executor.execute_callbacks(
+            [control_time],
+            "_control_time",
+            None,
+        )
+
+        # Handle inactiveTime
+        def inactive_time():
+            self.latest_player_control_time = _time()
+            self.latest_owner_control_time = _time()
+            if self.bot_behavior["inactiveTimeUsed"] is True and isinstance(
+                self.bot_behavior["inactiveTime"], int
+            ):
+                while True:  # internal_sleep / break will exit
+                    now = _time()
+                    inactive_time = self.bot_behavior["inactiveTime"]
+                    if self.start_reason == "player":
+                        if (
+                            self.player._is_connected
+                            and not self.owner.is_connected
+                        ):
+                            diff = now - self.latest_player_control_time
+                            if diff > inactive_time:
+                                self.inform(
+                                    "controlling stopped due to inactivity"
+                                )
+                                self.safe_state_change(
+                                    self.stop_immediate,
+                                    "stop_immediate",
+                                    "inactive_time",
+                                )
+                                break
+                            else:
+                                self.internal_sleep(inactive_time - diff)
+                    elif self.start_reason == "owner":
+                        if self.owner.is_connected:
+                            diff = now - self.latest_owner_control_time
+                            if diff > inactive_time:
+                                print(diff)
+                                self.inform(
+                                    "controlling stopped due to inactivity"
+                                )
+                                self.safe_state_change(
+                                    self.stop_immediate,
+                                    "stop_immediate",
+                                    "inactive_time",
+                                )
+                                break
+                            else:
+                                self.internal_sleep(inactive_time - diff)
+                    else:
+                        logger.warning("no start reason")
+                        break
+
+        self.callback_executor.execute_callbacks(
+            [inactive_time],
+            "_inactive_time",
+            None,
         )
 
         def safe_on_start_callback():
@@ -502,6 +600,7 @@ class ServerStateMachine:
         with self.rlock:
             self.controls_released = False
             if self.player._is_connected and not self.player._is_controlling:
+                self.latest_player_control_time = _time()  # Reset timer
                 self.player._is_controlling = True
                 logger.debug("player controls enabled")
 

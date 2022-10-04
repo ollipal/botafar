@@ -1,3 +1,5 @@
+from time import time as _time
+
 from ..constants import SYSTEM_EVENT
 from ..controls import ControlBase
 from ..events import SystemEvent
@@ -24,7 +26,7 @@ class ServerEventProsessor:
         )
         self.browser_has_been_conected = False
 
-    def process_event(self, event):
+    def process_event(self, event):  # noqa: C901
         if event._type == SYSTEM_EVENT:
             if event.name == "browser_connect":
                 if not state_machine.browser_connected:
@@ -51,8 +53,10 @@ class ServerEventProsessor:
                 if state_machine.player.is_connected:
                     self.on_player_disconnect()
                     state_machine.on_player_disconnect()
-            elif event.name == "config_update":
-                print("CONFIG_UPDATE")
+            elif event.name == "bot_behavior":
+                bot_behavior = event.data.get("botBehavior")
+                if bot_behavior is not None:
+                    state_machine.on_bot_behavior_update(bot_behavior)
             elif event.name == "info":
                 pass
             else:
@@ -64,6 +68,11 @@ class ServerEventProsessor:
             ):
                 logger.debug("Player controls disabled, skipping")
                 return
+
+            if event.sender == "player":
+                state_machine.latest_player_control_time = _time()
+            elif event.sender == "owner":
+                state_machine.latest_owner_control_time = _time()
 
             event._set_time(state_machine.time())
             callbacks = ControlBase._get_callbacks(event)
@@ -111,7 +120,8 @@ class ServerEventProsessor:
             self.send_event(SystemEvent("already_connected", None))
             return
 
-        if not state_machine.owner.is_controlling:
+        if not state_machine.owner._is_controlling:
+            state_machine.latest_owner_control_time = _time()
             state_machine.owner._is_controlling = True
             if state_machine.player._is_controlling:
                 self.inform(
@@ -126,7 +136,8 @@ class ServerEventProsessor:
             logger.debug("owner already disconnected")
             return
 
-        if state_machine.owner.is_controlling:
+        if state_machine.owner._is_controlling:
+            state_machine.latest_player_control_time = _time()  # Reset player
             state_machine.owner._is_controlling = False
             if state_machine.player._is_controlling:
                 self.inform(
@@ -137,6 +148,7 @@ class ServerEventProsessor:
                 self.inform("owner stopped controlling")
 
     def on_player_connect(self, name):
+        state_machine.latest_player_control_time = _time()
         if state_machine.player.is_connected:
             logger.debug("Player already connected")
             return
