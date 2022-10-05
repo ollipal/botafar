@@ -189,8 +189,8 @@ In addition to the regular state callbacks, all controls have a special callback
 If you do not register other callbacks, you might need to specify `orientation=`, "vertical" or "horizontal", parameter for Slider or `diagonals=`, True or False, parameter for Joystick to choose the type of control.
 
 ```python
-TANK_MOTOR_SPEEDS = {
-    "on_center":     ( 0.0, 0.0)
+MOTOR_VALUES = {
+    "on_center":     ( 0.0, 0.0),
     "on_up":         ( 1.0, 1.0),
     "on_up_left":    ( 0.5, 1.0),
     "on_left":       ( 0.0, 1.0),
@@ -205,8 +205,8 @@ j = botafar.Joystick("W","A","S","D", diagonals=True)
 
 @j.on_any
 def any(event):
-    left_speed, right_speed = TANK_MOTOR_SPEED[event.name]
-    # Do something with the speeds
+    left_value, right_value = MOTOR_VALUES[event.name]
+    # Do something with the values
 ```
 
 ### alt

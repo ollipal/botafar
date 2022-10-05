@@ -156,6 +156,8 @@ led off
 
 7. **The browser now shows a direct link to your bot you can share with anyone in the world!**
 
+You are now ready to check [Advanced LED examples](https://docs.botafar.com/advanced#advanced-led-examples) if you want.
+
 >Note: if you do not need the prints and just want to blink the LED, this simpler code has the same functionality
 
 ```python
@@ -284,6 +286,8 @@ servo value 0
 6. Give your bot a name and switch it to public
 
 7. **The browser now shows a direct link to your bot you can share with anyone in the world!**
+
+You are now ready to check [Advanced servo examples](https://docs.botafar.com/advanced#advanced-servo-examples) or project blueprints such as [Tank](https://docs.botafar.com/advanced#tank) or [RC car](https://docs.botafar.com/advanced#rc-car) if you want.
 
 >Note: this simpler code has the same functionality
 
