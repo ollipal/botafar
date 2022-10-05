@@ -148,11 +148,16 @@ class DataChannel:
             engineio_logger = logging.getLogger("engineio")
             engineio_logger.addFilter(lambda record: False)
 
+            # ssl_verify=False fixes MacOS SSL: CERTIFICATE_VERIFY_FAILED
+            # More discussion here: https://stackoverflow.com/q/42098126
+            # Running this could be another solution:
+            # bash /Applications/Python*/Install\ Certificates.command
             self.sio = socketio.AsyncClient(
                 logger=socketio_logger,
                 engineio_logger=engineio_logger,
                 reconnection=False,
                 handle_sigint=False,
+                ssl_verify=False,
             )
 
             @self.sio.on("message")
