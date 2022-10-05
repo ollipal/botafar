@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.0.6] - 2022-10-05
+
+### Added
+
+- stop(), exit() working
+
+### Fixed
+
+- MacOS default Python3 not working fixed
+
 ## [0.0.5] - 2022-10-04
 
 ### Added
