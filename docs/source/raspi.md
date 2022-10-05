@@ -162,7 +162,6 @@ from gpiozero import LED
 
 b = botafar.Button("L")
 led = LED(17)
-
 b.on_press(led.on)
 b.on_release(led.off)
 botafar.run()
