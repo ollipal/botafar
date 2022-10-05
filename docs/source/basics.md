@@ -186,6 +186,8 @@ Event(name='on_press', is_active=True, sender='owner', time=-1)
 
 In addition to the regular state callbacks, all controls have a special callback `on_any` that triggers on all state changes, and **requires** an event parameter. In many cases this allows making more readable code.
 
+If you do not register other callbacks, you might need to specify `orientation=`, "vertical" or "horizontal", parameter for Slider or `diagonals=`, True or False, parameter for Joystick to choose the type of control.
+
 ```python
 TANK_MOTOR_SPEEDS = {
     "on_center":     ( 0.0, 0.0)
