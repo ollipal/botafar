@@ -16,8 +16,8 @@ smoothly by using ideas from servo_smooth.py or servo_partially_smooth.py.
 
 LEFT_MOTOR_FORWARD_GPIO_PIN = 4
 LEFT_MOTOR_BACKWARD_GPIO_PIN = 14
-RIGHT_MOTOR_FORWARD_GPIO_PIN = 4
-RIGHT_MOTOR_BACKWARD_GPIO_PIN = 14
+RIGHT_MOTOR_FORWARD_GPIO_PIN = 17
+RIGHT_MOTOR_BACKWARD_GPIO_PIN = 18
 
 MOTOR_VALUES = {
     "on_center": (0.0, 0.0),
