@@ -2,7 +2,7 @@
 
 This section contains some basic concepts of botafar library.
 
-Most likely you should read this before going through [Arduino](arduino) or [Raspberry Pi](raspi) tutorials (or they might be a bit confusing).
+Most likely you should skim through this before going through [Arduino](arduino) or [Raspberry Pi](raspi) tutorials.
 
 ## Project status
 
@@ -14,11 +14,13 @@ If you experience bugs on botafar library or website, please write about it to [
 
 If you want to tell about your creations, get involved or anything else, write about it to [General](https://github.com/ollipal/botafar/discussions/categories/general). There is also a separate category for new [Ideas](https://github.com/ollipal/botafar/discussions/categories/q-a).
 
-## run()
+## Functions
+
+### run
 
 All botafar bots require a one `botafar.run()` call after the callbacks have been registered.
 
-## print()
+### print
 
 If you have prints you want to show to the user
 
@@ -41,7 +43,19 @@ from botafar import print
 print("You won!")
 ```
 
-## Available controls
+### time
+
+`botafar.time()` gives the current time in seconds, starting when remote contorlling starts. If no one is remote controlling, `botafar.time()` returns -1.
+
+### stop
+
+`botafar.stop()` ends the current player's remote controlling programmatically. Convenient if your bot has some win condition.
+
+### exit
+
+`botafar.exit()` ends `botafar.run()` programmatically. Convenient if your bot has for example some unrecoverable hardware failure that can be detected programmatically.
+
+## Controls
 
 _Controls_ bind one or more keyboard keys. When those keys are pressed on a keyboard or touch screen, they change the contorl's state which will trigger callbacks.
 
@@ -142,7 +156,7 @@ def up_right():
     botafar.print("up_right")
 ```
 
-The example above shows that having this many control states results in quite many rows callback functions. Later we see how this can be simplified in many cases with [on_any](https://docs.botafar.com/basics.html#on-any) or by [stacking callbacks](https://docs.botafar.com/basics.html#stacked-callbacks).
+The example above shows that having this many control states results in quite many rows callback functions. Later we see how this can be simplified in many cases with [on_any](https://docs.botafar.com/basics.html#on-any) or by [stacking callbacks](#stacked-callbacks).
 
 ## Common control features
 
@@ -162,11 +176,11 @@ def press(event):
 
 This prints:
 
-```
+```txt
 Event(name='on_press', is_active=True, sender='owner', time=-1)
 ```
 
-(on [class method callbacks](https://docs.botafar.com/basics.html#class-method-callbacks), the event parameter comes after "self")
+(on [class method callbacks](#class-method-callbacks), the event parameter comes after "self")
 
 ### on_any
 
@@ -193,7 +207,7 @@ def any(event):
     # Do something with the speeds
 ```
 
-### alt keys
+### alt
 
 If you want to have multiple keys triggering the same callbacks, you can use `alt` parameter.
 
@@ -205,7 +219,7 @@ s = botafar.Slider("J","L", alt=["U","O"])
 j = botafar.Joystick("W","A","S","D", alt=["UP","LEFT","DOWN","RIGHT"])
 ```
 
-## Callbacks
+## Callback features
 
 So far we've seen only individual callbacks registered to functions.
 
@@ -307,4 +321,80 @@ from some_package import jump # Example
 b = botafar.Button("A")
 
 b.on_press(jump)
+```
+
+## Bot lifecycle
+
+Supported callbacks that are related to bot state
+
+### on_prepare
+
+`on_prepare` allows running a callback before each remote control. This callback is waited to finish before a new player gets controls.
+
+```python
+@botafar.on_prepare
+def lifecycle_prepare():
+    botafar.print("prepare")
+```
+
+### on_start
+
+`on_start` runs when remote controlling starts.
+
+```python
+@botafar.on_start
+def lifecycle_start():
+    botafar.print("start")
+```
+
+### on_stop
+
+`on_stop` runs when remote controlling stops.
+
+```python
+@botafar.on_stop
+def lifecycle_stop():
+    botafar.print("stop")
+```
+
+### Other
+
+There are also `on_init` and `on_exit` callbacks available, the first runs once at the beginning and the latter run once before Python program exits. Unless you need some specific callback features such as [async callbacks](#async-callbacks), you should probably do things before and after `botafar.run()`.
+
+```python
+# Initialize bot here before run()
+botafar.run()
+# Do bot cleanup here after run()
+```
+
+## Bot timings
+
+Supported callbacks that are related to time
+
+### on_time
+
+`on_time` allows registering events on specific times. Time counting starts when remote controlling is started, and the callbacks are skipped if the controlling stops before they trigger.
+
+```python
+@botafar.on_time(3)
+def after_3_seconds():
+    botafar.print("3 seconds passed")
+```
+
+You can also pass multiple times to the same `on_time` function, and get the currently triggered time from an optional 'time' parameter that gets filled automatically
+
+```python
+@botafar.on_time(5, 8)
+def after_5_and_8_seconds(time):
+    botafar.print(f"{time} seconds passed")
+```
+
+### on_repeat
+
+`on_repeat` allows running callback continuously during remote controlling. This can be good for example for polling a sensor value.
+
+```python
+@botafar.on_repeat(sleep=1)
+def once_second():
+    botafar.print("repeating")
 ```

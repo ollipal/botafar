@@ -125,7 +125,7 @@ world
 **Keep reading if you want to learn how to:**
 
 - Use more botafar features such as [printing text to livestream directly](https://docs.botafar.com/basics.html#print)
-- Remote control servo motors and LEDs with [Arduino](https://docs.botafar.com/arduino) or [Raspberry Pi](https://docs.botafar.com/raspi)
+- Remote control servos and LEDs with [Arduino](https://docs.botafar.com/arduino) or [Raspberry Pi](https://docs.botafar.com/raspi)
 - [Forward the livestream to Twitch or Youtube through OBS](https://docs.botafar.com/twitch_and_youtube)
 
 <!-- end get_started -->

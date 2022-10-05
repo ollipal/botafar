@@ -76,3 +76,9 @@ html_theme_options = {
     "source_branch": "main",
     "source_directory": "docs/source",
 }
+
+# -- MyST -------------------------------------------------
+
+# Allow linking between headings:
+# https://myst-parser.readthedocs.io/en/stable/syntax/optional.html#syntax-header-anchors
+myst_heading_anchors = 3

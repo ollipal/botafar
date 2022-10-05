@@ -1,8 +1,10 @@
 # Raspberry Pi tutorial
 
-This tutorial tells how to remotely control LEDs and [servo motors](https://en.wikipedia.org/wiki/Servomotor) with a [Raspberry Pi](https://en.wikipedia.org/wiki/Raspberry_Pi) using botafar.
+This tutorial tells how to remotely control LEDs and [servos](https://en.wikipedia.org/wiki/Servomotor) with a [Raspberry Pi](https://en.wikipedia.org/wiki/Raspberry_Pi) using botafar.
 
 botafar does **not** require a lot of resources, so cheaper/older models such as [Raspberry Pi Zero](https://www.raspberrypi.com/products/raspberry-pi-zero/) should work well (For Raspberry Pi Zero I recommend Raspberry Pi OS Lite instead of Desktop version).
+
+If you get confused about botafar during this tutorial, make sure to read [Get started](get_started) and [Basics](basics).
 
 ## OS and IDE installation
 
@@ -169,7 +171,7 @@ botafar.run()
 
 ## Moving a servo remotely
 
-The process is very similar to [Blinking an LED remotely](https://docs.botafar.com/raspi.html#blinking-an-led-remotely) above.
+The process is very similar to [Blinking an LED remotely](#blinking-an-led-remotely) above.
 
 1. Connect a small servo, such as [SG90](https://www.google.com/search?tbm=isch&as_q=sg90+servo) or [MG90s](https://www.google.com/search?tbm=isch&as_q=mg90s+servo), to Raspberry Pi. [Raspberry Pi pins here](https://pinout.xyz). (A larger servo [probably requires an external power supply](https://raspberrypi.stackexchange.com/a/33846) if you add load to the servo)
 
@@ -203,7 +205,7 @@ print("servo value 0")
 servo.value = 0
 ```
 
-2. Similar to [Blinking an LED remotely](https://docs.botafar.com/raspi.html#blinking-an-led-remotely) above, the steps to make this code remote controllable are:
+2. Similar to [Blinking an LED remotely](#blinking-an-led-remotely) above, the steps to make this code remote controllable are:
 - Import botafar
 - Create a control, `Joystick` in this example, and bind 4 keys from keyboard to it
 - Use decorators (@-symbol) to select functions to call on user input
