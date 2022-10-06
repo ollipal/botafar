@@ -10,10 +10,10 @@ Example how to create a RC car controllable by gpiozero.Servo, gpiozero.Motor
 and botafar.Joystick. Motor sets the wheel spinning speed, servo steers
 the front wheels.
 
-Servo API:
+Servo reference:
 https://gpiozero.readthedocs.io/en/stable/api_output.html?highlight=Motor#gpiozero.Servo
 
-Motor API:
+Motor reference:
 https://gpiozero.readthedocs.io/en/stable/api_output.html?highlight=Motor#gpiozero.Motor
 
 The servo turning and motor speed changes could modified to work more

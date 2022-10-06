@@ -7,7 +7,7 @@ Example how to create a tank controllable by two instances of gpiozero.Motor
 and botafar.Joystick. This example works if you have two independently
 controllable wheels, left and right one.
 
-Motor API:
+Motor reference:
 https://gpiozero.readthedocs.io/en/stable/api_output.html?highlight=Motor#gpiozero.Motor
 
 The motor speed changes could modified to work more

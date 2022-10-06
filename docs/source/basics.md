@@ -177,7 +177,7 @@ def press(event):
 This prints:
 
 ```txt
-Event(name='on_press', is_active=True, sender='owner', time=-1)
+Event(name='on_press', is_active=True, sender='owner', time=2.47)
 ```
 
 (on [class method callbacks](#class-method-callbacks), the event parameter comes after "self")

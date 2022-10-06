@@ -26,9 +26,6 @@ SERVO_VALUES = {
     "on_center": 0,
     "on_up_right": -0.5,
     "on_right": -1,
-    "on_down_left": None,  # Not in use
-    "on_down": None,  # Not in use
-    "on_down_right": None,  # Not in use
 }
 
 
@@ -53,7 +50,7 @@ class PartiallySmoothServo:
     @j.on_any
     def move_servo(self, event):
         with self.lock:
-            target_value = SERVO_VALUES[event.name]
+            target_value = SERVO_VALUES.get(event.name)
             if target_value is not None:
                 botafar.print(f"servo target value {target_value}")
                 while event.is_active and target_value != self.servo.value:

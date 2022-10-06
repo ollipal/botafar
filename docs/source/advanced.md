@@ -40,9 +40,6 @@ SERVO_VALUES = {
     "on_center":     0,
     "on_up_right":   -0.5,
     "on_right":      -1,
-    "on_down_left":  None, # Not in use
-    "on_down":       None, # Not in use
-    "on_down_right": None, # Not in use
 }
 
 j = botafar.Joystick("W", "A", "S", "D", alt=["UP", "LEFT", "DOWN", "RIGHT"], diagonals=True)
@@ -58,7 +55,7 @@ class ImmediateServo:
 
     @j.on_any
     def move_servo(self, event):
-        servo_value = SERVO_VALUES[event.name]
+        servo_value = SERVO_VALUES.get(event.name)
         if servo_value is not None:
             botafar.print(f"servo value {servo_value}")
             self.servo.value = servo_value
@@ -90,9 +87,6 @@ SERVO_VALUES = {
     "on_center":     0,
     "on_up_right":   -0.5,
     "on_right":      -1,
-    "on_down_left":  None, # Not in use
-    "on_down":       None, # Not in use
-    "on_down_right": None, # Not in use
 }
 
 j = botafar.Joystick("W", "A", "S", "D", alt=["UP", "LEFT", "DOWN", "RIGHT"], diagonals=True)
@@ -113,7 +107,7 @@ class SmoothServo:
     @j.on_any
     def move_servo(self, event):
         with self.lock:
-            target_value = SERVO_VALUES[event.name]
+            target_value = SERVO_VALUES.get(event.name)
             if target_value is not None:
                 botafar.print(f"servo target value {target_value}")
                 while event.is_active and target_value != self.servo.value:
@@ -152,9 +146,6 @@ SERVO_VALUES = {
     "on_center":     0,
     "on_up_right":   -0.5,
     "on_right":      -1,
-    "on_down_left":  None, # Not in use
-    "on_down":       None, # Not in use
-    "on_down_right": None, # Not in use
 }
 
 j = botafar.Joystick("W", "A", "S", "D", alt=["UP", "LEFT", "DOWN", "RIGHT"], diagonals=True)
@@ -175,7 +166,7 @@ class PartiallySmoothServo:
     @j.on_any
     def move_servo(self, event):
         with self.lock:
-            target_value = SERVO_VALUES[event.name]
+            target_value = SERVO_VALUES.get(event.name)
             if target_value is not None:
                 botafar.print(f"servo target value {target_value}")
                 while event.is_active and target_value != self.servo.value:
@@ -193,20 +184,62 @@ PartiallySmoothServo()
 botafar.run()
 ```
 
+## Other examples
+
+### Not spammable relay
+
+Example how to connect a relay to gpiozero [OutputDevice](https://gpiozero.readthedocs.io/en/stable/api_output.html?highlight=OutputDevice#outputdevice), and prevent players from spamming it too fast.
+
+```python
+from gpiozero import OutputDevice
+import botafar
+from time import sleep
+
+b = botafar.Button("SPACE")
+
+RELAY_GPIO_PIN = 17
+RELAY_TIME_ON = 0.1
+RELAY_TIME_OFF = 2
+
+class NotSpammableRelay:
+    def __init__(self):
+        self.relay = OutputDevice(RELAY_GPIO_PIN, active_high=True, initial_value=False)
+        self.cycling = False
+
+    @b.on_press
+    def cycle_relay(self):
+        if self.cycling:
+            botafar.print("Spamming relay too fast, skipping")
+            return
+
+        self.cycling = True
+        self.relay.on()
+        sleep(RELAY_TIME_ON)
+        self.relay.off()
+        sleep(RELAY_TIME_OFF)
+        self.cycling = False
+
+NotSpammableRelay()
+botafar.run()
+```
+
 ## Project blueprints
 
 Here is code for some typical bot types, you can use as starting points to your projects.
 
 ### Tank
 
-Example how to create a tank controllable by two instances of gpiozero.[Motor](https://gpiozero.readthedocs.io/en/stable/api_output.html?highlight=Motor#gpiozero.Motor) and botafar.Joystick. This example works if you have two independently controllable wheels, left and right one.
+Example how to create a tank controllable by two instances of gpiozero [Motor](https://gpiozero.readthedocs.io/en/stable/api_output.html?highlight=Motor#gpiozero.Motor) and botafar.Joystick. This example works if you have two independently controllable wheels, left and right one.
 
 The motor speed changes could modified to work more
 smoothly by using ideas from [Smooth servo](#smooth-servo) or  [Partially smooth servo](#partially-smooth-servo).
 
+Tank wiring gpiozero [Robot](https://gpiozero.readthedocs.io/en/stable/recipes.html#robot) tutorial using SN754410 motor driver, [image licence](https://github.com/gpiozero/gpiozero/blob/master/LICENSE.rst).
+
+![tank wiring](https://gpiozero.readthedocs.io/en/stable/_images/robot_bb.svg)
+
 ```python
 from gpiozero import Motor
-from gpiozero.pins.pigpio import PiGPIOFactory, # Optional, removes servo stutter!
 import botafar
 
 LEFT_MOTOR_FORWARD_GPIO_PIN = 4
@@ -249,7 +282,7 @@ botafar.run()
 
 ### RC car
 
-Example how to create a RC car controllable by gpiozero.[Servo](https://gpiozero.readthedocs.io/en/stable/api_output.html?highlight=Motor#gpiozero.Servo), gpiozero.[Motor](https://gpiozero.readthedocs.io/en/stable/api_output.html?highlight=Motor#gpiozero.Motor) and botafar.Joystick. Motor sets the wheel spinning speed, servo steers the front wheels.
+Example how to create a RC car controllable by gpiozero [Servo](https://gpiozero.readthedocs.io/en/stable/api_output.html?highlight=Motor#gpiozero.Servo), gpiozero [Motor](https://gpiozero.readthedocs.io/en/stable/api_output.html?highlight=Motor#gpiozero.Motor) and botafar.Joystick. Motor sets the wheel spinning speed, servo steers the front wheels.
 
 The servo turning and motor speed changes could modified to work more
 smoothly by using ideas from [Smooth servo](#smooth-servo) or  [Partially smooth servo](#partially-smooth-servo).
