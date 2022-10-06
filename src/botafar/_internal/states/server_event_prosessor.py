@@ -1,5 +1,6 @@
 from time import time as _time
 
+from ... import __version__
 from ..constants import SYSTEM_EVENT
 from ..controls import ControlBase
 from ..events import SystemEvent
@@ -30,7 +31,7 @@ class ServerEventProsessor:
         if event._type == SYSTEM_EVENT:
             if event.name == "browser_connect":
                 if not state_machine.browser_connected:
-                    self.on_browser_connect()
+                    self.on_browser_connect(event.data)
                     state_machine.on_browser_connect()
             elif event.name == "browser_disconnect":
                 if state_machine.browser_connected:
@@ -91,7 +92,7 @@ class ServerEventProsessor:
     def notify_state_change(self, state, text=""):
         self.send_event(SystemEvent("state_change", state, text=text))
 
-    def on_browser_connect(self):
+    def on_browser_connect(self, data):
         if not self.browser_has_been_conected:
             self.on_initial_browser_connect()
             self.browser_has_been_conected = True
@@ -102,6 +103,16 @@ class ServerEventProsessor:
                 "connect_ok", None, data=ControlBase._get_control_datas()
             )
         )
+        latest_version = data.get("latestBotafarVersion")
+        if latest_version is None:
+            logger.debug("Could not read latestBotafarVersion")
+        elif latest_version != __version__:
+            self.inform(
+                "botafar update available\ninstall with 'pip install "
+                f"--upgrade botafar'\nCurrent version: {__version__}, "
+                f"available {latest_version}\n"
+                "changelog: https://docs.botafar.com/changelog"
+            )
 
     def on_browser_disconnect(self):
         if state_machine.owner.is_connected:
