@@ -10,7 +10,7 @@ If you get confused about botafar during this tutorial, make sure to read [Get s
 
 ### Raspberry Pi OS
 
-The first step is to install the operating system. I recommend using [Raspberry Pi OS Desktop](https://www.raspberrypi.com/documentation/computers/os.html#introduction) (or Raspberry Pi OS Lite for more experienced users), and installing it using [Raspberry Pi Imager](https://www.raspberrypi.com/software/) by following [these instructions](https://www.raspberrypi.com/documentation/computers/getting-started.html#installing-the-operating-system).
+The first step is to install the operating system. I recommend using [Raspberry Pi OS Desktop](https://www.raspberrypi.com/documentation/computers/os.html#introduction) (or Raspberry Pi OS Lite for more experienced users), and installing it using [Raspberry Pi Imager](https://www.raspberrypi.com/software/) by following [these instructions](https://www.raspberrypi.com/documentation/computers/getting-started.html#installing-the-operating-system) and checking this excellent step-by-step [video](https://www.youtube.com/watch?v=l9WSup73KuI).
 
 When you have your system running, it is a good idea to update the list of available software and upgrade the ones that are out of date by opening terminal and running
 
@@ -130,7 +130,7 @@ def led_off():
 botafar.run()
 ```
 
-3. Execute the **main.py** file, and open the returned link in browser. **Most likely you want to open the link on other device, NOT on the Raspberry Pi itself**. Browser on Raspberry Pi tends to be too slow for a good experience.
+3. Execute the **main.py** file, and open the returned link in browser. **Most likely you want to open the link on other device, NOT on the Raspberry Pi itself** ([help](https://docs.botafar.com/help#supported-browsers)). Browser on Raspberry Pi tends to be too slow for a good experience.
 
 ```
 $ python main.py
@@ -150,7 +150,7 @@ led on
 led off
 ```
 
-5. Choose a stream source from the browser. It can be a webcam, a phone or a screen share.
+5. Choose a stream source from the browser. It can be a webcam, a phone or a screen share ([help](https://docs.botafar.com/help#supported-browsers))
 
 6. Give your bot a name and switch it to public
 
@@ -260,7 +260,7 @@ def servo_right():
 botafar.run()
 ```
 
-3. Execute the **main.py** file, and open the returned link in browser. **Most likely you want to open the link on other device, NOT on the Raspberry Pi itself**. Browser on Raspberry Pi tends to be too slow for a good experience.
+3. Execute the **main.py** file, and open the returned link in browser. **Most likely you want to open the link on other device, NOT on the Raspberry Pi itself** ([help](https://docs.botafar.com/help#supported-browsers)). Browser on Raspberry Pi tends to be too slow for a good experience.
 
 ```
 $ python main.py
@@ -281,7 +281,7 @@ servo value 0.5
 servo value 0
 ```
 
-5. Choose a stream source from the browser. It can be a webcam, a phone or a screen share.
+5. Choose a stream source from the browser. It can be a webcam, a phone or a screen share ([help](https://docs.botafar.com/help#supported-browsers))
 
 6. Give your bot a name and switch it to public
 

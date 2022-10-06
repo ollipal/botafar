@@ -42,7 +42,7 @@ Check [botafar.com](https://botafar.com/) for currently online bots!
 
 ### Starting scenario
 
-Let's suppose you have a [Python](https://en.wikipedia.org/wiki/Python_(programming_language)) project, **main.py**, which has two functions `greet` and `target`:
+Let's suppose you have a [Python](https://en.wikipedia.org/wiki/Python_(programming_language)) project, **main.py**, where you have defined two functions `greet` and `target`:
 
 ```python
 def greet():
@@ -53,6 +53,14 @@ def target():
 
 greet()
 target()
+```
+
+When you run **main.py** it calls those functions, and prints "hello" and "world" to the terminal:
+
+```
+$ python main.py
+hello
+world
 ```
 
 You want be able to share a link through which people can **remotely call these functions on your hardware**, and **see the results in real life through a low-latency livestream** (and optionally, on Twitch or YouTube as well).
@@ -67,7 +75,7 @@ _botafar_ enables you to do all these things.
 pip install --upgrade botafar
 ```
 
-> On some Debian based operating systems such as Raspberry Pi OS, on you need to have [libSRTP](https://github.com/cisco/libsrtp) and other related network dependencies installed to be installed as well: `sudo apt install libnss3 libnspr4 libsrtp2-1 -y`
+On some Debian based operating systems such as Raspberry Pi OS, on you need to have [libSRTP](https://github.com/cisco/libsrtp) and other related network dependencies installed to be installed as well: `sudo apt install libnss3 libnspr4 libsrtp2-1 -y`
 
 2. Modify **main.py**:
 
@@ -92,7 +100,7 @@ def target():
 botafar.run()
 ```
 
-3. Execute the **main.py** file, and open the returned link in browser. _Note that this browser can be on other device, for example the Python program can run on a [Raspberry Pi](https://en.wikipedia.org/wiki/Raspberry_Pi) and the browser setup is done on a desktop PC's browser_ ([help](https://docs.botafar.com/get_started_help)).
+3. Execute the **main.py** file, and open the returned link in browser. _Note that this browser can be on other device, for example the Python program can run on a [Raspberry Pi](https://en.wikipedia.org/wiki/Raspberry_Pi) and the browser setup is done on a desktop PC's browser_ ([help](https://docs.botafar.com/help)).
 
 ```
 $ python main.py
@@ -112,7 +120,7 @@ hello
 world
 ```
 
-5. Choose a stream source from the browser. It can be a webcam, a phone or a screen share.
+5. Choose a stream source from the browser. It can be a webcam, a phone or a screen share ([help](https://docs.botafar.com/help)).
 
 6. Give your bot a name and switch it to public
 

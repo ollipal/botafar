@@ -14,17 +14,15 @@ On some operating systems such as Raspberry Pi OS, on you need to have [libSRTP]
 
 To work with the library you should have [Python](https://en.wikipedia.org/wiki/Python_(programming_language)) version 3.7 or later installed.
 
-Here is a good tutorial for [installing Python and Visual Studio Code on Windows 10](https://www.youtube.com/watch?v=cUAK4x_7thA).
+If you do not have Python installed or it is too old version, you can install it from [python.org](https://www.python.org/downloads/). Here is a good tutorial for [installing Python and Visual Studio Code on Windows 10](https://www.youtube.com/watch?v=cUAK4x_7thA). if you use Visual Studio Code, you can open the terminal by clicking "Terminal" and "New Terminal" from the top of the page.
 
-You can check if you have Python installed and it's version with:
+You can check if you have Python installed and it's version with the following command to the terminal:
 
 ```
 python --version
 ```
 
 (Remember to check also `python3 --version` and `py --version` if the command above fails)
-
-If you do not have Python installed or it is too old version, you can install it from [python.org](https://www.python.org/downloads/).
 
 ## Installing botafar library
 
