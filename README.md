@@ -2,7 +2,7 @@
 
 <!-- start intro -->
 
-Add **global remote controls** and **a real time livestream** to your project
+Add **global remote controls** and **a real time livestream** to your projects
 
 - Share a link and let others take the controls one by one
 - Forward the livestream to Twitch or YouTube (optional)
