@@ -105,7 +105,6 @@ class Button(ControlBase):
         if self.is_released:
             return [], None
 
-        self._state = "on_release"
         release_event = self.latest_event
         release_event._set_time(time)
         release_event._change_name("on_release")

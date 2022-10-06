@@ -156,7 +156,6 @@ class ControlBase(ABC):
         self._latest_event = event
         event._set_active_method(lambda: self.latest_event == event)
 
-        # print(f"Callbacks: {self._state_callbacks[event.name]}")
         return self._state_callbacks[event.name]
 
     @staticmethod

@@ -361,9 +361,6 @@ class Joystick(ControlBase):
     def _get_release_callbacks_and_event(self, time):
         no_release_cbs = self.is_center
 
-        # Reset direction state in all cases
-        self._reset_state()
-
         if no_release_cbs:
             return [], None
 
