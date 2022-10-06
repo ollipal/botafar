@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.7] - 2022-10-06
+
+### Added
+
+- Controls are now released when player/owner stops controlling
+- Latest botafar library version is now checked when browser connects
+
 ## [0.0.6] - 2022-10-05
 
 ### Added
