@@ -23,6 +23,8 @@ botafar.run()
 
 These servo examples could be used for example steering a RC car. Different movement styles would provide a different driving experience.
 
+These examples leverage `Event.is_active` property. This has a value of `True` or `False` depending on is the event the latest one or not. 
+
 ### Immediate servo
 
 Servo example with a custom class, immediate movement to the target value.
