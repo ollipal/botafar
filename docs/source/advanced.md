@@ -234,7 +234,7 @@ Example how to create a tank controllable by two instances of gpiozero [Motor](h
 The motor speed changes could modified to work more
 smoothly by using ideas from [Smooth servo](#smooth-servo) or  [Partially smooth servo](#partially-smooth-servo).
 
-Tank wiring gpiozero [Robot](https://gpiozero.readthedocs.io/en/stable/recipes.html#robot) tutorial using SN754410 motor driver, [image licence](https://github.com/gpiozero/gpiozero/blob/master/LICENSE.rst).
+Tank wiring example from gpiozero [Robot](https://gpiozero.readthedocs.io/en/stable/recipes.html#robot) tutorial using SN754410 motor driver, [image licence](https://github.com/gpiozero/gpiozero/blob/master/LICENSE.rst).
 
 ![tank wiring](https://gpiozero.readthedocs.io/en/stable/_images/robot_bb.svg)
 
