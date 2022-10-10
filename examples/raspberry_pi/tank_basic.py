@@ -7,11 +7,11 @@ Example how to create a tank controllable by two instances of gpiozero.Motor
 and botafar.Joystick. This example works if you have two independently
 controllable wheels, left and right one.
 
+This example changes motor speeds immediately. Check tank_smooth.py for
+a smooth example.
+
 Motor reference:
 https://gpiozero.readthedocs.io/en/stable/api_output.html?highlight=Motor#gpiozero.Motor
-
-The motor speed changes could modified to work more
-smoothly by using ideas from servo_smooth.py or servo_partially_smooth.py.
 """
 
 LEFT_MOTOR_FORWARD_GPIO_PIN = 4

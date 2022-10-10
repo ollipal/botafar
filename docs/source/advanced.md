@@ -227,14 +227,13 @@ botafar.run()
 
 ## Project blueprints
 
-Here is code for some typical bot types, you can use as starting points to your projects.
+Here is code for some typical bot types, you can use as starting points for your projects.
 
 ### Tank
 
-Example how to create a tank controllable by two instances of gpiozero [Motor](https://gpiozero.readthedocs.io/en/stable/api_output.html?highlight=Motor#gpiozero.Motor) and botafar.Joystick. This example works if you have two independently controllable wheels, left and right one.
+#### Basic tank
 
-The motor speed changes could modified to work more
-smoothly by using ideas from [Smooth servo](#smooth-servo) or  [Partially smooth servo](#partially-smooth-servo).
+Example how to create a tank controllable by two instances of gpiozero [Motor](https://gpiozero.readthedocs.io/en/stable/api_output.html?highlight=Motor#gpiozero.Motor) and botafar.Joystick. This example works if you have two independently controllable wheels, left and right one.
 
 Tank wiring example from gpiozero [Robot](https://gpiozero.readthedocs.io/en/stable/recipes.html#robot) tutorial using SN754410 motor driver, [image licence](https://github.com/gpiozero/gpiozero/blob/master/LICENSE.rst).
 
@@ -282,12 +281,103 @@ def drive_tank(event):
 botafar.run()
 ```
 
+#### Smooth tank
+
+This is a similar example to the previous one, but this changes motor speeds smoothly.
+
+Change `MOTOR_STEPS` and `MOTOR_UPDATE_FREQ` to change how tank accelerates.
+
+```python
+from threading import Lock
+from time import sleep
+from gpiozero import Motor
+import botafar
+
+LEFT_MOTOR_FORWARD_GPIO_PIN = 4
+LEFT_MOTOR_BACKWARD_GPIO_PIN = 14
+RIGHT_MOTOR_FORWARD_GPIO_PIN = 17
+RIGHT_MOTOR_BACKWARD_GPIO_PIN = 18
+MOTOR_STEPS = 40
+MOTOR_UPDATE_FREQ = 25
+
+LEFT_MOTOR_VALUES = {
+    "on_center":      0.0,
+    "on_up":          1.0,
+    "on_up_left":     0.5,
+    "on_left":        0.0,
+    "on_down_left":  -0.5,
+    "on_down":       -1.0,
+    "on_down_right": -1.0,
+    "on_right":       1.0,
+    "on_up_right":    1.0,
+}
+
+RIGHT_MOTOR_VALUES = {
+    "on_center":      0.0,
+    "on_up":          1.0,
+    "on_up_left":     1.0,
+    "on_left":        1.0,
+    "on_down_left":  -1.0,
+    "on_down":       -1.0,
+    "on_down_right": -0.5,
+    "on_right":       0.0,
+    "on_up_right":    0.5,
+}
+
+j = botafar.Joystick(
+    "W", "A", "S", "D", alt=["UP", "LEFT", "DOWN", "RIGHT"], diagonals=True
+)
+
+class SmoothMotor:
+    def __init__(self, forward_pin, backward_pin, values):
+        self.motor = Motor(
+            forward=forward_pin,
+            backward=backward_pin,
+        )
+        self.values = values
+        self.target_value = 0
+        self.sleep_amount = 1 / MOTOR_UPDATE_FREQ
+        self.move_amount = 2 / MOTOR_STEPS
+        self.lock = Lock()  # Fixes concurrency issues
+
+    @j.on_any
+    def move(self, event):
+        with self.lock:
+            target_value = self.values[event.name]
+            botafar.print(f"motor target value {target_value}")
+            while event.is_active and target_value != self.motor.value:
+
+                if target_value < self.motor.value:
+                    self.motor.value = max(
+                        target_value, self.motor.value - self.move_amount
+                    )
+                elif target_value > self.motor.value:
+                    self.motor.value = min(
+                        target_value, self.motor.value + self.move_amount
+                    )
+
+                sleep(self.sleep_amount)
+
+
+SmoothMotor(
+    LEFT_MOTOR_FORWARD_GPIO_PIN,
+    LEFT_MOTOR_BACKWARD_GPIO_PIN,
+    LEFT_MOTOR_VALUES,
+)
+SmoothMotor(
+    RIGHT_MOTOR_FORWARD_GPIO_PIN,
+    RIGHT_MOTOR_BACKWARD_GPIO_PIN,
+    RIGHT_MOTOR_VALUES,
+)
+botafar.run()
+```
+
 ### RC car
 
 Example how to create a RC car controllable by gpiozero [Servo](https://gpiozero.readthedocs.io/en/stable/api_output.html?highlight=Motor#gpiozero.Servo), gpiozero [Motor](https://gpiozero.readthedocs.io/en/stable/api_output.html?highlight=Motor#gpiozero.Motor) and botafar.Joystick. Motor sets the wheel spinning speed, servo steers the front wheels.
 
 The servo turning and motor speed changes could modified to work more
-smoothly by using ideas from [Smooth servo](#smooth-servo) or  [Partially smooth servo](#partially-smooth-servo).
+smoothly by using ideas from [Smooth servo](#smooth-servo) and  [Smooth tank](#smooth-tank).
 
 ```python
 from gpiozero import Servo, Motor
@@ -342,7 +432,7 @@ class ImmediateServo:
             self.servo.value = servo_value
 
 
-# Can be modified to work smoothly
+# Can be changed to SmoothMotor from Smooth tank example
 class ImmediateMotor:
     def __init__(self):
         self.motor = Motor(

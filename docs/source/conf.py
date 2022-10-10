@@ -81,4 +81,4 @@ html_theme_options = {
 
 # Allow linking between headings:
 # https://myst-parser.readthedocs.io/en/stable/syntax/optional.html#syntax-header-anchors
-myst_heading_anchors = 3
+myst_heading_anchors = 4

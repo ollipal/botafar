@@ -17,7 +17,7 @@ Motor reference:
 https://gpiozero.readthedocs.io/en/stable/api_output.html?highlight=Motor#gpiozero.Motor
 
 The servo turning and motor speed changes could modified to work more
-smoothly by using ideas from servo_smooth.py or servo_partially_smooth.py.
+smoothly by using ideas from servo_smooth.py and tank_smooth.py.
 """
 
 SERVO_GPIO_PIN = 17
@@ -71,7 +71,7 @@ class ImmediateServo:
             self.servo.value = servo_value
 
 
-# Can be modified to work smoothly
+# Can be changed to SmoothMotor from tank_smooth.py
 class ImmediateMotor:
     def __init__(self):
         self.motor = Motor(
