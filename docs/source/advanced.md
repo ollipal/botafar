@@ -301,16 +301,25 @@ MOTOR_BACKWARD_GPIO_PIN = 14
 SERVO_VALUES = {
     "on_left":       1,
     "on_up_left":    0.5,
+    "on_down_left":  0.5,
     "on_up":         0,
+    "on_down":       0,
     "on_center":     0,
     "on_up_right":   -0.5,
+    "on_down_right": -0.5,
     "on_right":      -1,
 }
 
 MOTOR_VALUES = {
     "on_up":         1,
+    "on_up_right":   1,
+    "on_up_left":    1,
+    "on_right":      1,
+    "on_left":       1,
     "on_center":     0,
     "on_down":       -1,
+    "on_down_right": -1,
+    "on_down_left":  -1,
 }
 
 j = botafar.Joystick("W", "A", "S", "D", alt=["UP", "LEFT", "DOWN", "RIGHT"], diagonals=True)
