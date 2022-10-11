@@ -252,11 +252,11 @@ MOTOR_VALUES = {
     "on_center":     ( 0.0, 0.0),
     "on_up":         ( 1.0, 1.0),
     "on_up_left":    ( 0.5, 1.0),
-    "on_left":       ( 0.0, 1.0),
+    "on_left":       (-0.5, 0.5),
     "on_down_left":  (-0.5,-1.0),
     "on_down":       (-1.0,-1.0),
     "on_down_right": (-1.0,-0.5),
-    "on_right":      ( 1.0, 0.0),
+    "on_right":      ( 0.5,-0.5),
     "on_up_right":   ( 1.0, 0.5),
 }
 
@@ -297,18 +297,18 @@ LEFT_MOTOR_FORWARD_GPIO_PIN = 4
 LEFT_MOTOR_BACKWARD_GPIO_PIN = 14
 RIGHT_MOTOR_FORWARD_GPIO_PIN = 17
 RIGHT_MOTOR_BACKWARD_GPIO_PIN = 18
-MOTOR_STEPS = 40
-MOTOR_UPDATE_FREQ = 25
+MOTOR_STEPS = 40  # How many distinct motor speeds
+MOTOR_UPDATE_FREQ = 25  # How many speed updates per second
 
 LEFT_MOTOR_VALUES = {
     "on_center":      0.0,
     "on_up":          1.0,
     "on_up_left":     0.5,
-    "on_left":        0.0,
+    "on_left":       -0.5,
     "on_down_left":  -0.5,
     "on_down":       -1.0,
     "on_down_right": -1.0,
-    "on_right":       1.0,
+    "on_right":       0.5,
     "on_up_right":    1.0,
 }
 
@@ -316,11 +316,11 @@ RIGHT_MOTOR_VALUES = {
     "on_center":      0.0,
     "on_up":          1.0,
     "on_up_left":     1.0,
-    "on_left":        1.0,
+    "on_left":        0.5,
     "on_down_left":  -1.0,
     "on_down":       -1.0,
     "on_down_right": -0.5,
-    "on_right":       0.0,
+    "on_right":      -0.5,
     "on_up_right":    0.5,
 }
 
@@ -337,11 +337,11 @@ class SmoothMotor:
         self.values = values
         self.target_value = 0
         self.sleep_amount = 1 / MOTOR_UPDATE_FREQ
-        self.move_amount = 2 / MOTOR_STEPS
+        self.change_amount = 2 / MOTOR_STEPS
         self.lock = Lock()  # Fixes concurrency issues
 
     @j.on_any
-    def move(self, event):
+    def drive(self, event):
         with self.lock:
             target_value = self.values[event.name]
             botafar.print(f"motor target value {target_value}")
@@ -349,11 +349,11 @@ class SmoothMotor:
 
                 if target_value < self.motor.value:
                     self.motor.value = max(
-                        target_value, self.motor.value - self.move_amount
+                        target_value, self.motor.value - self.change_amount
                     )
                 elif target_value > self.motor.value:
                     self.motor.value = min(
-                        target_value, self.motor.value + self.move_amount
+                        target_value, self.motor.value + self.change_amount
                     )
 
                 sleep(self.sleep_amount)

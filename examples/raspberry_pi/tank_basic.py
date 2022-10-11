@@ -23,11 +23,11 @@ MOTOR_VALUES = {
     "on_center": (0.0, 0.0),
     "on_up": (1.0, 1.0),
     "on_up_left": (0.5, 1.0),
-    "on_left": (0.0, 1.0),
+    "on_left": (-0.5, 0.5),
     "on_down_left": (-0.5, -1.0),
     "on_down": (-1.0, -1.0),
     "on_down_right": (-1.0, -0.5),
-    "on_right": (1.0, 0.0),
+    "on_right": (0.5, -0.5),
     "on_up_right": (1.0, 0.5),
 }
 
