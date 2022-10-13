@@ -31,7 +31,7 @@ repos:
     rev: v2.1.0
     hooks:
       - id: codespell
-        entry: codespell
+        entry: codespell -L ser
   - repo: local
     hooks:
       - id: pflake8

@@ -75,7 +75,7 @@ jobs:
       - name: Install and run codespell
         run: |
           pip install codespell==2.1.0
-          codespell ./src ./tests
+          codespell ./src ./tests -L ser
 
   markdownlint:
     runs-on: ubuntu-latest

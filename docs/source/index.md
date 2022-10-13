@@ -7,12 +7,11 @@
 
 ```{toctree}
 :hidden:
-:caption: Tutorial
 
 get_started
 basics
-arduino
 raspi
+arduino
 twitch_and_youtube
 advanced
 advanced_arduino_raspi

@@ -29,7 +29,7 @@ python --version
 Most likely your Python came with pip package installer. Then the installation of botafar library should work with:
 
 ```
-python -m pip install botafar
+python -m pip install botafar --upgrade
 ```
 
 If the command fails, check instructions on [installing pip](https://pip.pypa.io/en/stable/installation/).
@@ -42,10 +42,4 @@ Verify working botafar installation with:
 python -m botafar --version
 ```
 
-## Updating botafar library
-
-To update existing botafar installation, run:
-
-```
-python -m pip install --upgrade botafar
-```
+On some Debian based operating systems such as Raspberry Pi OS, on you need to have [libSRTP](https://github.com/cisco/libsrtp) and other related network dependencies installed to be installed as well: `sudo apt install libnss3 libnspr4 libsrtp2-1 -y`
