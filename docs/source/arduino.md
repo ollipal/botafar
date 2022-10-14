@@ -377,11 +377,12 @@ void loop() {
       } else {
         Serial.println("led: unknown value");
       }
-
     // Set servo position if command == "servo"
     } else if (command == "servo") {
       servo.write(value.toInt());
       Serial.println("servo in position: " + value);  
+    } else {
+        Serial.println("Unknown command");
     }
   }
 }
