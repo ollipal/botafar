@@ -289,7 +289,7 @@ set_port("COM1")
 # Do something with firmatazero LED, Servo
 ```
 
-You can also set different board than Arduino uno:
+You can also set different board than Arduino Uno:
 
 ```python
 from pyFirmata2 import ArduinoMega
@@ -353,7 +353,7 @@ void loop() {
 }
 ```
 
-(This code implemented simplicity in mind, so it uses dynamic memory allocation and does not  take advanced Arduino topics such as _heap fragmentation_ and _memory exhaustion_) into account.)
+(This code implemented to be easily modified and extended. It uses dynamic memory allocation and does not  take advanced Arduino topics such as _heap fragmentation_ and _memory exhaustion_ into account.)
 
 Then install pySerial by running:
 
