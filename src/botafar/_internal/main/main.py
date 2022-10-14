@@ -189,11 +189,15 @@ def exit():
     if main is not None:
         main.exit()
     else:
-        raise RuntimeError("tb.exit() cannot be called before tb.run()")
+        raise RuntimeError(
+            "botafar.exit() cannot be called before botafar.run()"
+        )
 
 
 def _main(log_level, suppress_keys, prints_removed):
-    assert state_machine.state == PRE_INIT, "tb.run() can be called only once"
+    assert (
+        state_machine.state == PRE_INIT
+    ), "botafar.run() can be called only once"
     global main
     setup_logging(log_level)
     main = Main(suppress_keys, prints_removed)

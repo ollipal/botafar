@@ -739,7 +739,7 @@ class ServerStateMachine:
     async def sleep_async(self, secs):
         assert (
             self.sleep_event_async is not None
-        ), "listen() must be called before sleep_async()"
+        ), "botafar.run() must be called before sleep_async()"
 
         # Triggers even when secs=0
         if self.sleep_event_async.is_set():

@@ -17,14 +17,14 @@ main = None
 def get_decorator(cls, title, name, always_empty):
     def decorator(*args, **kwargs):
         assert not (always_empty and len(args) == 0 and len(kwargs) == 0), (
-            "Remove empty parentheses '()' from " f"@tb.{name}()"
+            "Remove empty parentheses '()' from " f"@botafar.{name}()"
         )
         assert not (
             always_empty and len(kwargs) != 0
-        ), f"@tb.{name} got unknown parameters {list(kwargs.keys())}"
+        ), f"@botafar.{name} got unknown parameters {list(kwargs.keys())}"
         assert not (
             always_empty and len(args) > 1
-        ), f"@tb.{name} got unknown arguments {args}"
+        ), f"@botafar.{name} got unknown arguments {args}"
         assert not (
             always_empty
             and not (
@@ -61,7 +61,7 @@ class DecoratorBase(ABC):
         self.decorator_name = decorator_name
         assert state_machine.state == PRE_INIT, (
             f"{self.decorator_name} callbacks cannot be added "
-            "after listen()"
+            "after botafar.run()"
         )
         assert (
             len(args) == 1
@@ -238,17 +238,17 @@ class DecoratorBase(ABC):
         join_str = "', '"
         for cls in list(DecoratorBase._wihtout_instance):
             if (
-                hasattr(cls, "tb_ignore_no_instance")
-                and cls.tb_ignore_no_instance is True
+                hasattr(cls, "botafar_ignore_no_instance")
+                and cls.botafar_ignore_no_instance is True
             ):
-                continue
+                continue  # TODO document this?
 
             if DecoratorBase.requires_only_self(cls.__botafar_original_init__):
                 logger.warning(
                     f"No {cls.__name__} instances created. Callbacks '"
                     f"{join_str.join(DecoratorBase._instance_callbacks[cls])}"
                     "' will not trigger. Create an instance with '"
-                    f"{cls.__name__}()' before 'run()' to enable "
+                    f"{cls.__name__}()' before 'botafar.run()' to enable "
                     "callbacks."
                 )
             else:
@@ -256,7 +256,7 @@ class DecoratorBase(ABC):
                     f"No {cls.__name__} instances created. Callbacks '"
                     f"{join_str.join(DecoratorBase._instance_callbacks[cls])}"
                     f"' will not trigger. Create at least one {cls.__name__} "
-                    "instance before 'run()' to enable callbacks."
+                    "instance before 'botafar.run()' to enable callbacks."
                 )
 
     @staticmethod

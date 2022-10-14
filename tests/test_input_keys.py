@@ -1,6 +1,6 @@
 import pytest
 
-import botafar as tb
+import botafar
 
 from .helpers import reset
 
@@ -8,9 +8,9 @@ from .helpers import reset
 def test_unknown_key():
     reset()
     with pytest.raises(RuntimeError):
-        tb.Button("?")
+        botafar.Button("?")
 
 
 def test_known_key():
     reset()
-    tb.Button("A")
+    botafar.Button("A")

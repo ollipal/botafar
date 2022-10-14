@@ -150,8 +150,8 @@ class OnTime(DecoratorBase):
     def __init__(self, title, decorator_name, *args, **kwargs):
         assert len(args) > 1, (
             f"{decorator_name} takes one or more times as parameter"
-            f"for example '@tb.{decorator_name}(5)' "
-            f"or '@tb.{decorator_name}(1, 2, 3)' "
+            f"for example '@botafar.{decorator_name}(5)' "
+            f"or '@botafar.{decorator_name}(1, 2, 3)' "
         )
         self.times = args[1:]
 
@@ -227,7 +227,7 @@ class OnRepeat(DecoratorBase):
     def __init__(self, title, decorator_name, *args, **kwargs):
         assert not (len(args) == 2 and isinstance(args[1], (int, float))), (
             f"{decorator_name} parameter 'sleep' should be passed "
-            f"with a keyword: '@tb.{decorator_name}(sleep={args[1]})'"
+            f"with a keyword: '@botafar.{decorator_name}(sleep={args[1]})'"
         )
         assert "sleep" in kwargs
         self.sleep = kwargs["sleep"]
