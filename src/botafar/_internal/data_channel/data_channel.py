@@ -42,7 +42,7 @@ def get_id():
     # Get id based on device mac address and file executed
     # As a result, restarting the program will re-connect to browser nicely
     # With no collisions between different devices
-    full_path = path.abspath(path.dirname(argv[0]))
+    full_path = path.abspath(argv[0])
     mac = str(getnode())
     rand = Random(full_path + mac)
     id = "".join(
