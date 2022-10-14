@@ -57,7 +57,7 @@ print("You won!")
 
 ## Controls
 
-_Controls_ bind one or more keyboard keys. When those keys are pressed on a keyboard or touch screen, they change the contorl's state which will trigger callbacks.
+_Controls_ bind one or more keyboard keys as parameters. When those keys are pressed on a keyboard or touch screen, they change the contorl's state which will trigger callbacks.
 
 Available keyboard keys are <kbd>A-Z</kbd>, <kbd>UP</kbd>, <kbd>LEFT</kbd>, <kbd>DOWN</kbd>, <kbd>RIGHT</kbd> and <kbd>SPACE</kbd>
 

@@ -12,6 +12,16 @@ If you get confused about botafar during this tutorial, make sure to read [Get s
 
 [Download Arduino IDE](https://www.arduino.cc/en/software) and install it.
 
+```{figure} https://docs-assets.botafar.com/arduino_ide_download.png
+
+Select correct version
+```
+
+```{figure} https://docs-assets.botafar.com/arduino_download_button.png
+
+Press one of the download links
+```
+
 ## botafar installation
 
 1. Install the library ([help](https://docs.botafar.com/install))
@@ -26,7 +36,29 @@ On some Debian based operating systems such as Raspberry Pi OS, on you need to h
 
 Firmata protocol allows you to use Arduino's pins through USB from Python running on your "host" computer.
 
-The code comes with default Arduino IDE installation, and it can be installed by selecting: `File > Examples > Firmata > StandardFirmata`. Then select your board and port from `Tools > Board and Tools > Port`. Then press `Upload`.
+The code comes with default Arduino IDE installation, and it can be installed by selecting: `File > Examples > Firmata > StandardFirmata`.
+
+```{figure} https://docs-assets.botafar.com/arduino_firmata_select.png
+
+Select StandardFirmata
+```
+
+Then select your board and port from `Tools > Board` and `Tools > Port`. Then press `Upload`.
+
+```{figure} https://docs-assets.botafar.com/arduino_board_port.png
+
+Select correct board and port
+```
+
+```{figure} https://docs-assets.botafar.com/arduino_upload.png
+
+Click upload
+```
+
+```{figure} https://docs-assets.botafar.com/arduino_done_uploading.png
+
+Confirmation after upload
+```
 
 To use Firmata, you need a client library. One of the best options on Python is [pyFirmata2](https://github.com/berndporr/pyFirmata2), but it might be hard to understand. Easier option is [firmatazero](https://github.com/ollipal/firmatazero) library, which wraps pyFirmata2 into interface familiar from [GPIO Zero](https://gpiozero.readthedocs.io/en/stable/) with Raspberry Pis, and allows accessing all pyFirmata2 features for more advanced users. To install it run:
 
@@ -40,9 +72,10 @@ pip install --upgrade firmatazero
 
 1. Let's now connect an LED to pin 13 with a 330 ohm resistor, note that LED's shorter leg should be connected to ground (GND) pin:
 
-![led](https://www.arduino.cc/wiki/static/52c238dba09c2e40b69e0612ff02ef0f/5a190/circuit.png)
+```{figure} https://www.arduino.cc/wiki/static/52c238dba09c2e40b69e0612ff02ef0f/5a190/circuit.png
 
-(Image from the [Blink tutorial](https://www.arduino.cc/en/Tutorial/BuiltInExamples/Blink)).
+Led wiring from the [Blink tutorial](https://www.arduino.cc/en/Tutorial/BuiltInExamples/Blink)
+```
 
 To turn the LED on for one second, let's create and run a **main.py** file
 
@@ -134,9 +167,10 @@ The process is very similar to [Blinking an LED remotely](#blinking-an-led-remot
 
 1. Connect a small servo, such as [SG90](https://www.google.com/search?tbm=isch&as_q=sg90+servo) or [MG90s](https://www.google.com/search?tbm=isch&as_q=mg90s+servo), to Arduino Uno's pin 9.
 
-![servo](https://docs.arduino.cc/static/943895f1f578104f7af98741d69a7c97/29114/servo-sweep-circuit.png)
+```{figure} https://docs.arduino.cc/static/943895f1f578104f7af98741d69a7c97/29114/servo-sweep-circuit.png
 
-(Image from the [Sweep tutorial](https://docs.arduino.cc/learn/electronics/servo-motors)).
+Servo wiring from the [Sweep tutorial](https://docs.arduino.cc/learn/electronics/servo-motors)
+```
 
 | Wire color    | Pin      |
 |---------------|----------|
@@ -367,17 +401,17 @@ Lastly connect LED, resistor and servo to Arduino Uno's pins 9, 13, 5V and two g
 
 To test the serial connection, on Arduino IDE open the Seral Monitor from `Tools > Serial Monitor`.
 
-You can now set LED state and servo angle through the monitor with commands such as
+```{figure} https://docs-assets.botafar.com/open_serial_monitor.png
 
-```
-led on
-led off
-servo 0
-servo 180
-servo 90
+Open Serial Monitor
 ```
 
-Note that for sending you need to press <kbd>Ctrl</kbd> + <kbd>Enter</kbd>.
+You can now set LED state and servo angle through the monitor with commands such as `led on`, `led off`, `servo 0`, `servo 180` and `servo 90`. To send you need to press <kbd>Ctrl</kbd> + <kbd>Enter</kbd>.
+
+```{figure} https://docs-assets.botafar.com/serial_monitor_example.png
+
+Serial Monitor sending and replies
+```
 
 To test serial connection with pySerial, first **close the Serial Monitor**, otherwise you get 'Access is denied.' response. Then read your port from Arduino IDE's tool menu, such as "COM4".
 

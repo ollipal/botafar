@@ -82,9 +82,10 @@ Now you should have gpiozero and pigpio installled, and pigpio daemon running.
 
 1. Let's now follow the official [gpiozero LED tutorial](https://gpiozero.readthedocs.io/en/stable/recipes.html#led)'s wiring and connect an LED to GPIO pin 17 with a 330 ohm resistor, note that LED's shorter leg should be connected to ground pin:
 
-![led](https://gpiozero.readthedocs.io/en/stable/_images/led_bb.svg)
+```{figure} https://gpiozero.readthedocs.io/en/stable/_images/led_bb.svg
 
-(Image from the same tutorial, [licence](https://github.com/gpiozero/gpiozero/blob/master/LICENSE.rst)) [Raspberry Pi pins here](https://pinout.xyz).
+Led wiring from the same tutorial, [licence](https://github.com/gpiozero/gpiozero/blob/master/LICENSE.rst)) [Raspberry Pi pins here](https://pinout.xyz)
+```
 
 To turn the LED on for one second, let's create and run a **main.py** file
 

@@ -51,6 +51,7 @@ Before you start, [download](https://obsproject.com/download) and install OBS. I
 The next step is to connect OBS to Twitch and start the livestream. Chris' Tutorials YouTube channel has a really nice video [OBS Stream to Twitch 5 Minute Setup Guide 2022](https://www.youtube.com/watch?v=9HYB9N7_cZc) which goes through this process.
 
 _If you are familiar with Twitch livestreaming and want to give tips on setting up a remote controlling/robotics related livestream, write to [Github Discussions](https://github.com/ollipal/botafar/discussions/categories/general)!_
+
 ## YouTube streaming
 
 The next step is to connect OBS to YouTube and start the livestream.
@@ -68,3 +69,24 @@ Chris' Tutorials YouTube channel has a really nice video [6 Minutes to Setup You
 Another good video I recommend to watch is Senpai Gaming's [Live Streaming On YouTube -- EVERYTHING You Need To Know](https://www.youtube.com/watch?v=qXzUOOD7Or0).
 
 _If you are familiar with YouTube livestreaming and want to give tips on setting up a remote controlling / robotics related livestream, write to [Github Discussions](https://github.com/ollipal/botafar/discussions/categories/general)!_
+
+## Adding Twitch/YouTube stream to bot
+
+To add your livestream to your bot, simply paste the Twitch or YouTube link below "Copy OBS URL" button.
+
+Now when you switch your bot to public, the front page and bot page will show the livestream, even to people not controlling your bot right now. It will also add a direct button to the livestream.
+
+```{figure} https://docs-assets.botafar.com/stream_url_added.png
+
+Stream URL added
+```
+
+```{figure} https://docs-assets.botafar.com/live_result_1.png
+
+Livestream on front page
+```
+
+```{figure} https://docs-assets.botafar.com/live_result_2.png
+
+Livestream on bot page before controlling
+```
