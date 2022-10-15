@@ -1,6 +1,6 @@
 """botafar"""
 
-__version__ = "0.0.7"
+__version__ = "0.0.8"
 
 
 from ._internal.controls import Button, Joystick, Slider

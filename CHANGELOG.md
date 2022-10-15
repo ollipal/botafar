@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.8] - 2022-10-15
+
+### Added
+
+- Filename is now part of generating bot URL, previously it was the directory. This means that bots in the same directory have different URLs.
+- Log messages improved
+
 ## [0.0.7] - 2022-10-06
 
 ### Added
