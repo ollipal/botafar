@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.0.9] - 2022-10-16
+
+### Added
+
+- Missing libsrtp2 dependencies error handled better
+
 ## [0.0.8] - 2022-10-15
 
 ### Added
