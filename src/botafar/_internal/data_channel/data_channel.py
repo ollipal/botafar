@@ -6,7 +6,7 @@ import string
 import warnings
 from os import path
 from random import Random
-from sys import argv
+from sys import argv, exit
 from uuid import getnode
 
 import socketio
@@ -16,12 +16,35 @@ import socketio
 # https://github.com/googleapis/python-crc32c/blob/main/src/google_crc32c/__init__.py
 with warnings.catch_warnings():
     warnings.simplefilter("ignore", category=RuntimeWarning)
-    from aiortc import (
-        RTCConfiguration,
-        RTCIceServer,
-        RTCPeerConnection,
-        RTCSessionDescription,
-    )
+    try:
+        from aiortc import (
+            RTCConfiguration,
+            RTCIceServer,
+            RTCPeerConnection,
+            RTCSessionDescription,
+        )
+    except ImportError as e:
+        from ..string_utils import bold, cyan_bold, dim, error_to_string
+
+        if "libsrtp2" in str(e):
+            print(error_to_string(e))
+            print(
+                "\n"
+                + bold(
+                    "Could not import libsrtp2. If you are on Raspberri Pi "
+                    "OS or some other system with apt, try running:"
+                )
+            )
+            print(cyan_bold("sudo apt install libnss3 libnspr4 libsrtp2-1 -y"))
+            print(
+                "\n"
+                + dim(
+                    "(more info: "
+                    "https://docs.botafar.com/install"
+                    "#installing-botafar-library)"
+                )
+            )
+            exit(1)
 
 from aiortc.sdp import candidate_from_sdp
 from cryptography.utils import CryptographyDeprecationWarning
