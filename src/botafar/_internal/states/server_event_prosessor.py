@@ -1,3 +1,4 @@
+from distutils.version import LooseVersion
 from time import time as _time
 
 from ... import __version__
@@ -104,14 +105,19 @@ class ServerEventProsessor:
             )
         )
         latest_version = data.get("latestBotafarVersion")
-        if latest_version is None:
+        if not isinstance(latest_version, str):
             logger.debug("Could not read latestBotafarVersion")
-        elif latest_version != __version__:
+        elif LooseVersion(latest_version) > LooseVersion(__version__):
             self.inform(
                 "botafar update available\ninstall with 'pip install "
                 f"--upgrade botafar'\nCurrent version: {__version__}, "
                 f"available {latest_version}\n"
                 "changelog: https://docs.botafar.com/changelog"
+            )
+        elif LooseVersion(latest_version) < LooseVersion(__version__):
+            logger.debug(
+                "You have newer version than the latest available: "
+                f"yours {__version__}, latest {latest_version}"
             )
 
     def on_browser_disconnect(self):
