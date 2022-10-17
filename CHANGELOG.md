@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.0.10] - 2022-10-17
+
+### Added
+
+- Botafar version is now checked properly for updates
+
 ## [0.0.9] - 2022-10-16
 
 ### Added
